@@ -1,0 +1,47 @@
+<!-- revisions.html -->
+
+{% extends "base.html" %}
+
+{% block head %}
+  <style type="text/css">
+	li {
+      margin: 10;
+      padding: 10;
+	}
+	
+    ul.revision {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    ul.revision li {
+      margin-bottom: 1em;
+    }
+
+    ul.revision .title {
+      font-family: "Helvetica Nue", Helvetica, Arial, sans-serif;
+      font-size: 14pt;
+    }
+    
+  </style>
+{% end %}
+
+
+{% block body %}
+
+  {% for article in articles %}
+
+      <li>
+        <div class="date" style="float: left; margin-right: 20px; ">
+        {{ locale.format_date(article.revision_date, full_format=True, shorter=True) }};|| {{article.user_name}} ||
+        </div>
+        <div class="title"><a href="revisionView?aid={{ article.article_id }}&rid={{ article.revision_id }}">{{ article.article_title }}</a></div>
+      </li>
+    
+  {% end %}
+
+  <div><a href="/archive">{{ _("Archive") }}</a></div>
+{% end %}
+
+<!-- / revisions.html -->

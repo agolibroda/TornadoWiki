@@ -1,0 +1,19 @@
+
+<!-- modules/files_list.html -->
+ 
+  {% for oneFile in fileList %}
+  
+  <!-- {{ str(oneFile) }} -->
+  {% if oneFile.file_extension == '.jpg'  %}
+  <img alt="{{oneFile.file_name}}" 
+  data-src="" 
+  height="100" width="150" 
+  src="{{static_url(oneFile.realFileName)}}" 
+  >
+  {% else %}
+ !!!{{oneFile.file_name}}!!!
+  {% end %}
+  
+  {% end %}
+  
+<!-- / modules/files_list.html -->

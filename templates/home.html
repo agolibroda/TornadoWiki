@@ -1,0 +1,14 @@
+<!-- home.html -->
+
+{% extends "base.html" %}
+
+{% block body %}
+
+  {% for article in articles %}
+    {% module SimpleArticle(article) %}
+  {% end %}
+
+  <div><a href="/archive">{{ _("Archive") }}</a></div>
+{% end %}
+
+<!-- / home.html -->

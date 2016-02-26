@@ -1,0 +1,20 @@
+<!-- upload.html -->
+
+{% extends "base.html" %}
+
+
+{% block body %}
+ 
+ <p><h1>Select & Upload</h1></p>
+ 
+<form enctype="multipart/form-data" action="/upload/{{article_id}}" method="post">
+File: <input type="file" name="filearg" multiple="multiple" />
+<br />
+<br />
+<input type="submit" value="upload" />
+    {% module xsrf_form_html() %}
+</form>
+
+{% end %}
+
+<!-- / upload.html -->

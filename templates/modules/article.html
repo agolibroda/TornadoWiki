@@ -1,0 +1,18 @@
+
+<!-- modules/article.html -->
+<div class="article">
+  <h1><a href="article/{{ article.article_id }}">{{ article.article_title }}</a></h1>
+  <div class="body">{% raw article.article_html %}</div>
+  <div class="body"> 
+  
+  {% module FilesList( fileList) %}
+  
+</div>    
+    <div class="admin">
+  {% if current_user %}
+    [<a href="/compose?aid={{ article.article_id }}&rid={{ article.revision_id }}">{{ _("Edit this wiki") }}</a>]
+  {% end %}
+    [<a href="/revisions?id={{ article.article_id }}">{{ _("View all revisions") }}</a>]
+    </div>
+</div>
+<!-- / modules/article.html -->
