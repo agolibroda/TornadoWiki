@@ -136,8 +136,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 --
 
 INSERT INTO `users` (`user_id`, `user_create`, `user_login`, `user_name`, `user_pass`, `user_role`, `user_phon`, `user_email`, `user_external`) VALUES
-(1, '2015-12-25 18:53:08', 'login', 'MyName And SurName ewrwerwerw', '$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0.', 'admin', '1234-65432-4444', 'mail_0001@mail.com', ''),
-(44, '2015-12-25 18:36:42', 'login2', 'MyName And SurName ewrwerwerw', '$2b$12$.b9454ab5a22859b68bb4uGSGt15JJ3kkV8wfRsa982euemYhJ3wa', 'admin', '1234-65432-4444', 'mail_0005@mail.com', '');
+(1, '2015-12-25 18:53:08', 'login', 'MyName And SurName ewrwerwerw', '$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0.', 'admin', '1234-65432-4444', 'mail_0001@mail.com', '');
 
 --
 -- Constraints for dumped tables
