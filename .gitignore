@@ -15,6 +15,6 @@ config/base.conf
 config/main.conf
 
 # Uploaded files
-static/filestorage 
+/static/filestorage/**
 
 
