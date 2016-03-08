@@ -48,15 +48,15 @@ class Article(Model):
      
     articles - все версии всех статей лежат в этой таблице. 
     - одна статья  - один ИД - все изменения  - просто в смене флага. Каждый текст имеет уникальный ХЕШ
-    - любые смены в "article_title" - сразу записываются как новый хеш в таблицу "links"  
-    поиск статьи по ее названию  (по любым старым названиям) делается по хешам в таблице  "links"
+    - любые смены в "article_title" - сразу записываются как новый хеш в таблицу "titles"  
+    поиск статьи по ее названию  (по любым старым названиям) делается по хешам в таблице  "titles"
     - актуальный текст сразу готовится к изданию, и помещается в таблицу "published"
     
     статья Это:
     - заглавие
     - текст стаьи (актуальный)
     
-    - категория статьи (category)
+    - категория статьи (category_article_id)
         информационная    inf
         термин            trm
         навигационная     nvg
@@ -81,7 +81,7 @@ class Article(Model):
     2.1.1 добавим новый запись в "published" и получим новую ИД
     2.1.2 добавим новую запись в "articles" с флагом "А" 
         хеш делаем из суммы текста и заголовка статьи 
-    2.1.3 добавим новую запись в "links" - хешируем название статьи, и хеш добавляем в таблицу.
+    2.1.3 добавим новую запись в "titles" - хешируем название статьи, и хеш добавляем в таблицу.
     - 
     2.2 если текст поменялся
     2.2.1 поменяем запись в "published"
@@ -89,7 +89,7 @@ class Article(Model):
     2.2.3 добавим новую запись в "articles" с флагом "А"
         хеш делаем из суммы заголовка статьи и текста,  и, 
         если в статье (название+РТФ) ничего не поменялось, то сохранить мы не сможем.
-    2.2.4 добавим новую запись в "links" - хешируем название статьи, и хеш добавляем в таблицу. 
+    2.2.4 добавим новую запись в "titles" - хешируем название статьи, и хеш добавляем в таблицу. 
         если название менялось, то запись будет добавлена  
     2.3 в любом случае делается запись о новой ревизии "revisions". 
         (автор, хеш статьи, хеш заголовка, дата...)
@@ -100,7 +100,7 @@ class Article(Model):
     получить одну статью 
     - по одному из имен (старых - новых не важно) 
     выбираем данные из "published" и "articles" берем как ХТМЛ, так и РТФ ну и активный тайтл (ил "articles")
-    имя ищем по ХЕШУ в таблице "links"
+    имя ищем по ХЕШУ в таблице "titles"
     
     получить историю статьи 
     - по  ИД (одному из имен) выбрать все версии статьи из "revisions"
@@ -113,8 +113,8 @@ class Article(Model):
         def __init__ (self): 
             Model.__init__(self, 'texts')   
             self.article_id = 0
-            self.article_html = '' 
-            self.article_sha_hash = ''
+            self.text_html = '' 
+            self.text_sha_hash = ''
 
         def get2Edit( self, articleId, revisionId ):
             """
@@ -125,12 +125,13 @@ class Article(Model):
             """
     
             getRez = self.select(
-                                   'texts.article_id, revisions.revision_id, texts.article_html,  links.article_title, ' +
+                                   'texts.article_id, revisions.revision_id, texts.text_html, subjects.subject_text, titles.title_text, ' +
                                    ' UNIX_TIMESTAMP(revisions.revision_date) AS revision_date, revisions.user_id, revisions.revision_actual_flag ' ,
-                                   'links, revisions',
+                                   'titles, revisions, subjects',
                                        {
-                                   'whereStr': '  texts.article_sha_hash =  revisions.article_sha_hash' +
-                                                ' AND links.link_sha_hash = revisions.link_sha_hash ' +
+                                   'whereStr': '  texts.text_sha_hash =  revisions.text_sha_hash' +
+                                                ' AND titles.title_sha_hash = revisions.title_sha_hash ' +
+                                                ' AND subjects.subject_sha_hash = revisions.subject_sha_hash ' +
                                                 ' AND revisions.revision_id = ' + revisionId  + ' ' +
                                                 ' AND revisions.article_id = ' + articleId  + ' '   #### строка набор условий для выбора строк
                                     }
@@ -141,23 +142,48 @@ class Article(Model):
             elif len(getRez) == 1:   
     #             logging.info( 'getRez = ' + str(getRez[0]))
                 outArt = getRez[0]
-                outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
-                decodeText =  base64.b64decode(outArt.article_html)
+                outArt.article_title = base64.b64decode(outArt.title_text).decode(encoding='UTF-8')
+                outArt.article_subj = base64.b64decode(outArt.subject_text).decode(encoding='UTF-8')
+                decodeText =  base64.b64decode(outArt.text_html)
                 outArt.article_html = zlib.decompress(decodeText).decode('UTF-8')    
     #             logging.info( 'outArt.article_html = ' + str(outArt.article_html))
     
                 articleTitle = outArt.article_title.strip().strip(" \t\n")
                 outArt.article_link =  articleTitle.lower().replace(' ','_')
+#                 self.article_link = titleText
                 
+                del(outArt.title_text) 
+                del(outArt.text_html) 
+                del(outArt.subject_text) 
+
+                logging.info( 'TEXT ::: get2Edit outArt  = ' + str(outArt))
+                 
                 return outArt
 
-   
-    class Link(Model):
+
+
+
+    class Subj(Model):
+        """
+        Это возможность работать и менять 
+        "кракое описание страницы" 
+        Это поле будет использоваться при прсмотре списка статей.... 
+        ну при показе - редактировании, так то само-собой.
+        """
         def __init__ (self): 
-            Model.__init__(self, 'links')   
+            Model.__init__(self, 'subjects')   
             self.article_id = 0
-            self.article_title = ''
-            self.link_sha_hash = ''
+            self.subject_text = ''
+            self.subject_sha_hash = ''
+
+
+   
+    class Title(Model):
+        def __init__ (self): 
+            Model.__init__(self, 'titles')   
+            self.article_id = 0
+            self.title_text = ''
+            self.title_sha_hash = ''
 
 
     class RevisionLoc(Model):
@@ -169,8 +195,9 @@ class Article(Model):
 # дата создания ревизии   
 #             self.revision_date = 0
 #             self.revision_actual_flag  = 'A'
-            self.link_sha_hash = ''
-            self.article_sha_hash = ''
+            self.title_sha_hash = ''
+            self.subject_sha_hash = ''
+            self.text_sha_hash = ''
 
         def revisionsList(self, articleId):
             """
@@ -179,18 +206,20 @@ class Article(Model):
             Обязательно - автора!
     
     
-            - выбираем данные из "articles"  и "links"  и "users" 
+            - выбираем данные из "texts"  и "subjects"  и "titles"  и "users" 
             
             
             """
             getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_html) ',
                                    ' UNIX_TIMESTAMP(revisions.revision_date) AS revision_date, '+ 
-                                   ' revisions.article_id, revisions.revision_id, links.article_title, ' +
+                                   ' revisions.article_id, revisions.revision_id, ' +
+                                   ' titles.title_text, subjects.subject_text, ' +
                                    ' users.user_id, users.user_name ',
-                                   ' links, users ',
+                                   ' titles, subjects, users ',
                                        {
-                                   'whereStr': ' revisions.link_sha_hash = links.link_sha_hash '  +
+                                   'whereStr': ' revisions.title_sha_hash = titles.title_sha_hash '  +
+                                            ' AND revisions.subject_sha_hash = subjects.subject_sha_hash '  +
                                             ' AND revisions.user_id =  users.user_id '  +
                                             ' AND revisions.article_id =  ' + str(articleId), # строка набор условий для выбора строк
                                    'orderStr': ' revisions.revision_date DESC ', # строка порядок строк
@@ -204,7 +233,7 @@ class Article(Model):
             for oneObj in getRez:
     #             logging.info( 'list:: Before oneArt = ' + str(oneObj))
                 
-                oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
+                oneObj.article_title = base64.b64decode(oneObj.title_text).decode(encoding='UTF-8')
                 articleTitle = oneObj.article_title.strip().strip(" \t\n")
                 oneObj.article_link =  articleTitle.lower().replace(' ','_')
 #                 oneObj.article_html =  base64.b64decode(oneObj.article_html).decode(encoding='UTF-8')
@@ -213,19 +242,21 @@ class Article(Model):
 #         logging.info( 'article:: revisionsList:::  getRez = ' + str(getRez))
             return getRez
 
-        def IsUniqueRevision(self, linkHash, articleHash):
+        def IsUniqueRevision(self, titleHash, subjHash, textHash):
             """
             проверить, является ли данная ревизия уникальной 
             - может поменятся все, 
-            - пожет - заглавие
+            - может - заглавие
+            - может - аннотация
             - может текст
             """
             isUniqueRez = self.select(
-                       ' revisions.article_sha_hash, revLink.link_sha_hash',
-                       'revisions revLink',
-                           {
-                       'whereStr': ' (revisions.article_sha_hash = "'+ articleHash + '" '
-                                    ' OR revLink.link_sha_hash = "' + linkHash  + '") ' , # строка набор условий для выбора строк
+                       ' revisions.text_sha_hash, revSubj.subject_sha_hash, revTitle.title_sha_hash',
+                       'revisions revTitle, revisions revSubj',
+                           { 
+                       'whereStr': ' ( revTitle.title_sha_hash = "'+ titleHash + '" ' +
+                                    ' OR revSubj.subject_sha_hash = "'+ subjHash + '" ' +
+                                    ' OR revisions.text_sha_hash = "' + textHash  + '" ) ' , # строка набор условий для выбора строк
                         }
                        )
             
@@ -240,7 +271,10 @@ class Article(Model):
         Model.__init__(self, 'articles')   
         self.article_id = 0 # эти параметры прилетают из формы редактирования
         self.article_title = '' # эти параметры прилетают из формы редактирования
+        self.article_subj = '' # Это аннотация статьи!!!!!
         self.article_html = '' # эти параметры прилетают из формы редактирования
+        self.category_article_id = 0 # категория страницы (служебные?) 'inf','trm','nvg','tpl'
+#         self.article_link = '' 
 
         
 
@@ -251,7 +285,7 @@ class Article(Model):
         2.1.1 добавим новый запись в "article" и получим новую ИД
         2.1.2 добавим новую запись в "articles" с флагом "А" 
             хеш делаем из суммы текста и заголовка статьи 
-        2.1.3 добавим новую запись в "links" - хешируем название статьи, и хеш добавляем в таблицу.
+        2.1.3 добавим новую запись в "titles" - хешируем название статьи, и хеш добавляем в таблицу.
         - 
         2.2 если текст поменялся
         2.2.1 поменяем запись в "article"
@@ -259,152 +293,198 @@ class Article(Model):
         2.2.3 добавим новую запись в "articles" с флагом "А"
             хеш делаем из суммы заголовка статьи и текста,  и, 
             если в статье (название+РТФ) ничего не поменялось, то сохранить мы не сможем.
-        2.2.4 добавим новую запись в "links" - хешируем название статьи, и хеш добавляем в таблицу. 
+        2.2.4 добавим новую запись в "titles" - хешируем название статьи, и хеш добавляем в таблицу. 
             если название менялось, то запись будет добавлена  
         
         
         """
 
+# categories 
+# Это новая таблица  - все категории, которые только озможны, и пока там  
+# вот такие категрии (служебные?) 'inf','trm','nvg','tpl'
+
+#         artModel.article_id = self.get_argument("id", 0)
+#         artModel.article_title = self.get_argument("article_title")
+#         artModel.article_subj = self.get_argument("article_subj")
+#         artModel.article_html = self.get_argument("article_html")
+
        
 #         self.start_transaction()
 # любая запись - это ревизия!
-        revision = self.RevisionLoc()
-        linkControl = self.Link()
+        revisionControl = self.RevisionLoc()
+        titleControl = self.Title()
+        subjControl = self.Subj()
         textControl = self.Text()       
 
-        revision.user_id = user_id
+        revisionControl.user_id = user_id
+
+        titleControl.title_text = self.article_title.strip().strip(" \t\n")
+#         del(self.article_title)
+        titleText = titleControl.title_text.lower().replace(' ','_')
+        titleControl.title_sha_hash = hashlib.sha256(
+                                            tornado.escape.utf8(titleText)
+                                            ).hexdigest()  #.decode(encoding='UTF-8')
+        titleControl.title_text = base64.b64encode(tornado.escape.utf8(titleControl.title_text)).decode(encoding='UTF-8')
+
+        subjControl.subject_sha_hash = hashlib.sha256(
+                                               tornado.escape.utf8(self.article_subj)
+                                               ).hexdigest()   #.decode(encoding='UTF-8')
+        subjControl.subject_text = base64.b64encode(tornado.escape.utf8(self.article_subj)).decode(encoding='UTF-8')    
+#         del(self.article_subj)
 
         wrkHtml = self.article_html
 #         logging.info( 'wrkHtml = ' + repr(wrkHtml))
-        textControl.article_html = base64.b64encode(zlib.compress(tornado.escape.utf8(self.article_html))).decode(encoding='UTF-8')
-        textControl.article_sha_hash = hashlib.sha256(
+# вот ту, перед укладкой на хранение, надо будет очищать исходник от вставок... 
+        textControl.text_html = base64.b64encode(
+                                    zlib.compress(
+                                        tornado.escape.utf8(self.article_html)
+                                                )
+                                                    ).decode(encoding='UTF-8')
+        
+        textControl.text_sha_hash = hashlib.sha256(
                                                tornado.escape.utf8(self.article_html)
                                                ).hexdigest()   #.decode(encoding='UTF-8')
-        linkControl.article_title = self.article_title.strip().strip(" \t\n")
-        del(self.article_title)
-        linkText = linkControl.article_title.lower().replace(' ','_')
-        logging.info( 'Article ::: save linkControl.article_title  = ' + str(linkControl.article_title))
-        logging.info( 'Article ::: save linkText  = ' + str(linkText))
-        linkControl.link_sha_hash = hashlib.sha256(
-                                            tornado.escape.utf8(linkText)
-                                            ).hexdigest()  #.decode(encoding='UTF-8')
-        linkControl.article_title = base64.b64encode(tornado.escape.utf8(linkControl.article_title)).decode(encoding='UTF-8')
+                                               
+
+#         logging.info( 'Article ::: save titleText  = ' + str(titleText))
+#         logging.info( 'Article ::: save titleControl.title_text  = ' + str(titleControl.title_text))
+#         logging.info( 'Article ::: save subjControl.subject_text  = ' + str(subjControl.subject_text))
  
-        revision.link_sha_hash = linkControl.link_sha_hash
-        revision.article_sha_hash = textControl.article_sha_hash
+        
 # получили ХЭШИ с новых данных.                                            
 # надо узнать,являются ли наши данные реально новыми        
-        isUniqueRez = self.IsUniqueRevision(linkControl.link_sha_hash, textControl.article_sha_hash)
+        isUniqueRez = self.IsUniqueRevision(
+                                            titleControl.title_sha_hash, 
+                                            subjControl.subject_sha_hash, 
+                                            textControl.text_sha_hash)
 
 #         logging.info( 'SAVE::!!! isUniqueRez = ')
 #         for oneRez in isUniqueRez:
 #             logging.info( str(oneRez) )
 
-        newRtf = True
+        newText = True
+        newSubj = True
         newTitle = True
         
         if len(isUniqueRez) > 0:
             for oneRez in isUniqueRez:
 #                 logging.info( oneRez )
 #                 if oneRez.article_id == self.article_id:
-                if (oneRez.article_sha_hash == textControl.article_sha_hash):
-                    newRtf = False
-                if (oneRez.link_sha_hash == linkControl.link_sha_hash) :
+                if (oneRez.text_sha_hash == textControl.text_sha_hash):
+                    newText = False
+                if (oneRez.subject_sha_hash == subjControl.subject_sha_hash):
+                    newSubj = False
+                if (oneRez.title_sha_hash == titleControl.title_sha_hash) :
                     newTitle = False
-            if not newRtf and not newTitle:
-                raise err.WikiException(LINK_OR_ARTICLE_NOT_UNIQ)
+
+            logging.info( 'after Testing:newText = ' + str(newText) + '; newSubj = ' + str(newSubj) + '; newTitle = ' + str (newTitle) )
+
+#             if not newText and not newSubj and not newTitle:
+#                 raise err.WikiException(LINK_OR_ARTICLE_NOT_UNIQ)
                     
-        logging.info( 'after Testing: self.article_id = ' + str(self.article_id) + '; newRtf = ' + str(newRtf) + '; newTitle = ' + str (newTitle) )
+        logging.info( 'after Testing: self.article_id = ' + str(self.article_id) + '; newText = ' + str(newText) + '; newTitle = ' + str (newTitle) )
+
+        revisionControl.title_sha_hash = titleControl.title_sha_hash
+        revisionControl.subject_sha_hash = subjControl.subject_sha_hash
+        revisionControl.text_sha_hash = textControl.text_sha_hash
 
         
 # вот тут нужна конверация!!!! и всякая иная обработка!!!!
 #         htmlTextOut = wrkHtml
         # rtf2xml - то библиотека для переработки.
 #         htmlTextOut = markdown.markdown(wrkHtml)
-#  надо подготовить текст к публикации (возможно проанализаровать - есть ли в тексте какие - то данные, КОТОРЫЕ СТОИТ ОТДЛЬНО ОБРАБОТАТЬ.)        
+#  надо подготовить текст к публикации (возможно проанализаровать - есть ли в тексте какие - то данные, КОТОРЫЕ СТОИТ ОТДЛЬНО ОБРАБОТАТЬ.)
+# Внешних шаблонов нагородить...         
         htmlTextOut = wrkHtml
         self.article_html = base64.b64encode(tornado.escape.utf8(htmlTextOut)).decode(encoding='UTF-8') 
-        self.article_title =  linkControl.article_title
+        self.article_title = titleControl.title_text
+        self.article_subj = subjControl.subject_text                                   
+        
         
         if self.article_id == 0:
-            if len(isUniqueRez) > 0:
-                raise err.WikiException(LINK_OR_ARTICLE_NOT_UNIQ)
-            
-#             del(self.article_id)
-            self.article_id = self.insert('article_id')
-            linkControl.article_id = self.article_id
-            textControl.article_id = self.article_id
-#             self.commit()
-            linkControl.insert() # запомним линку
-#             self.commit()
-            textControl.insert() # запомним статью
-#             self.commit()
+            try:
+                self.article_id = self.insert('article_id')
+            except Exception as e:
+# // pymysql.err.IntegrityError: (1062, "Duplicate entry '9153907302f2a10a1ffd58094528ab3361d3736654e3136cf26c7cbf828224a2' for key 'PRIMARY'")
+                logging.info( 'ComposeHandler:: Exception as et = ' + str(e))
+                return False
+#                 raise e
+#             err.WikiException(LINK_OR_ARTICLE_NOT_UNIQ)
 
+            self.commit
+                    
+            titleControl.article_id = self.article_id
+            subjControl.article_id = self.article_id
+            textControl.article_id = self.article_id
         else:
- 
+            self.update('article_id = ' + str (self.article_id))
+            self.commit()
+            
+
+        if newText or newTitle or newSubj:
             revisionUpd = self.RevisionLoc()
             del(revisionUpd.revision_id) 
             del(revisionUpd.article_id) 
             del(revisionUpd.user_id) 
 #             del(revisionUpd.revision_date) 
-            del(revisionUpd.link_sha_hash) 
-            del(revisionUpd.article_sha_hash) 
+            del(revisionUpd.title_sha_hash) 
+            del(revisionUpd.subject_sha_hash) 
+            del(revisionUpd.text_sha_hash) 
+
             revisionUpd.revision_actual_flag = 'N'
             revisionUpd.update('article_id = ' + str (self.article_id))
-#             revisionUpd.commit()
-           
-            textControl.article_id = self.article_id
-            if len(isUniqueRez) == 0 or newRtf:
-                textControl.insert()
-#                 self.commit()
-                 
-            linkControl.article_id = self.article_id
-            if len(isUniqueRez) == 0 or newTitle:
-                linkControl.insert()
- 
-#             else:
-#                 raise err.WikiException(LINK_OR_ARTICLE_NOT_UNIQ)
+            revisionControl.article_id =  self.article_id
+            revisionControl.insert()
+            self.commit
             
-
-#             del(self.article_id) 
-            self.update('article_id = ' + str (self.article_id))
-            self.commit()
+        if newText:
+            textControl.article_id = self.article_id
+            textControl.insert()
+            self.commit
+             
+        if newTitle:
+            titleControl.article_id = self.article_id
+            titleControl.insert()
+            self.commit
+        
+        if newSubj:
+            subjControl.article_id = self.article_id
+            subjControl.insert()
+            self.commit
              
 #             published.article_id =  self.article_id
-        self.article_link = linkText
 # а вот ту надо добавить новую запись в таблицу ревизий!!
-        revision.article_id =  self.article_id
-        revision.insert()
+        
+        self.article_link = titleText
                 
-        self.commit()
         return True 
 
-    def get(self, articleLink):
+    def get(self, articleTitle):
          """
          получить статью по названию (одну) - функция для пердставления данных (!!!) 
          получить ОЛЬКО опубликованный текст  (активную статью) - для редактирования получаем статью иным образом! 
     
          - по одному из имен (старых - новых не важно) 
          выбираем данные из "article" и "articles" берем как ХТМЛ, так и РТФ ну и активный тайтл (ил "articles")
-         имя ищем по ХЕШУ в таблице "links"
+         имя ищем по ХЕШУ в таблице "titles"
          
          """
-         logging.info( 'Article ::: get articleLink  = ' + str(articleLink))
+         logging.info( 'Article ::: get articleTitle  = ' + str(articleTitle))
     
          articleTitle = hashlib.sha256(
-                                     tornado.escape.utf8(articleLink)
+                                     tornado.escape.utf8(articleTitle)
                                      ).hexdigest()  #.decode(encoding='UTF-8')
     
     
          getRez = self.select(
-                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_html ',
-                                ' revisions, links lfind ',
+                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_subj,  articles.article_html ',
+                                ' revisions, titles lfind ',
                                     {
                                 'whereStr': ' articles.article_id = lfind.article_id ' +
                                              ' AND revisions.revision_actual_flag = "A" ' +
                                              ' AND revisions.article_id =  articles.article_id ' +
                                              ' AND articles.article_id = lfind.article_id ' +
-                                             ' AND lfind.link_sha_hash = "' + articleTitle  + '" ' , # строка набор условий для выбора строк
+                                             ' AND lfind.title_sha_hash = "' + articleTitle  + '" ' , # строка набор условий для выбора строк
                                  }
                                 )
     
@@ -414,6 +494,7 @@ class Article(Model):
     #             logging.info( 'getRez = ' + str(getRez[0]))
              outArt = getRez[0]
              outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
+             outArt.article_subj = base64.b64decode(outArt.article_subj).decode(encoding='UTF-8')
              outArt.article_html =  base64.b64decode(outArt.article_html).decode(encoding='UTF-8')
     #             logging.info( 'outArt.article_html = ' + str(outArt.article_html))
     
@@ -434,7 +515,7 @@ class Article(Model):
     
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_html) ',
-                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_html ',
+                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_subj ',
                                 ' revisions ',
                                     {
                                 'whereStr': ' articles.article_id = revisions.article_id '  +
@@ -453,8 +534,9 @@ class Article(Model):
              
              oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
              articleTitle = oneObj.article_title.strip().strip(" \t\n")
-             oneObj.article_link =  articleTitle.lower().replace(' ','_')
-             oneObj.article_html =  base64.b64decode(oneObj.article_html).decode(encoding='UTF-8')
+#              oneObj.article_title =  articleTitle.lower().replace(' ','_')
+             oneObj.article_link  =  articleTitle.lower().replace(' ','_')
+             oneObj.article_subj =  base64.b64decode(oneObj.article_subj).decode(encoding='UTF-8')
     
     #             logging.info( 'list:: After oneArt = ' + str(oneObj))
     
@@ -479,13 +561,13 @@ class Article(Model):
         упорядочивать по дате ревизии - в начале - самые последние
         Обязательно - автора!
 
-        - выбираем данные из "revisions"  и "links"  и "users" 
+        - выбираем данные из "revisions"  и "titles"  и "users" 
         """
         revControl = self.RevisionLoc()
         return revControl.revisionsList(articleId)
 
 
-    def IsUniqueRevision(self, linkHash, articleHash):
+    def IsUniqueRevision(self, titleHash, subjHash, articleHash):
         """
         проверить, является ли данная ревизия уникальной 
         - может поменятся все, 
@@ -493,7 +575,7 @@ class Article(Model):
         - может текст
         """
         revControl = self.RevisionLoc()
-        return revControl.IsUniqueRevision(linkHash, articleHash)
+        return revControl.IsUniqueRevision(titleHash, subjHash, articleHash)
 
 
 

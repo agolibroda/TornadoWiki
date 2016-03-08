@@ -180,11 +180,26 @@ class ComposeHandler(BaseHandler):
 
         artModel.article_id = self.get_argument("id", 0)
         artModel.article_title = self.get_argument("article_title")
+        artModel.article_subj = self.get_argument("article_subj")
         artModel.article_html = self.get_argument("article_html")
-
+        
+#         try:
+#             rez = yield executor.submit( artModel.save, curentUser.user_id )
+#         except Exception as e:   
+#             logging.info( 'ComposeHandler:: Exception as et = ' + str(e))
+#             fileList = []
+#             self.render("compose.html", article=artModel,  fileList=fileList) 
+         
         rez = yield executor.submit( artModel.save, curentUser.user_id )
         
-        self.redirect("/article/" + tornado.escape.url_escape( artModel.article_link))
+        if rez:
+            self.redirect("/article/" + tornado.escape.url_escape( artModel.article_link))
+        else:
+            logging.info( 'ComposeHandler:: rez = ' + str(rez))
+#             как - то надо передать данные и ошибку - что - то пошло же не так... 
+#             да, и можно и ошибку то получить... 
+#             тоько КАК  - если эксепшин тут не работает... :-( )
+#             self.redirect("/compose" ) 
 
 
 class AuthCreateHandler(BaseHandler):

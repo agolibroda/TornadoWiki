@@ -1,17 +1,31 @@
+--
+-- Database: `wiki`
+--
 
-
+SET FOREIGN_KEY_CHECKS = 0; 
+-- --------------------------------------------------------
 --
 -- Table structure for table `articles`
 --
 
-CREATE TABLE IF NOT EXISTS `texts` (
-  `article_id` int(10) unsigned NOT NULL,
-  `article_sha_hash` varchar(66) NOT NULL,
+DROP TABLE IF EXISTS `articles`;
+CREATE TABLE IF NOT EXISTS `articles` (
+  `article_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `article_title` tinytext NOT NULL,
+  `article_subj` text,
   `article_html` mediumtext NOT NULL,
-  PRIMARY KEY (`article_sha_hash`),
-  KEY `article_article_id_id` (`article_id`),
-  KEY `article_article_sha_hash_id` (`article_sha_hash`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  `category_article_id` int(10) unsigned NOT NULL,
+  `template` int(10) unsigned DEFAULT NULL,
+  `permissions` enum('pbl','grp','sol') NOT NULL DEFAULT 'pbl',
+  PRIMARY KEY (`article_id`),
+  UNIQUE KEY `article_title` (`article_title`(100)),
+  KEY `article_id_idx` (`article_id`),
+  KEY `type` (`category_article_id`),
+  KEY `template` (`template`),
+  KEY `permissions` (`permissions`),
+  KEY `category_article_id` (`category_article_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=3 ;
+
 
 -- --------------------------------------------------------
 
@@ -19,6 +33,7 @@ CREATE TABLE IF NOT EXISTS `texts` (
 -- Table structure for table `files`
 --
 
+DROP TABLE IF EXISTS `files`;
 CREATE TABLE IF NOT EXISTS `files` (
   `file_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `file_create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -38,6 +53,7 @@ CREATE TABLE IF NOT EXISTS `files` (
 -- Table structure for table `files_kroses`
 --
 
+DROP TABLE IF EXISTS `files_kroses`;
 CREATE TABLE IF NOT EXISTS `files_kroses` (
   `file_id` int(10) unsigned NOT NULL,
   `article_id` int(10) unsigned NOT NULL,
@@ -53,59 +69,77 @@ CREATE TABLE IF NOT EXISTS `files_kroses` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `links`
---
-
-CREATE TABLE IF NOT EXISTS `links` (
-  `article_id` int(10) unsigned NOT NULL,
-  `article_title` tinytext NOT NULL,
-  `link_sha_hash` varchar(66) NOT NULL,
-  PRIMARY KEY (`link_sha_hash`),
-  KEY `link_article_id` (`article_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `articles`
---
-
-CREATE TABLE IF NOT EXISTS `articles` (
-  `article_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `article_title` tinytext NOT NULL,
-  `article_html` mediumtext NOT NULL,
-  `type` enum('inf','trm','nvg','tpl') NOT NULL DEFAULT 'inf',
-  `template` int(10) unsigned DEFAULT NULL,
-  `permissions` enum('pbl','grp','sol') NOT NULL DEFAULT 'pbl',
-  PRIMARY KEY (`article_id`),
-  KEY `article_id_idx` (`article_id`),
-  KEY `type` (`type`),
-  KEY `template` (`template`),
-  KEY `permissions` (`permissions`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `revisions`
 --
 
+DROP TABLE IF EXISTS `revisions`;
 CREATE TABLE IF NOT EXISTS `revisions` (
   `revision_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `article_id` int(10) unsigned NOT NULL,
   `user_id` int(10) unsigned NOT NULL,
   `revision_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `revision_actual_flag` enum('A','N') NOT NULL,
-  `link_sha_hash` varchar(66) NOT NULL,
-  `article_sha_hash` varchar(66) NOT NULL,
+  `title_sha_hash` varchar(66) NOT NULL,
+  `subject_sha_hash` varchar(66) NOT NULL,
+  `text_sha_hash` varchar(66) NOT NULL,
   PRIMARY KEY (`revision_id`),
   KEY `article_id_rev` (`article_id`),
   KEY `revision_date` (`revision_date`),
-  KEY `link_sha_hash` (`link_sha_hash`),
-  KEY `article_sha_hash` (`article_sha_hash`),
+  KEY `title_sha_hash` (`title_sha_hash`),
+  KEY `subject_sha_hash` (`subject_sha_hash`),
+  KEY `text_sha_hash` (`text_sha_hash`),
   KEY `user_id` (`user_id`),
   KEY `revision_actual_flag` (`revision_actual_flag`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=11 ;
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `subjects`
+--
+
+DROP TABLE IF EXISTS `subjects`;
+CREATE TABLE IF NOT EXISTS `subjects` (
+  `article_id` int(10) unsigned NOT NULL,
+  `subject_text` tinytext NOT NULL,
+  `subject_sha_hash` varchar(66) NOT NULL,
+  PRIMARY KEY (`subject_sha_hash`),
+  KEY `subject_article_id` (`article_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `texts`
+--
+
+DROP TABLE IF EXISTS `texts`;
+CREATE TABLE IF NOT EXISTS `texts` (
+  `article_id` int(10) unsigned NOT NULL,
+  `text_sha_hash` varchar(66) NOT NULL,
+  `text_html` mediumtext NOT NULL,
+  PRIMARY KEY (`text_sha_hash`),
+  KEY `article_article_id_id` (`article_id`),
+  KEY `article_text_sha_hash_id` (`text_sha_hash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `titles`
+--
+
+DROP TABLE IF EXISTS `titles`;
+CREATE TABLE IF NOT EXISTS `titles` (
+  `article_id` int(10) unsigned NOT NULL,
+  `title_text` tinytext NOT NULL,
+  `title_sha_hash` varchar(66) NOT NULL,
+  PRIMARY KEY (`title_sha_hash`),
+  KEY `title_article_id` (`article_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 -- --------------------------------------------------------
 
@@ -113,6 +147,7 @@ CREATE TABLE IF NOT EXISTS `revisions` (
 -- Table structure for table `users`
 --
 
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
   `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_create` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -129,43 +164,15 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `user_pass` (`user_pass`),
   KEY `user_phon` (`user_phon`),
   KEY `user_email` (`user_email`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=45 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
 --
 -- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`user_id`, `user_create`, `user_login`, `user_name`, `user_pass`, `user_role`, `user_phon`, `user_email`, `user_external`) VALUES
-(1, '2015-12-25 18:53:08', 'login', 'MyName And SurName ewrwerwerw', '$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0.', 'admin', '1234-65432-4444', 'mail_0001@mail.com', '');
+(1, '2015-12-25 12:53:08', 'login', 'MyName And SurName ewrwerwerw', '$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0.', 'admin', '1234-65432-4444', 'mail_0001@mail.com', '');
 
---
--- Constraints for dumped tables
---
 
---
--- Constraints for table `articles`
---
-ALTER TABLE `articles`
-  ADD CONSTRAINT `FK_articles_published` FOREIGN KEY (`article_id`) REFERENCES `published` (`article_id`);
-
---
--- Constraints for table `files_kroses`
---
-ALTER TABLE `files_kroses`
-  ADD CONSTRAINT `FK_article` FOREIGN KEY (`article_id`) REFERENCES `published` (`article_id`),
-  ADD CONSTRAINT `FK_files` FOREIGN KEY (`file_id`) REFERENCES `files` (`file_id`);
-
---
--- Constraints for table `links`
---
-ALTER TABLE `links`
-  ADD CONSTRAINT `FK_links_published` FOREIGN KEY (`article_id`) REFERENCES `published` (`article_id`);
-
---
--- Constraints for table `revisions`
---
-ALTER TABLE `revisions`
-  ADD CONSTRAINT `FK_article_id` FOREIGN KEY (`article_id`) REFERENCES `published` (`article_id`),
-  ADD CONSTRAINT `FK_article_sha_hash` FOREIGN KEY (`article_sha_hash`) REFERENCES `articles` (`article_sha_hash`),
-  ADD CONSTRAINT `FK_link_sha_hash` FOREIGN KEY (`link_sha_hash`) REFERENCES `links` (`link_sha_hash`),
-  ADD CONSTRAINT `FK_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+  
+  SET FOREIGN_KEY_CHECKS = 1; 
