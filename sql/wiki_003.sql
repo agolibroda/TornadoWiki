@@ -34,18 +34,21 @@ CREATE TABLE IF NOT EXISTS `articles` (
 --
 
 DROP TABLE IF EXISTS `files`;
-CREATE TABLE IF NOT EXISTS `files` (
-  `file_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `file_create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `file_inside_name` varchar(66) NOT NULL,
-  `file_extension` varchar(20) NOT NULL,
-  `file_name` varchar(254) NOT NULL,
-  PRIMARY KEY (`file_id`),
-  UNIQUE KEY `file_inside_name` (`file_inside_name`),
-  KEY `file_create_date` (`file_create_date`),
-  KEY `file_extension` (`file_extension`),
-  KEY `file_name` (`file_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+CREATE TABLE `files` (
+	`file_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`user_id` INT(10) UNSIGNED NOT NULL,
+	`file_create_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`file_inside_name` VARCHAR(66) NOT NULL,
+	`file_extension` VARCHAR(20) NOT NULL,
+	`file_name` VARCHAR(254) NOT NULL,
+	PRIMARY KEY (`file_id`),
+	UNIQUE INDEX `file_inside_name` (`file_inside_name`),
+	INDEX `file_create_date` (`file_create_date`),
+	INDEX `file_extension` (`file_extension`),
+	INDEX `file_name` (`file_name`),
+	INDEX `user_id` (`user_id`)
+)
+COLLATE='utf8_general_ci' ENGINE=InnoDB;
 
 -- --------------------------------------------------------
 

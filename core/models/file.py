@@ -104,7 +104,7 @@ class File(Model):
         кстати, если вдруг такое название уже есть, то надо будет добавить нечо уникальное (дату)
         2 записи в кроссе - с флагом "Main" и "Average"
         """  
-#         logging.info( 'uploadOneFile files = '  + str(files))
+        logging.info( 'uploadOneFile file = '  + str(file))
         
 #         logging.info( 'uploadOneFile::  file = '  + str(file))
         self.file_name = file['filename']
@@ -134,7 +134,7 @@ class File(Model):
                 
 #                 raise err.WikiException('File exist!')
         except  Exception as err:
-            logging.error (' fale upload Error:: ' + str (err) )
+            logging.error (' file upload Error:: ' + str (err) )
             self.error = err
             
             
@@ -153,6 +153,8 @@ class File(Model):
         
         """  
 #         logging.info( 'upload files = '  + str(files))
+#         logging.info( 'upload article_id = '  + str(article_id))
+#         logging.info( 'upload user_id = '  + str(user_id))
         
         rezult = []
         for oneFile in files['filearg']:
