@@ -6,7 +6,7 @@
   <form action="{{ request.path }}" method="post" class="compose">
     <div style="margin-bottom:5px"><input name="article_title" type="text" class="article_title" value="{{ article.article_title if article else "" }}"/></div>
     <div style="margin-bottom:5px">
-    <textarea name="article_subj" rows="3" cols="80" class="article_subj">{{ article.article_subj if article else "" }}</textarea>
+    <textarea name="article_annotation" rows="3" cols="80" class="article_annotation">{{ article.article_annotation if article else "" }}</textarea>
     </div>
     
     <div style="margin-bottom:5px">

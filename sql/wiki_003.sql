@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS `articles`;
 CREATE TABLE IF NOT EXISTS `articles` (
   `article_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `article_title` tinytext NOT NULL,
-  `article_subj` text,
+  `article_annotation` text,
   `article_html` mediumtext NOT NULL,
   `category_article_id` int(10) unsigned NOT NULL,
   `template` int(10) unsigned DEFAULT NULL,
@@ -83,13 +83,13 @@ CREATE TABLE IF NOT EXISTS `revisions` (
   `revision_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `revision_actual_flag` enum('A','N') NOT NULL,
   `title_sha_hash` varchar(66) NOT NULL,
-  `subject_sha_hash` varchar(66) NOT NULL,
+  `annotation_sha_hash` varchar(66) NOT NULL,
   `text_sha_hash` varchar(66) NOT NULL,
   PRIMARY KEY (`revision_id`),
   KEY `article_id_rev` (`article_id`),
   KEY `revision_date` (`revision_date`),
   KEY `title_sha_hash` (`title_sha_hash`),
-  KEY `subject_sha_hash` (`subject_sha_hash`),
+  KEY `annotation_sha_hash` (`annotation_sha_hash`),
   KEY `text_sha_hash` (`text_sha_hash`),
   KEY `user_id` (`user_id`),
   KEY `revision_actual_flag` (`revision_actual_flag`)
@@ -99,16 +99,16 @@ CREATE TABLE IF NOT EXISTS `revisions` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `subjects`
+-- Table structure for table `annotations`
 --
 
-DROP TABLE IF EXISTS `subjects`;
-CREATE TABLE IF NOT EXISTS `subjects` (
+DROP TABLE IF EXISTS `annotations`;
+CREATE TABLE IF NOT EXISTS `annotations` (
   `article_id` int(10) unsigned NOT NULL,
-  `subject_text` tinytext NOT NULL,
-  `subject_sha_hash` varchar(66) NOT NULL,
-  PRIMARY KEY (`subject_sha_hash`),
-  KEY `subject_article_id` (`article_id`)
+  `annotation_text` tinytext NOT NULL,
+  `annotation_sha_hash` varchar(66) NOT NULL,
+  PRIMARY KEY (`annotation_sha_hash`),
+  KEY `annotation_article_id` (`article_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

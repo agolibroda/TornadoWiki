@@ -19,13 +19,13 @@ import pymysql
 import hashlib
 import base64
         
-
 from _overlapped import NULL
 
 ##############
 from . import Model
 from . import err
 
+from .constants.data_base import * 
 
 
 # def parse_utf8(self, bytes, length_size):
@@ -125,13 +125,13 @@ class Article(Model):
             """
     
             getRez = self.select(
-                                   'texts.article_id, revisions.revision_id, texts.text_html, subjects.subject_text, titles.title_text, ' +
+                                   'texts.article_id, revisions.revision_id, texts.text_html, annotations.annotation_text, titles.title_text, ' +
                                    ' UNIX_TIMESTAMP(revisions.revision_date) AS revision_date, revisions.user_id, revisions.revision_actual_flag ' ,
-                                   'titles, revisions, subjects',
+                                   'titles, revisions, annotations',
                                        {
                                    'whereStr': '  texts.text_sha_hash =  revisions.text_sha_hash' +
                                                 ' AND titles.title_sha_hash = revisions.title_sha_hash ' +
-                                                ' AND subjects.subject_sha_hash = revisions.subject_sha_hash ' +
+                                                ' AND annotations.annotation_sha_hash = revisions.annotation_sha_hash ' +
                                                 ' AND revisions.revision_id = ' + revisionId  + ' ' +
                                                 ' AND revisions.article_id = ' + articleId  + ' '   #### строка набор условий для выбора строк
                                     }
@@ -143,7 +143,7 @@ class Article(Model):
     #             logging.info( 'getRez = ' + str(getRez[0]))
                 outArt = getRez[0]
                 outArt.article_title = base64.b64decode(outArt.title_text).decode(encoding='UTF-8')
-                outArt.article_subj = base64.b64decode(outArt.subject_text).decode(encoding='UTF-8')
+                outArt.article_annotation = base64.b64decode(outArt.annotation_text).decode(encoding='UTF-8')
                 decodeText =  base64.b64decode(outArt.text_html)
                 outArt.article_html = zlib.decompress(decodeText).decode('UTF-8')    
     #             logging.info( 'outArt.article_html = ' + str(outArt.article_html))
@@ -154,7 +154,7 @@ class Article(Model):
                 
                 del(outArt.title_text) 
                 del(outArt.text_html) 
-                del(outArt.subject_text) 
+                del(outArt.annotation_text) 
 
                 logging.info( 'TEXT ::: get2Edit outArt  = ' + str(outArt))
                  
@@ -171,10 +171,10 @@ class Article(Model):
         ну при показе - редактировании, так то само-собой.
         """
         def __init__ (self): 
-            Model.__init__(self, 'subjects')   
+            Model.__init__(self, 'annotations')   
             self.article_id = 0
-            self.subject_text = ''
-            self.subject_sha_hash = ''
+            self.annotation_text = ''
+            self.annotation_sha_hash = ''
 
 
    
@@ -196,7 +196,7 @@ class Article(Model):
 #             self.revision_date = 0
 #             self.revision_actual_flag  = 'A'
             self.title_sha_hash = ''
-            self.subject_sha_hash = ''
+            self.annotation_sha_hash = ''
             self.text_sha_hash = ''
 
         def revisionsList(self, articleId):
@@ -206,7 +206,7 @@ class Article(Model):
             Обязательно - автора!
     
     
-            - выбираем данные из "texts"  и "subjects"  и "titles"  и "users" 
+            - выбираем данные из "texts"  и "annotations"  и "titles"  и "users" 
             
             
             """
@@ -214,12 +214,12 @@ class Article(Model):
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_html) ',
                                    ' UNIX_TIMESTAMP(revisions.revision_date) AS revision_date, '+ 
                                    ' revisions.article_id, revisions.revision_id, ' +
-                                   ' titles.title_text, subjects.subject_text, ' +
+                                   ' titles.title_text, annotations.annotation_text, ' +
                                    ' users.user_id, users.user_name ',
-                                   ' titles, subjects, users ',
+                                   ' titles, annotations, users ',
                                        {
                                    'whereStr': ' revisions.title_sha_hash = titles.title_sha_hash '  +
-                                            ' AND revisions.subject_sha_hash = subjects.subject_sha_hash '  +
+                                            ' AND revisions.annotation_sha_hash = annotations.annotation_sha_hash '  +
                                             ' AND revisions.user_id =  users.user_id '  +
                                             ' AND revisions.article_id =  ' + str(articleId), # строка набор условий для выбора строк
                                    'orderStr': ' revisions.revision_date DESC ', # строка порядок строк
@@ -242,7 +242,7 @@ class Article(Model):
 #         logging.info( 'article:: revisionsList:::  getRez = ' + str(getRez))
             return getRez
 
-        def IsUniqueRevision(self, titleHash, subjHash, textHash):
+        def IsUniqueRevision(self, titleHash, annotationHash, textHash):
             """
             проверить, является ли данная ревизия уникальной 
             - может поменятся все, 
@@ -251,11 +251,11 @@ class Article(Model):
             - может текст
             """
             isUniqueRez = self.select(
-                       ' revisions.text_sha_hash, revSubj.subject_sha_hash, revTitle.title_sha_hash',
+                       ' revisions.text_sha_hash, revSubj.annotation_sha_hash, revTitle.title_sha_hash',
                        'revisions revTitle, revisions revSubj',
                            { 
                        'whereStr': ' ( revTitle.title_sha_hash = "'+ titleHash + '" ' +
-                                    ' OR revSubj.subject_sha_hash = "'+ subjHash + '" ' +
+                                    ' OR revSubj.annotation_sha_hash = "'+ annotationHash + '" ' +
                                     ' OR revisions.text_sha_hash = "' + textHash  + '" ) ' , # строка набор условий для выбора строк
                         }
                        )
@@ -271,7 +271,7 @@ class Article(Model):
         Model.__init__(self, 'articles')   
         self.article_id = 0 # эти параметры прилетают из формы редактирования
         self.article_title = '' # эти параметры прилетают из формы редактирования
-        self.article_subj = '' # Это аннотация статьи!!!!!
+        self.article_annotation = '' # Это аннотация статьи!!!!!
         self.article_html = '' # эти параметры прилетают из формы редактирования
         self.category_article_id = 0 # категория страницы (служебные?) 'inf','trm','nvg','tpl'
 #         self.article_link = '' 
@@ -305,7 +305,7 @@ class Article(Model):
 
 #         artModel.article_id = self.get_argument("id", 0)
 #         artModel.article_title = self.get_argument("article_title")
-#         artModel.article_subj = self.get_argument("article_subj")
+#         artModel.article_annotation = self.get_argument("article_annotation")
 #         artModel.article_html = self.get_argument("article_html")
 
        
@@ -313,7 +313,7 @@ class Article(Model):
 # любая запись - это ревизия!
         revisionControl = self.RevisionLoc()
         titleControl = self.Title()
-        subjControl = self.Subj()
+        annotationControl = self.Subj()
         textControl = self.Text()       
 
         revisionControl.user_id = user_id
@@ -326,11 +326,11 @@ class Article(Model):
                                             ).hexdigest()  #.decode(encoding='UTF-8')
         titleControl.title_text = base64.b64encode(tornado.escape.utf8(titleControl.title_text)).decode(encoding='UTF-8')
 
-        subjControl.subject_sha_hash = hashlib.sha256(
-                                               tornado.escape.utf8(self.article_subj)
+        annotationControl.annotation_sha_hash = hashlib.sha256(
+                                               tornado.escape.utf8(self.article_annotation)
                                                ).hexdigest()   #.decode(encoding='UTF-8')
-        subjControl.subject_text = base64.b64encode(tornado.escape.utf8(self.article_subj)).decode(encoding='UTF-8')    
-#         del(self.article_subj)
+        annotationControl.annotation_text = base64.b64encode(tornado.escape.utf8(self.article_annotation)).decode(encoding='UTF-8')    
+#         del(self.article_annotation)
 
         wrkHtml = self.article_html
 #         logging.info( 'wrkHtml = ' + repr(wrkHtml))
@@ -348,14 +348,14 @@ class Article(Model):
 
 #         logging.info( 'Article ::: save titleText  = ' + str(titleText))
 #         logging.info( 'Article ::: save titleControl.title_text  = ' + str(titleControl.title_text))
-#         logging.info( 'Article ::: save subjControl.subject_text  = ' + str(subjControl.subject_text))
+#         logging.info( 'Article ::: save annotationControl.annotation_text  = ' + str(annotationControl.annotation_text))
  
         
 # получили ХЭШИ с новых данных.                                            
 # надо узнать,являются ли наши данные реально новыми        
         isUniqueRez = self.IsUniqueRevision(
                                             titleControl.title_sha_hash, 
-                                            subjControl.subject_sha_hash, 
+                                            annotationControl.annotation_sha_hash, 
                                             textControl.text_sha_hash)
 
 #         logging.info( 'SAVE::!!! isUniqueRez = ')
@@ -363,7 +363,7 @@ class Article(Model):
 #             logging.info( str(oneRez) )
 
         newText = True
-        newSubj = True
+        newAnnotation = True
         newTitle = True
         
         if len(isUniqueRez) > 0:
@@ -372,20 +372,20 @@ class Article(Model):
 #                 if oneRez.article_id == self.article_id:
                 if (oneRez.text_sha_hash == textControl.text_sha_hash):
                     newText = False
-                if (oneRez.subject_sha_hash == subjControl.subject_sha_hash):
-                    newSubj = False
+                if (oneRez.annotation_sha_hash == annotationControl.annotation_sha_hash):
+                    newAnnotation = False
                 if (oneRez.title_sha_hash == titleControl.title_sha_hash) :
                     newTitle = False
 
-            logging.info( 'after Testing:newText = ' + str(newText) + '; newSubj = ' + str(newSubj) + '; newTitle = ' + str (newTitle) )
+            logging.info( 'after Testing:newText = ' + str(newText) + '; newAnnotation = ' + str(newAnnotation) + '; newTitle = ' + str (newTitle) )
 
-#             if not newText and not newSubj and not newTitle:
+#             if not newText and not newAnnotation and not newTitle:
 #                 raise err.WikiException(LINK_OR_ARTICLE_NOT_UNIQ)
                     
         logging.info( 'after Testing: self.article_id = ' + str(self.article_id) + '; newText = ' + str(newText) + '; newTitle = ' + str (newTitle) )
 
         revisionControl.title_sha_hash = titleControl.title_sha_hash
-        revisionControl.subject_sha_hash = subjControl.subject_sha_hash
+        revisionControl.annotation_sha_hash = annotationControl.annotation_sha_hash
         revisionControl.text_sha_hash = textControl.text_sha_hash
 
         
@@ -398,7 +398,7 @@ class Article(Model):
         htmlTextOut = wrkHtml
         self.article_html = base64.b64encode(tornado.escape.utf8(htmlTextOut)).decode(encoding='UTF-8') 
         self.article_title = titleControl.title_text
-        self.article_subj = subjControl.subject_text                                   
+        self.article_annotation = annotationControl.annotation_text                                   
         
         
         if self.article_id == 0:
@@ -414,21 +414,21 @@ class Article(Model):
             self.commit
                     
             titleControl.article_id = self.article_id
-            subjControl.article_id = self.article_id
+            annotationControl.article_id = self.article_id
             textControl.article_id = self.article_id
         else:
             self.update('article_id = ' + str (self.article_id))
             self.commit()
             
 
-        if newText or newTitle or newSubj:
+        if newText or newTitle or newAnnotation:
             revisionUpd = self.RevisionLoc()
             del(revisionUpd.revision_id) 
             del(revisionUpd.article_id) 
             del(revisionUpd.user_id) 
 #             del(revisionUpd.revision_date) 
             del(revisionUpd.title_sha_hash) 
-            del(revisionUpd.subject_sha_hash) 
+            del(revisionUpd.annotation_sha_hash) 
             del(revisionUpd.text_sha_hash) 
 
             revisionUpd.revision_actual_flag = 'N'
@@ -447,9 +447,9 @@ class Article(Model):
             titleControl.insert()
             self.commit
         
-        if newSubj:
-            subjControl.article_id = self.article_id
-            subjControl.insert()
+        if newAnnotation:
+            annotationControl.article_id = self.article_id
+            annotationControl.insert()
             self.commit
              
 #             published.article_id =  self.article_id
@@ -477,7 +477,7 @@ class Article(Model):
     
     
          getRez = self.select(
-                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_subj,  articles.article_html ',
+                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_annotation,  articles.article_html ',
                                 ' revisions, titles lfind ',
                                     {
                                 'whereStr': ' articles.article_id = lfind.article_id ' +
@@ -494,7 +494,7 @@ class Article(Model):
     #             logging.info( 'getRez = ' + str(getRez[0]))
              outArt = getRez[0]
              outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
-             outArt.article_subj = base64.b64decode(outArt.article_subj).decode(encoding='UTF-8')
+             outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
              outArt.article_html =  base64.b64decode(outArt.article_html).decode(encoding='UTF-8')
     #             logging.info( 'outArt.article_html = ' + str(outArt.article_html))
     
@@ -515,7 +515,7 @@ class Article(Model):
     
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_html) ',
-                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_subj ',
+                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_annotation ',
                                 ' revisions ',
                                     {
                                 'whereStr': ' articles.article_id = revisions.article_id '  +
@@ -536,7 +536,7 @@ class Article(Model):
              articleTitle = oneObj.article_title.strip().strip(" \t\n")
 #              oneObj.article_title =  articleTitle.lower().replace(' ','_')
              oneObj.article_link  =  articleTitle.lower().replace(' ','_')
-             oneObj.article_subj =  base64.b64decode(oneObj.article_subj).decode(encoding='UTF-8')
+             oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
     
     #             logging.info( 'list:: After oneArt = ' + str(oneObj))
     
@@ -567,7 +567,7 @@ class Article(Model):
         return revControl.revisionsList(articleId)
 
 
-    def IsUniqueRevision(self, titleHash, subjHash, articleHash):
+    def IsUniqueRevision(self, titleHash, annotationHash, articleHash):
         """
         проверить, является ли данная ревизия уникальной 
         - может поменятся все, 
@@ -575,7 +575,7 @@ class Article(Model):
         - может текст
         """
         revControl = self.RevisionLoc()
-        return revControl.IsUniqueRevision(titleHash, subjHash, articleHash)
+        return revControl.IsUniqueRevision(titleHash, annotationHash, articleHash)
 
 
 
