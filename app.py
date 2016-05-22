@@ -32,6 +32,7 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", HomeHandler),
+            (r"/alter/", AlterHandler),
             (r"/archive", ArchiveHandler),
             (r"/feed", FeedHandler),
             (r"/article/([^/]+)", ArticleHandler),

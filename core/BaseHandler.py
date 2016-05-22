@@ -63,7 +63,29 @@ class BaseHandler(tornado.web.RequestHandler):
         return bool(self.get_current_user())
 
 
+
 class HomeHandler(BaseHandler):
+    @gen.coroutine
+    def get(self):
+        articleId = 3
+        artModel = Article()
+        article = yield executor.submit( artModel.getById, articleId)
+        if not article: raise tornado.web.HTTPError(404)
+        fileControl = File()
+        logging.info( 'ArticleHandler:: article.article_id = ' + str(article.article_id))
+        fileList = yield executor.submit( 
+                                          fileControl.getFilesListForArticle, 
+                                          article.article_id, 
+                                          config.options.to_out_path)
+#         fileList = [1,2,3,4,5]
+#         fileList = fileControl.getFilesListForArticle(article.article_id)
+
+        
+        logging.info( 'ArticleHandler:: fileList = ' + str(fileList))
+        
+        self.render("article.html", article=article, fileList=fileList)
+
+class AlterHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         artModel = Article()
@@ -180,7 +202,7 @@ class ComposeHandler(BaseHandler):
 
         artModel.article_id = self.get_argument("id", 0)
         artModel.article_title = self.get_argument("article_title")
-        artModel.article_subj = self.get_argument("article_subj")
+        artModel.article_annotation = self.get_argument("article_annotation")
         artModel.article_html = self.get_argument("article_html")
         
 #         try:

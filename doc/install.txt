@@ -5,6 +5,10 @@
  - дравера для MySQL ()
  	ставится таким образом:
  	
+ 	pip install tornado
+ 	pip install pymysql
+ 	pip install bcrypt
+ 	
  - инсталляция базы данных
  проверить, (и создать, если нет) директорию "filestorage" в "static" - тада будут складываться занружаемые файлы
  

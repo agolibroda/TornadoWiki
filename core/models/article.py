@@ -502,6 +502,41 @@ class Article(Model):
              outArt.article_link =  articleTitle.lower().replace(' ','_')
              
              return outArt
+
+
+    def getById(self, articleId):
+         """
+         получить статью по ID (одну) - функция для пердставления данных (!!!) 
+         получить ОЛЬКО опубликованный текст  (активную статью) - для редактирования получаем статью иным образом! 
+    
+         """
+         logging.info( 'Article ::: getById articleId  = ' + str(articleId))
+    
+         getRez = self.select(
+                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_annotation,  articles.article_html ',
+                                ' revisions ',
+                                    {
+                                'whereStr': ' articles.article_id = ' + str(articleId) + 
+                                             ' AND revisions.revision_actual_flag = "A" ' +
+                                             ' AND revisions.article_id =  articles.article_id ' ,
+                                 }
+                                )
+    
+         if len(getRez) == 0:
+             raise err.WikiException( ARTICLE_NOT_FOUND )
+         elif len(getRez) == 1:   
+    #             logging.info( 'getRez = ' + str(getRez[0]))
+             outArt = getRez[0]
+             outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
+             outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
+             outArt.article_html =  base64.b64decode(outArt.article_html).decode(encoding='UTF-8')
+    #             logging.info( 'outArt.article_html = ' + str(outArt.article_html))
+    
+             articleTitle = outArt.article_title.strip().strip(" \t\n")
+             outArt.article_link =  articleTitle.lower().replace(' ','_')
+             
+             return outArt
+
     
     def list(self):
          """
