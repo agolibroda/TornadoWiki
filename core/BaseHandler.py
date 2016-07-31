@@ -30,11 +30,8 @@ from core.models.article import Article
 from core.models.article import Revision
 from core.models.file import File
 
+from core.control.article import ControlArticle 
 
-# ourModel
-# from core.models import user
-# from core.models.user import User
-from core.models.user import User
 
 
 # A thread pool to be used for password hashing with bcrypt.
@@ -65,25 +62,33 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
 class HomeHandler(BaseHandler):
+    """
+    вот именно тут наверое, надо загружать нужную нам страницу по ее ИД
+    - с получением ее ИД щаблона, и грузить и шаблон тоже. 
+    - причем, шаблон со всяческими там проверками - есть или нет, и, если есть, тогда 
+    вынуть шаблон из какой - то особой папки...
+    - если шаблона там етути, тогда его туда положить... 
+    ну, как  - то так... 
+    а пока... 
+    займусь админкой.. 
+    может и редактор статей сделать частью админовского слоя?
+    
+    """
+
     @gen.coroutine
     def get(self):
-        articleId = 3
-        artModel = Article()
-        article = yield executor.submit( artModel.getById, articleId)
-        if not article: raise tornado.web.HTTPError(404)
-        fileControl = File()
-        logging.info( 'ArticleHandler:: article.article_id = ' + str(article.article_id))
-        fileList = yield executor.submit( 
-                                          fileControl.getFilesListForArticle, 
-                                          article.article_id, 
-                                          config.options.to_out_path)
-#         fileList = [1,2,3,4,5]
-#         fileList = fileControl.getFilesListForArticle(article.article_id)
-
         
+        
+        articleId = config.options.main_page_id
+        
+        artControl = ControlArticle()
+        (article, fileList) = yield executor.submit( artControl.getArticleById, articleId)
+
         logging.info( 'ArticleHandler:: fileList = ' + str(fileList))
         
-        self.render("article.html", article=article, fileList=fileList)
+        self.render("admin/article.html", article=article, fileList=fileList)
+
+
 
 class AlterHandler(BaseHandler):
     @gen.coroutine
@@ -96,6 +101,7 @@ class AlterHandler(BaseHandler):
         self.render("home.html", articles=articles)
 
 
+
 class RevisionsHandler(BaseHandler):
     @gen.coroutine
     def get(self):
@@ -106,6 +112,7 @@ class RevisionsHandler(BaseHandler):
             self.redirect("/compose")
             return
         self.render("revisions.html", articles=articles)
+   
    
 
 class RevisionViewHandler(BaseHandler):
@@ -124,46 +131,32 @@ class RevisionViewHandler(BaseHandler):
         self.render("revision.html", revision=revision)
 
 
+
 class ArticleHandler(BaseHandler):
+    """
+    загрузка страницы по ее названию (линке) 
+    может именно тут и менять пробелы на подчеркивания? 
+    потом будет логичнее прописывать линки в тексте (как вижу, так и пою)
+    это на "совсем потом" - тогда, когда надо будет делать новые страницы через 
+    добавление линков на не существующие страницы
+    
+    """
     @gen.coroutine
-    def get(self, articleLink):
+    def get(self, articleName):
 
-        artModel = Article()
-        article = yield executor.submit( artModel.get, articleLink)
+
+        artControl = ControlArticle()
+        (article, fileList) = yield executor.submit( artControl.getArticleByName, articleName )
+   
+   # а вот тут я должен получить и распарсить шаблон - как - текст в статьях (особой категории!!!!)
         if not article: raise tornado.web.HTTPError(404)
-        fileControl = File()
-        logging.info( 'ArticleHandler:: article.article_id = ' + str(article.article_id))
-        fileList = yield executor.submit( 
-                                          fileControl.getFilesListForArticle, 
-                                          article.article_id, 
-                                          config.options.to_out_path)
-#         fileList = [1,2,3,4,5]
-#         fileList = fileControl.getFilesListForArticle(article.article_id)
 
-        
         logging.info( 'ArticleHandler:: fileList = ' + str(fileList))
         
         self.render("article.html", article=article, fileList=fileList)
 
 
-class ArchiveHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
 
-        artModel = Article()
-        articles = yield executor.submit( artModel.list )
-        self.render("archive.html", articles=articles)
-
-
-class FeedHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
-
-        artModel = Article()
-        rezult = yield executor.submit( artModel.list )
-        articles = rezult.result()
-        self.set_header("Content-Type", "application/atom+xml")
-        self.render("feed.xml", articles=articles)
 
 
 class ComposeHandler(BaseHandler):
@@ -225,6 +218,10 @@ class ComposeHandler(BaseHandler):
 
 
 class AuthCreateHandler(BaseHandler):
+    """
+    содать нового автора 
+    - страница регистрации пользователя
+    """
     def get(self):
         self.render("create_author.html")
 
@@ -338,30 +335,5 @@ class UploadHandler(BaseHandler):
         error = None
 #         self.finish("file" + fileContrl.originalFname + " is uploaded")
         self.redirect("/upload/" + article_id, error)
-
-
-#############################################
-
-class ArticleModule(tornado.web.UIModule):
-    def render(self, article, fileList):
-#         logging.info( 'ArticleModule:: fileList = ' + str(fileList))
-        return self.render_string("modules/article.html", article=article, fileList=fileList)
-
-
-class FilesListModule(tornado.web.UIModule):
-    def render(self, fileList):
-        logging.info( 'FilesList:: fileList = ' + str(fileList))
-        return self.render_string("modules/files_list.html", fileList=fileList)
-
-class RevisionModule(tornado.web.UIModule):
-    def render(self, revision):
-        return self.render_string("modules/revision.html", revision=revision)
-
-
-
-class SimpleArticleModule(tornado.web.UIModule):
-    def render(self, article):
-        return self.render_string("modules/simple_article.html", article=article)
-
 
 

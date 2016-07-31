@@ -19,6 +19,7 @@ import json
 import config
 
 from core.BaseHandler import *
+from core.AdminHandler import *
 
 # from tornado.options import define, options
 
@@ -28,13 +29,11 @@ from core.BaseHandler import *
 executor = concurrent.futures.ThreadPoolExecutor(2)
 
 
+
 class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", HomeHandler),
-            (r"/alter/", AlterHandler),
-            (r"/archive", ArchiveHandler),
-            (r"/feed", FeedHandler),
             (r"/article/([^/]+)", ArticleHandler),
             (r"/compose", ComposeHandler),
             (r"/revisions", RevisionsHandler),
@@ -44,9 +43,20 @@ class Application(tornado.web.Application):
             (r"/auth/create", AuthCreateHandler),
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
+
+            (config.options.adminPath, AdminHomeHandler),
+            (config.options.adminPath + r"/", AdminHomeHandler),
+            (config.options.adminPath + r"/articles", AdminFeedHandler),
+            (config.options.adminPath + r"/revisions", AdminRevisionsHandler),
+            (config.options.adminPath + r"/compose", AdminComposeHandler),
+            (config.options.adminPath + r"/revisionView", AdminRevisionViewHandler),
+            
+            (config.options.adminPath + r"/article/([^/]+)", AdminArticleHandler),
+        
         ]
         settings = dict(
-            blog_title="Tornado Wiki",
+            wiki_title="Tornado Wiki",
+            wiki_title_admin="Tornado Wiki Admin layer",
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             ui_modules={
@@ -56,7 +66,7 @@ class Application(tornado.web.Application):
                         'FilesList': FilesListModule,
                         },
             xsrf_cookies=True,
-            cookie_secret="64d1c3defc5f9e829010881cfae22db38732",
+            cookie_secret= config.options.cookie_secret, #  "64d1c3defc5f9e829010881cfae22db38732",
             login_url="/auth/login",
             debug=True,
         )
@@ -66,8 +76,7 @@ class Application(tornado.web.Application):
 
 
 def main():
-    logging.info('config.options.main_port')
-    logging.info( str(config.options) )
+    logging.info('config.options.main_port' + str(config.options.main_port))
 #     pikky = pickle.dumps(config.options)
 
     pikky = json.dumps(config.options.mysql_db)

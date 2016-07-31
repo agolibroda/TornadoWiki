@@ -1,0 +1,14 @@
+
+<!-- modules/revision.html -->
+<div class="article">
+  <h1>{{ revision.article_title }}</h1>
+  <div class="annotation">{% raw revision.article_annotation %}</div>
+  <div class="body">{% raw revision.article_html %}</div>
+    <div class="admin">
+    [<a href="/admin/compose?aid={{ revision.article_id }}&rid={{ revision.revision_id }}">{{ _("Edit this wiki") }}</a>]
+    [<a href="/admin/revisions?id={{ revision.article_id }}">{{ _("View all revisions") }}</a> ]
+    <br>
+    {{locale.format_date(revision.revision_date, full_format=True, shorter=True) }} flag: "{{ revision.revision_actual_flag }}";
+    </div>
+</div>
+<!-- / modules/revision.html -->

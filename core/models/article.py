@@ -458,6 +458,15 @@ class Article(Model):
         self.article_link = titleText
                 
         return True 
+#         try:
+#             rez = yield executor.submit( artModel.save, curentUser.user_id )
+#         except Exception as e:   
+#             logging.info( 'ComposeHandler:: Exception as et = ' + str(e))
+#             fileList = []
+#             self.render("compose.html", article=artModel,  fileList=fileList) 
+         
+
+
 
     def get(self, articleTitle):
          """

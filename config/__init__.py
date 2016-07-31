@@ -13,6 +13,7 @@ from tornado.options import define, options, parse_config_file
 
 
 define("salt", default= '$2b$12$.b9454ab5a22859b68bb48a65ed3be7ab208c', help="Main salt")
+define("cookie_secret", default= '64d1c3defc5f9e829010881cfae22db38732', help="Main cookie_secret")
 
 
 # define("mysql_host", default="127.0.0.1:3306", help="Main user DB")
@@ -33,6 +34,10 @@ define("main_title", default="Main WIKI Title", help="Main Wiki Title ")
 define("uploud_path", default="static/filestorage/", help="Path to upload")
 define("to_out_path", default="filestorage/", help="Path to upload")
 
+define("adminPath", default=r"/admin", help="Path to Apmen Area")
+define("adminTplPath", default=r"admin/", help="Path to Apmen Area")
+
+define("main_page_id", default=3, help="Id of Main User Page")
 
 
 # parse_config_file("./config/base.conf")

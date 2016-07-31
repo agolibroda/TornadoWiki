@@ -1,10 +1,12 @@
+<!-- admin/base_admin.html -->
+
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>{{ escape(handler.settings["wiki_title"]) }}</title>
+    <title>{{ escape(handler.settings["wiki_title_admin"]) }}</title>
     <link rel="stylesheet" href="{{ static_url("wiki.css") }}" type="text/css">
-    <link rel="alternate" href="/feed" type="application/atom+xml" title="{{ escape(handler.settings["wiki_title"]) }}">
+    <link rel="alternate" href="/feed" type="application/atom+xml" title="{{ escape(handler.settings["wiki_title_admin"]) }}">
     {% block head %}{% end %}
   </head>
   <body>
@@ -13,14 +15,14 @@
         <div style="float:right">
           {% if current_user %}
           	||{{ current_user.user_name }}||
-            <a href="/alter/">{{ _("list Artikles") }}</a> -
+            <a href="/admin/">{{ _("list Artikles") }}</a> -
             <a href="/compose">{{ _("New post") }}</a> -
             <a href="/auth/logout?next={{ url_escape(request.uri) }}">{{ _("Sign out") }}</a>
           {% else %}
             {% raw _('<a href="%(url)s">Sign in</a> to compose/edit') % {"url": "/auth/login?next=" + url_escape(request.uri)} %}
           {% end %}
         </div>
-        <h1><a href="/">{{ escape(handler.settings["wiki_title"]) }}</a></h1>
+        <h1><a href="/">{{ escape(handler.settings["wiki_title_admin"]) }}</a></h1>
       </div>
       <!-- user IS: {{ current_user }} -->
       
@@ -29,3 +31,5 @@
     {% block bottom %}{% end %}
   </body>
 </html>
+
+<!-- admin/base_admin.html -->
