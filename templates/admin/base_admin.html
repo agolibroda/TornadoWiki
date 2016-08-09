@@ -5,7 +5,7 @@
   <head>
     <meta charset="UTF-8">
     <title>{{ escape(handler.settings["wiki_title_admin"]) }}</title>
-    <link rel="stylesheet" href="{{ static_url("wiki.css") }}" type="text/css">
+    <link rel="stylesheet" href="{{ static_url("wiki_admin.css") }}" type="text/css">
     <link rel="alternate" href="/feed" type="application/atom+xml" title="{{ escape(handler.settings["wiki_title_admin"]) }}">
     {% block head %}{% end %}
   </head>
@@ -16,7 +16,7 @@
           {% if current_user %}
           	||{{ current_user.user_name }}||
             <a href="/admin/">{{ _("list Artikles") }}</a> -
-            <a href="/compose">{{ _("New post") }}</a> -
+            <a href="/admin/compose">{{ _("New post") }}</a> -
             <a href="/auth/logout?next={{ url_escape(request.uri) }}">{{ _("Sign out") }}</a>
           {% else %}
             {% raw _('<a href="%(url)s">Sign in</a> to compose/edit') % {"url": "/auth/login?next=" + url_escape(request.uri)} %}

@@ -168,14 +168,8 @@ class ComposeHandler(BaseHandler):
         article = None
         fileList = []
         if articleId and revId:
-            artModel = Article()
-            article = yield executor.submit( artModel.get2Edit, articleId, revId)
-           
-            fileControl = File()
-            fileList = yield executor.submit( 
-                                          fileControl.getFilesListForArticle, 
-                                          articleId, 
-                                          config.options.to_out_path)
+            artControl = ControlArticle()
+            (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
 
 #             logging.info( 'ComposeHandler:: get article = ' + str(article))
         self.render("compose.html", article=article,  fileList=fileList)

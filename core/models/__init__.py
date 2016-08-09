@@ -25,25 +25,40 @@ from _ast import Try
 import config
 from . import err
 
+def singleton(cls):
+    instances = {}
+    def getinstance():
+        if cls not in instances:
+            instances[cls] = cls()
+        return instances[cls]
+    return getinstance
+
+@singleton
+class Connector:
+    def __init__ (self):    
+        self._db = pymysql.connect(
+                                    host =      config.options.mysql_host, #'127.0.0.1', 
+#                                     port=       config.options.mysql_port, #3306, 
+                                    user=       config.options.mysql_user, #'root', 
+                                    passwd=     config.options.mysql_password, #'', 
+                                    db=         config.options.mysql_db, #'blog'
+                                    charset=    config.options.mysql_charset,
+#                                   init_command=None,
+#                                   init_command=' SET storage_engine=INNODB, SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE ',
+#                                   init_command=' SET storage_engine=INNODB, SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED ',
+#                                   init_command=' SET storage_engine=INNODB, SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ ',
+                                    cursorclass=pymysql.cursors.DictCursor
+                                    )
+    
+
+
 
 class Model: #Connector:
 
 #     @property
     def __init__ (self, tabName ):    
-        self._db = pymysql.connect(
-                                                host =      config.options.mysql_host, #'127.0.0.1', 
-#                                                 port=   config.options.mysql_port, #3306, 
-                                                user=       config.options.mysql_user, #'root', 
-                                                passwd=     config.options.mysql_password, #'', 
-                                                db=         config.options.mysql_db, #'blog'
-                                                charset=    config.options.mysql_charset,
-#                                                 init_command=None,
-#                                                 init_command=' SET storage_engine=INNODB, SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE ',
-#                                                 init_command=' SET storage_engine=INNODB, SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED ',
-#                                                 init_command=' SET storage_engine=INNODB, SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ ',
-                                                
-                                                cursorclass=pymysql.cursors.DictCursor
-                                                )
+        connector = Connector()
+        self._db = connector._db
         self._tabName = tabName 
 #         
 

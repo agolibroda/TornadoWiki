@@ -179,14 +179,11 @@ class AdminComposeHandler(AdminBaseHandler):
         article = None
         fileList = []
 
-        artControl = ControlArticle()
-        (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
-
-#         if articleId and revId:
-            
-
+        if articleId and revId:
+            artControl = ControlArticle()
+            (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
 #             logging.info( 'ComposeHandler:: get article = ' + str(article))
-        self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList)
+        self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList, isCkEditMake=False)
 
     @tornado.web.authenticated
     @gen.coroutine

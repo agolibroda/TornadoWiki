@@ -16,5 +16,6 @@ config/main.conf
 
 # Uploaded files
 /static/filestorage/**
+/static/js/ckeditor/**
 
 
