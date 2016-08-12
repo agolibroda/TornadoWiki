@@ -23,9 +23,9 @@ from _overlapped import NULL
 
 ##############
 from . import Model
-from . import err
+from .. import err
 
-from .constants.data_base import * 
+from ..constants.data_base import * 
 
 
 # def parse_utf8(self, bytes, length_size):
@@ -126,12 +126,14 @@ class Article(Model):
     
             getRez = self.select(
                                    'texts.article_id, revisions.revision_id, texts.text_html, annotations.annotation_text, titles.title_text, ' +
-                                   ' UNIX_TIMESTAMP(revisions.revision_date) AS revision_date, revisions.user_id, revisions.revision_actual_flag ' ,
-                                   'titles, revisions, annotations',
+                                   ' UNIX_TIMESTAMP(revisions.revision_date) AS revision_date, revisions.user_id, revisions.revision_actual_flag, ' +
+                                   'articles.category_article_id ' ,
+                                   'titles, revisions, annotations, articles',
                                        {
                                    'whereStr': '  texts.text_sha_hash =  revisions.text_sha_hash' +
                                                 ' AND titles.title_sha_hash = revisions.title_sha_hash ' +
                                                 ' AND annotations.annotation_sha_hash = revisions.annotation_sha_hash ' +
+                                                ' AND revisions.article_id = articles.article_id ' +
                                                 ' AND revisions.revision_id = ' + revisionId  + ' ' +
                                                 ' AND revisions.article_id = ' + articleId  + ' '   #### строка набор условий для выбора строк
                                     }
@@ -163,7 +165,7 @@ class Article(Model):
 
 
 
-    class Subj(Model):
+    class Annotation(Model):
         """
         Это возможность работать и менять 
         "кракое описание страницы" 
@@ -251,11 +253,11 @@ class Article(Model):
             - может текст
             """
             isUniqueRez = self.select(
-                       ' revisions.text_sha_hash, revSubj.annotation_sha_hash, revTitle.title_sha_hash',
-                       'revisions revTitle, revisions revSubj',
+                       ' revisions.text_sha_hash, revAnnotation.annotation_sha_hash, revTitle.title_sha_hash',
+                       'revisions revTitle, revisions revAnnotation',
                            { 
                        'whereStr': ' ( revTitle.title_sha_hash = "'+ titleHash + '" ' +
-                                    ' OR revSubj.annotation_sha_hash = "'+ annotationHash + '" ' +
+                                    ' OR revAnnotation.annotation_sha_hash = "'+ annotationHash + '" ' +
                                     ' OR revisions.text_sha_hash = "' + textHash  + '" ) ' , # строка набор условий для выбора строк
                         }
                        )
@@ -313,7 +315,7 @@ class Article(Model):
 # любая запись - это ревизия!
         revisionControl = self.RevisionLoc()
         titleControl = self.Title()
-        annotationControl = self.Subj()
+        annotationControl = self.Annotation()
         textControl = self.Text()       
 
         revisionControl.user_id = user_id
@@ -486,7 +488,8 @@ class Article(Model):
     
     
          getRez = self.select(
-                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_annotation,  articles.article_html ',
+                                'articles.article_id, revisions.revision_id, articles.article_title, ' + 
+                                'articles.article_annotation,  articles.article_html, articles.category_article_id ',
                                 ' revisions, titles lfind ',
                                     {
                                 'whereStr': ' articles.article_id = lfind.article_id ' +
@@ -498,7 +501,7 @@ class Article(Model):
                                 )
     
          if len(getRez) == 0:
-             raise err.WikiException( ARTICLE_NOT_FOUND )
+            raise err.WikiException( ARTICLE_NOT_FOUND )
          elif len(getRez) == 1:   
     #             logging.info( 'getRez = ' + str(getRez[0]))
              outArt = getRez[0]
@@ -522,7 +525,8 @@ class Article(Model):
          logging.info( 'Article ::: getById articleId  = ' + str(articleId))
     
          getRez = self.select(
-                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_annotation,  articles.article_html ',
+                                'articles.article_id, revisions.revision_id, articles.article_title, '+
+                                'articles.article_annotation,  articles.article_html, articles.category_article_id ',
                                 ' revisions ',
                                     {
                                 'whereStr': ' articles.article_id = ' + str(articleId) + 
@@ -532,7 +536,7 @@ class Article(Model):
                                 )
     
          if len(getRez) == 0:
-             raise err.WikiException( ARTICLE_NOT_FOUND )
+            raise err.WikiException( ARTICLE_NOT_FOUND )
          elif len(getRez) == 1:   
     #             logging.info( 'getRez = ' + str(getRez[0]))
              outArt = getRez[0]
@@ -547,7 +551,7 @@ class Article(Model):
              return outArt
 
     
-    def list(self):
+    def list(self, categoryId = 0):
          """
          получить список статей
          упорядочивать потом будем
@@ -557,21 +561,25 @@ class Article(Model):
                  
          """
     
+         categoryStr = '';
+         if categoryId > 0 :
+             categoryStr = ' AND articles.category_article_id = ' + str(categoryId)
+             
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_html) ',
-                                'articles.article_id, revisions.revision_id, articles.article_title,  articles.article_annotation ',
+                                'articles.article_id, revisions.revision_id, articles.article_title, ' +
+                                'articles.article_annotation, articles.category_article_id ',
                                 ' revisions ',
                                     {
                                 'whereStr': ' articles.article_id = revisions.article_id '  +
-                                         ' AND revisions.revision_actual_flag = "A" ', # строка набор условий для выбора строк
+                                         ' AND revisions.revision_actual_flag = "A" ' + categoryStr, # строка набор условий для выбора строк
                                 'orderStr': ' articles.article_id ', # строка порядок строк
     #                                'orderStr': 'FROM_BASE64( articles.article_title )', # строка порядок строк
                                  }
                                 )
     
          if len(getRez) == 0:
-             return None
-    #                 raise err.WikiException( ARTICLE_NOT_FOUND )
+            raise err.WikiException( ARTICLE_NOT_FOUND )
          
          for oneObj in getRez:
     #             logging.info( 'list:: Before oneArt = ' + str(oneObj))
@@ -582,10 +590,9 @@ class Article(Model):
              oneObj.article_link  =  articleTitle.lower().replace(' ','_')
              oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
     
-    #             logging.info( 'list:: After oneArt = ' + str(oneObj))
+#              logging.info( 'list:: After oneArt = ' + str(oneObj))
     
          return getRez
-
     
     def get2Edit( self, articleId, revisionId ):
         """

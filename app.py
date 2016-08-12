@@ -35,7 +35,9 @@ class Application(tornado.web.Application):
         handlers = [
             (r"/", HomeHandler),
             (r"/article/([^/]+)", ArticleHandler),
+            (r"/articles", ArticleListHandler),
             (r"/compose", ComposeHandler),
+            (r"/compose/([^/]+)", ComposeHandler),
             (r"/revisions", RevisionsHandler),
             (r"/revisionView", RevisionViewHandler),
             (r"/upload/([^/]+)",  UploadHandler), # upload #filesupl
@@ -50,8 +52,9 @@ class Application(tornado.web.Application):
             (config.options.adminPath + r"/revisions", AdminRevisionsHandler),
             (config.options.adminPath + r"/compose", AdminComposeHandler),
             (config.options.adminPath + r"/revisionView", AdminRevisionViewHandler),
-            
             (config.options.adminPath + r"/article/([^/]+)", AdminArticleHandler),
+
+            (r"/([^/]+)", ArticleHandler), # Этим замыкаем список рутеров, так как он превнащает в название статьи ВСЕ!!!!
         
         ]
         settings = dict(

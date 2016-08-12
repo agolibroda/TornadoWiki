@@ -1,0 +1,26 @@
+<!-- articles.html -->
+
+{% extends "base.html" %}
+
+{% block body %}
+
+  {% for article in articles %}
+
+<div class="article">
+  <h1><a href="admin/article/{{ article.article_id }}">{{ article.article_title }}</a></h1>
+  <div class="body">{% raw article.article_annotation %}</div>
+  <div class="body"> 
+
+   <div class="admin">
+    [<a href="compose?aid={{ article.article_id }}&rid={{ article.revision_id }}">{{ _("Edit this wiki") }}</a>]
+    [<a href="revisions?id={{ article.article_id }}">{{ _("View all revisions") }}</a>]
+    </div>
+</div>
+<br><br>
+	
+  {% end %}
+
+  <div><a href="/archive">{{ _("Archive") }}</a></div>
+{% end %}
+
+<!-- / articles.html -->

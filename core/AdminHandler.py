@@ -86,6 +86,22 @@ class AdminHomeHandler(AdminBaseHandler):
         self.render(config.options.adminTplPath+"articles.html", articles=articles)
 
 
+class AdminHomeArticlesCategory(AdminBaseHandler):
+    """
+    получить список всех статей одной категори
+    
+    """
+    
+    @tornado.web.authenticated
+    @gen.coroutine
+    def get(self, categoryId):
+        logging.info( 'AdminHomeArticlesCategory:: get ')
+        artControl = ControlArticle()
+        articles = yield executor.submit( artControl.getListArticlesCategory, categoryId)
+
+        self.render(config.options.adminTplPath+"articles.html", articles=articles)
+
+
 
 class AdminFeedHandler(AdminBaseHandler):
     """
@@ -176,6 +192,9 @@ class AdminComposeHandler(AdminBaseHandler):
  
         articleId = self.get_argument("aid", None)
         revId = self.get_argument("rid", None)
+        logging.info( 'ComposeHandler:: self.get_argument("ned", 0) = ' + str(self.get_argument("ned", 0)))
+        isNotEdit = self.get_argument("ned", 0)
+        logging.info( 'ComposeHandler:: isNotEdit = ' + str(isNotEdit))
         article = None
         fileList = []
 
@@ -183,7 +202,7 @@ class AdminComposeHandler(AdminBaseHandler):
             artControl = ControlArticle()
             (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
 #             logging.info( 'ComposeHandler:: get article = ' + str(article))
-        self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList, isCkEditMake=False)
+        self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList, isCkEditMake=isNotEdit)
 
     @tornado.web.authenticated
     @gen.coroutine
@@ -204,11 +223,12 @@ class AdminComposeHandler(AdminBaseHandler):
         artModel.article_html = self.get_argument("article_html")
         
         rez = yield executor.submit( artModel.save, curentUser.user_id )
-        
         if rez:
 #             self.redirect("/article/" + tornado.escape.url_escape( artModel.article_link))
 #  artModel.getById, articleId 
-            self.redirect(config.options.adminTplPath+"/article/" + tornado.escape.url_escape( artModel.article_link))
+#             self.redirect(config.options.adminTplPath+"article/" + tornado.escape.url_escape( artModel.article_link))
+            logging.info( 'ComposeHandler:: redirect = ' + str(config.options.adminTplPath))
+            self.redirect("/"+config.options.adminTplPath)
         else:
             logging.info( 'ComposeHandler:: rez = ' + str(rez))
 #             как - то надо передать данные и ошибку - что - то пошло же не так... 

@@ -78,27 +78,31 @@ class HomeHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         
-        
         articleId = config.options.main_page_id
         
         artControl = ControlArticle()
         (article, fileList) = yield executor.submit( artControl.getArticleById, articleId)
+#  ЭТО ПОКА ЗАТЫЧКА!!!!! ТУТ НАДО ПРАВИЛЬНО ПОСТРОИТЬ 
+# выборку шаблона, привязанную к ЭТОМУ документу, и тогда всех рендерить, и тогда уже всех показывать!!!!!
 
-        logging.info( 'ArticleHandler:: fileList = ' + str(fileList))
-        
         self.render("admin/article.html", article=article, fileList=fileList)
 
 
 
-class AlterHandler(BaseHandler):
+class ArticleListHandler(BaseHandler):
+    """
+    получить список статей категории "информационная статья"
+    для показа списка статей
+    
+    """
     @gen.coroutine
     def get(self):
-        artModel = Article()
-        articles = yield executor.submit( artModel.list )
+        artControl = ControlArticle()
+        articles = yield executor.submit( artControl.getListArticles, config.options.info_page_categofy_id )
         if not articles:
             self.redirect("/compose")
             return
-        self.render("home.html", articles=articles)
+        self.render("articles.html", articles=articles)
 
 
 
@@ -149,30 +153,38 @@ class ArticleHandler(BaseHandler):
         (article, fileList) = yield executor.submit( artControl.getArticleByName, articleName )
    
    # а вот тут я должен получить и распарсить шаблон - как - текст в статьях (особой категории!!!!)
-        if not article: raise tornado.web.HTTPError(404)
+        if article.article_id == 0 : 
+#             raise tornado.web.HTTPError(404)
+#             article.article_title = articleName
+#             self.render("compose.html", article=article,  fileList=fileList)
+            self.redirect("/compose/" + articleName ) 
 
-        logging.info( 'ArticleHandler:: fileList = ' + str(fileList))
-        
-        self.render("article.html", article=article, fileList=fileList)
-
-
-
+        self.render("admin/article.html", article=article, fileList=fileList)
 
 
 class ComposeHandler(BaseHandler):
     @tornado.web.authenticated
     @gen.coroutine
-    def get(self):
+    def get(self, articleName = ''):
         articleId = self.get_argument("aid", None)
         revId = self.get_argument("rid", None)
         article = None
         fileList = []
+        artControl = ControlArticle()
+        artControl.setArticleCategiry (config.options.info_page_categofy_id) 
+        logging.info( 'ComposeHandler:: 1 artControl.getModel() = ' + str(artControl.getModel()))
+        
         if articleId and revId:
-            artControl = ControlArticle()
             (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
-
+            artControl.setModel(article)
+        elif articleName != '':
+            artControl.setArticleTitle (articleName)
+#         else:
+#             pass    
+         
+        logging.info( 'ComposeHandler:: 2 artControl.getModel() = ' + str(artControl.getModel()))
 #             logging.info( 'ComposeHandler:: get article = ' + str(article))
-        self.render("compose.html", article=article,  fileList=fileList)
+        self.render("compose.html", article=artControl.getModel(),  fileList=fileList)
 
     @tornado.web.authenticated
     @gen.coroutine
