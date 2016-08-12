@@ -27,38 +27,52 @@ from core.models.article import Article
 from core.models.article import Revision
 from core.models.file import File
 
+from .. import err
 
 
 class ControlArticle():
     """
     загрузить и сохранить статью
+    
     """
     
+    def __init__(self):
+        self.artModel = Article()
+        
+    def setArticleTitle(self, articleName):
+        self.artModel.article_title = articleName
+        
+    def setArticleCategiry(self, articleCategoryId):
+        self.artModel.category_article_id = articleCategoryId
+        
+    def getModel(self):
+        return self.artModel
+    
+    def setModel(self, article):
+        self.artModel = article
+
     def getArticleById(self, articleId):
         logging.info( ' getArticleById:: articleId = ' + str(articleId))
-        artModel = Article()
-        article = artModel.getById( articleId )
-        if not article: raise tornado.web.HTTPError(404)
-        fileControl = File()
-        fileList = fileControl.getFilesListForArticle(
-                                          articleId, 
-                                          config.options.to_out_path)
-            
-        logging.info( 'ArticleHandler:: fileList = ' + str(fileList))
-        
-    #     тут надо посмтреть что возвращать - массив или список, ну, и что потом получать...  
-        
-        return (article, fileList)
+        try:
+            article = self.artModel.getById( articleId )
+            if not article: raise tornado.web.HTTPError(404)
+            fileControl = File()
+            fileList = fileControl.getFilesListForArticle( articleId, config.options.to_out_path)
+                
+            logging.info( 'ArticleHandler:: fileList = ' + str(fileList))
+            return (article, fileList)
+        except err.WikiException as e:   
+#             err.WikiException( ARTICLE_NOT_FOUND )
+            logging.info( 'getArticleById:: e = ' + str(e))
+            return (self.artModel, [])
      
     
-    def getListArticles(self):
+    def getListArticles(self, categoryId = 0):
     
-        artModel = Article()
-        rezult = artModel.list ()
+        rezult = self.artModel.list (categoryId)
         if not rezult: rezult = []
-        logging.info( 'AdminFeedHandler:: rezult = ' + str(rezult))
+        logging.info( 'getListArticles:: rezult = ' + str(rezult))
         return  rezult #.result()
-
 
     def getArticleByIdRevId(self, articleId, revId):
         """
@@ -67,15 +81,18 @@ class ControlArticle():
         """
  
         if articleId and revId:
-            artModel = Article()
-            article = yield executor.submit( artModel.get2Edit, articleId, revId)
-           
-            fileControl = File()
-            fileList = yield executor.submit( 
-                                          fileControl.getFilesListForArticle, 
-                                          articleId, 
-                                          config.options.to_out_path)
-            return (article, fileList)
+            fileModel = File()
+            try:
+                article =  self.artModel.get2Edit(articleId, revId)
+               
+                fileList = fileModel.getFilesListForArticle( articleId, config.options.to_out_path)
+                return (article, fileList)
+#             except Exception as e:   
+            except err.WikiException as e:   
+#             err.WikiException( ARTICLE_NOT_FOUND )
+                logging.info( 'getArticleByIdRevId:: e = ' + str(e))
+                return (self.artModel, [])
+
 
         
     def getArticleByName(self, articleName):
@@ -84,16 +101,18 @@ class ControlArticle():
         хотя, по - идее, надо поредакитровать и сначала превратить навание в линку...
         
         """
-        articleLink = articleName.strip().strip(" \t\n")
-        artModel = Article()
-        article = artModel.get( articleLink )
-        fileControl = File()
-        logging.info( 'ArticleHandler:: article.article_id = ' + str(article.article_id))
-        fileList = yield executor.submit( 
-                                          fileControl.getFilesListForArticle, 
-                                          article.article_id, 
-                                          config.options.to_out_path)
-        return (article, fileList)
+        fileModel = File()
+        try:
+            articleLink = articleName.strip().strip(" \t\n")
+            article = self.artModel.get( articleLink )
+            logging.info( 'ArticleHandler:: article.article_id = ' + str(article.article_id))
+            fileList =  fileModel.getFilesListForArticle( article.article_id, 
+                                                        config.options.to_out_path)
+            return (article, fileList)
+        except err.WikiException as e:   
+#             err.WikiException( ARTICLE_NOT_FOUND )
+            logging.info( 'getArticleByName:: e = ' + str(e))
+            return (self.artModel, [])
 
 
     def сomposeArticle(self):
