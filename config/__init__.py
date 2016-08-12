@@ -37,7 +37,8 @@ define("to_out_path", default="filestorage/", help="Path to upload")
 define("adminPath", default=r"/admin", help="Path to Apmen Area")
 define("adminTplPath", default=r"admin/", help="Path to Apmen Area")
 
-define("main_page_id", default=3, help="Id of Main User Page")
+define("main_page_id", default=5, help="Id of Main User Page")
+define("info_page_categofy_id", default=4, help="Information Page Category")
 
 
 # parse_config_file("./config/base.conf")
