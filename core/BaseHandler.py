@@ -188,7 +188,9 @@ class ComposeHandler(BaseHandler):
 
     @tornado.web.authenticated
     @gen.coroutine
-    def post(self):
+    def post(self, articleName = ''):
+
+        logging.info( 'ComposeHandler:: post articleName = ' + str(articleName))
 
         artModel = Article()
 
@@ -199,22 +201,21 @@ class ComposeHandler(BaseHandler):
         if not curentUser.user_id: return None
 
 
-        artModel.article_id = self.get_argument("id", 0)
+        artModel.article_id = int(self.get_argument("id", 0))
         artModel.article_title = self.get_argument("article_title")
-        artModel.article_annotation = self.get_argument("article_annotation")
-        artModel.article_html = self.get_argument("article_html")
+        artModel.article_annotation = self.get_argument("article_annotation") # article_annotation
+        artModel.article_html = self.get_argument("article_html") # article_html
+        artModel.category_article_id = int(self.get_argument("category_article_id", 0))
+        logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
         
-#         try:
-#             rez = yield executor.submit( artModel.save, curentUser.user_id )
-#         except Exception as e:   
-#             logging.info( 'ComposeHandler:: Exception as et = ' + str(e))
-#             fileList = []
-#             self.render("compose.html", article=artModel,  fileList=fileList) 
-         
+        article_link =  artModel.article_title.lower().replace(' ','_')
+        
         rez = yield executor.submit( artModel.save, curentUser.user_id )
+
+        logging.info( 'ComposeHandler:: AFTER Save! artModel = ' + str(artModel))
         
         if rez:
-            self.redirect("/article/" + tornado.escape.url_escape( artModel.article_link))
+            self.redirect("/" + tornado.escape.url_escape(article_link))
         else:
             logging.info( 'ComposeHandler:: rez = ' + str(rez))
 #             как - то надо передать данные и ошибку - что - то пошло же не так... 

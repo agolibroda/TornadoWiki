@@ -13,7 +13,7 @@
         <div style="float:right">
           {% if current_user %}
           	||{{ current_user.user_name }}||
-            <a href="/alter/">{{ _("list Artikles") }}</a> -
+            <a href="/articles">{{ _("list Artikles") }}</a> -
             <a href="/compose">{{ _("New post") }}</a> -
             <a href="/auth/logout?next={{ url_escape(request.uri) }}">{{ _("Sign out") }}</a>
           {% else %}

@@ -20,6 +20,7 @@ import config
 
 from core.BaseHandler import *
 from core.AdminHandler import *
+from core.RestHandler import *
 
 # from tornado.options import define, options
 
@@ -53,6 +54,9 @@ class Application(tornado.web.Application):
             (config.options.adminPath + r"/compose", AdminComposeHandler),
             (config.options.adminPath + r"/revisionView", AdminRevisionViewHandler),
             (config.options.adminPath + r"/article/([^/]+)", AdminArticleHandler),
+
+# /rest/getArticleCategoryList 
+            (r"/rest/([^/]+)/([0-9]+)",  RestMinHandler), # upload #filesupl
 
             (r"/([^/]+)", ArticleHandler), # Этим замыкаем список рутеров, так как он превнащает в название статьи ВСЕ!!!!
         

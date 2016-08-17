@@ -1,7 +1,28 @@
-{% extends "base.html" %}
+<!-- admin/compose.html -->
+
+{% extends "base_admin.html" %}
+
+
 
 {% block body %}
-<script src="{{ static_url("js/ckeditor/ckeditor.js") }}"></script>
+
+<script type="text/javascript" src="{{ static_url("js/jquery-3.1.0.min.js") }}"></script>
+        <script>
+	        // Load data asynchronously.
+	            
+		$(document).ready(function(){
+			        $.ajax({url: "/rest/getArticleCategoryList/{{article.category_article_id}}", success: function(result){
+			            $("#selector2category").html(result);
+			        }});
+			});
+	        
+        </script>
+
+
+    {% if isCkEditMake == 0 %}
+		<script type="text/javascript" src="{{ static_url("js/ckeditor/ckeditor.js") }}"></script>
+
+    {% end %}
     </head>
   <form action="{{ request.path }}" method="post" class="compose">
     <div style="margin-bottom:5px"><input name="article_title" type="text" class="article_title" value="{{ article.article_title if article else "" }}"/></div>
@@ -11,10 +32,19 @@
     
     <div style="margin-bottom:5px">
     <textarea name="article_html" rows="30" cols="80" class="article_html">{{ article.article_html if article else "" }}</textarea>
-            <script>
+
+
+    {% if isCkEditMake == 0 %}
+        <script>
             CKEDITOR.replace( 'article_html' );
         </script>
-    
+    {% end %}
+
+    <div id="selector2category">
+		Нужна работа с типами статей - выбрать - показать весь список типов, выбрав по умолчанию "4"-й
+	    <input type="hidden" name="category_article_id" value="{{ article.category_article_id }}"/>
+    </div>
+
     </div>
     <div>
       <input type="submit" value="{{ _("Save changes") }}" class="submit"/>
@@ -61,3 +91,5 @@
   //]]>
   </script>
 {% end %}
+
+<!-- / admin/compose.html -->

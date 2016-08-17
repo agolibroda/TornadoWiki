@@ -195,7 +195,7 @@ class AdminComposeHandler(AdminBaseHandler):
         logging.info( 'ComposeHandler:: self.get_argument("ned", 0) = ' + str(self.get_argument("ned", 0)))
         isNotEdit = self.get_argument("ned", 0)
         logging.info( 'ComposeHandler:: isNotEdit = ' + str(isNotEdit))
-        article = None
+        article = Article()
         fileList = []
 
         if articleId and revId:
@@ -221,14 +221,19 @@ class AdminComposeHandler(AdminBaseHandler):
         artModel.article_title = self.get_argument("article_title")
         artModel.article_annotation = self.get_argument("article_annotation")
         artModel.article_html = self.get_argument("article_html")
+        artModel.category_article_id = self.get_argument("category_article_id", 0)
+        logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
+
+        article_link =  artModel.article_title.lower().replace(' ','_')
         
         rez = yield executor.submit( artModel.save, curentUser.user_id )
         if rez:
 #             self.redirect("/article/" + tornado.escape.url_escape( artModel.article_link))
 #  artModel.getById, articleId 
 #             self.redirect(config.options.adminTplPath+"article/" + tornado.escape.url_escape( artModel.article_link))
-            logging.info( 'ComposeHandler:: redirect = ' + str(config.options.adminTplPath))
-            self.redirect("/"+config.options.adminTplPath)
+            redirectLink = "/"+config.options.adminTplPath + 'article/' + artModel.article_id # article_link
+            logging.info( 'ComposeHandler:: redirectLink = ' + str(redirectLink))
+            self.redirect( redirectLink )
         else:
             logging.info( 'ComposeHandler:: rez = ' + str(rez))
 #             как - то надо передать данные и ошибку - что - то пошло же не так... 

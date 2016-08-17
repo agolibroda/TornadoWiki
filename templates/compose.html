@@ -18,7 +18,7 @@
     </div>
     <div>
       <input type="submit" value="{{ _("Save changes") }}" class="submit"/>
-      &nbsp;<a href="{{ "/article/" + str(article.article_id) if article else "/" }}">{{ _("Cancel") }}</a>
+      &nbsp;<a href="/articles">{{ _("Cancel") }}</a>
     {% if article %}
       &nbsp;<a href="/upload/{{ article.article_id  if article else 0 }}">{{ _("Upload") }}</a>
     {% end %}
@@ -26,6 +26,7 @@
     {% if article %}
       <input type="hidden" name="id" value="{{ article.article_id }}"/>
     {% end %}
+      <input type="hidden" name="category_article_id" value="{{ article.category_article_id }}"/>
     {% module xsrf_form_html() %}
   </form>
 <br>  

@@ -28,7 +28,7 @@ from _overlapped import NULL
 ##############
 import config
 from . import Model
-from . import err
+from .. import err
 from .article import Article
 
 

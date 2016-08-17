@@ -22,6 +22,9 @@ import base64
 from _overlapped import NULL
 
 ##############
+import config
+
+
 from . import Model
 from .. import err
 
@@ -275,7 +278,7 @@ class Article(Model):
         self.article_title = '' # эти параметры прилетают из формы редактирования
         self.article_annotation = '' # Это аннотация статьи!!!!!
         self.article_html = '' # эти параметры прилетают из формы редактирования
-        self.category_article_id = 0 # категория страницы (служебные?) 'inf','trm','nvg','tpl'
+        self.category_article_id = config.options.info_page_categofy_id # категория страницы (служебные?) 'inf','trm','nvg','tpl'
 #         self.article_link = '' 
 
         
@@ -593,6 +596,7 @@ class Article(Model):
 #              logging.info( 'list:: After oneArt = ' + str(oneObj))
     
          return getRez
+    
     
     def get2Edit( self, articleId, revisionId ):
         """

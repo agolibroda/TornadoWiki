@@ -23,7 +23,7 @@ from _ast import Try
 
 #############
 import config
-from . import err
+from .. import err
 
 def singleton(cls):
     instances = {}

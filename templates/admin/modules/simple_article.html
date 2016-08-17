@@ -6,7 +6,8 @@
   <div class="body"> 
 
    <div class="admin">
-    [<a href="/compose?aid={{ article.article_id }}&rid={{ article.revision_id }}">{{ _("Edit this wiki") }}</a>]
+    [<a href="/admin/compose?aid={{ article.article_id }}&rid={{ article.revision_id }}">{{ _("Edit this wiki") }}</a>]
+    [<a href="/admin/compose?aid={{ article.article_id }}&rid={{ article.revision_id }}&ned=1">{{ _("Edit source wiki") }}</a>]
     [<a href="admin/revisions?id={{ article.article_id }}">{{ _("View all revisions") }}</a>]
     </div>
 </div>

@@ -21,7 +21,7 @@ import bcrypt
 import tornado.options
 import tornado.escape
 
-from .constants.data_base import *
+from ..constants.data_base import *
 
 from . import Model
 from . import err
