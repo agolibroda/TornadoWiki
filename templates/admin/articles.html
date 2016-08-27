@@ -5,7 +5,21 @@
 {% block body %}
 
   {% for article in articles %}
-	{% module SimpleArticle(article) %} 
+	<div class="article">
+  <h1><a href="admin/article/{{ article.article_id }}">{{ article.article_title }}</a></h1>
+  <div class="body">{% raw article.article_annotation %}</div>
+  <div class="body"> 
+
+   <div class="admin">
+    {% if article.category_article_id != tplCategory %}
+    	[<a href="/admin/compose?aid={{ article.article_id }}&rid={{ article.revision_id }}">{{ _("Edit this wiki") }}</a>]
+    {% end %}
+    [<a href="/admin/compose?aid={{ article.article_id }}&rid={{ article.revision_id }}&ned=1">{{ _("Edit source wiki") }}</a>]
+    [<a href="admin/revisions?id={{ article.article_id }}">{{ _("View all revisions") }}</a>]
+    </div>
+</div>
+<br><br>
+ 
   {% end %}
 
   <div><a href="/archive">{{ _("Archive") }}</a></div>

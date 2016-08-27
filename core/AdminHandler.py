@@ -83,7 +83,7 @@ class AdminHomeHandler(AdminBaseHandler):
         artControl = ControlArticle()
         articles = yield executor.submit( artControl.getListArticles )
 
-        self.render(config.options.adminTplPath+"articles.html", articles=articles)
+        self.render(config.options.adminTplPath+"articles.html", articles=articles, tplCategory=config.options.list_tpl_categofy_id )
 
 
 class AdminHomeArticlesCategory(AdminBaseHandler):
@@ -202,6 +202,7 @@ class AdminComposeHandler(AdminBaseHandler):
             artControl = ControlArticle()
             (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
 #             logging.info( 'ComposeHandler:: get article = ' + str(article))
+        article.tpl_categofy_id = config.options.info_page_categofy_id 
         self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList, isCkEditMake=isNotEdit)
 
     @tornado.web.authenticated
@@ -222,6 +223,7 @@ class AdminComposeHandler(AdminBaseHandler):
         artModel.article_annotation = self.get_argument("article_annotation")
         artModel.article_html = self.get_argument("article_html")
         artModel.category_article_id = self.get_argument("category_article_id", 0)
+        artModel.template = self.get_argument("template_id", 0)
         logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
 
         article_link =  artModel.article_title.lower().replace(' ','_')

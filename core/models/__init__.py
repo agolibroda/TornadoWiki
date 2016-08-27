@@ -33,7 +33,7 @@ def singleton(cls):
         return instances[cls]
     return getinstance
 
-@singleton
+# @singleton
 class Connector:
     def __init__ (self):    
         self._db = pymysql.connect(

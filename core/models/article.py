@@ -65,7 +65,7 @@ class Article(Model):
         навигационная     nvg
         шабон             tpl
     - шабон статьи (template)
-        ??? 
+        по ИД шаблона выбирается шаблон, который оформляет текущий текст статьи  
     - права доступа (permissions)
         публичкая (свободный доступ)    pbl
         групповая (права на статью есть только у группы) grp
@@ -130,7 +130,7 @@ class Article(Model):
             getRez = self.select(
                                    'texts.article_id, revisions.revision_id, texts.text_html, annotations.annotation_text, titles.title_text, ' +
                                    ' UNIX_TIMESTAMP(revisions.revision_date) AS revision_date, revisions.user_id, revisions.revision_actual_flag, ' +
-                                   'articles.category_article_id ' ,
+                                   'articles.category_article_id, articles.template ' ,
                                    'titles, revisions, annotations, articles',
                                        {
                                    'whereStr': '  texts.text_sha_hash =  revisions.text_sha_hash' +
@@ -279,6 +279,7 @@ class Article(Model):
         self.article_annotation = '' # Это аннотация статьи!!!!!
         self.article_html = '' # эти параметры прилетают из формы редактирования
         self.category_article_id = config.options.info_page_categofy_id # категория страницы (служебные?) 'inf','trm','nvg','tpl'
+        self.template = config.options.main_info_template
 #         self.article_link = '' 
 
         
@@ -492,7 +493,7 @@ class Article(Model):
     
          getRez = self.select(
                                 'articles.article_id, revisions.revision_id, articles.article_title, ' + 
-                                'articles.article_annotation,  articles.article_html, articles.category_article_id ',
+                                'articles.article_annotation,  articles.article_html, articles.category_article_id, articles.template ',
                                 ' revisions, titles lfind ',
                                     {
                                 'whereStr': ' articles.article_id = lfind.article_id ' +
@@ -529,7 +530,7 @@ class Article(Model):
     
          getRez = self.select(
                                 'articles.article_id, revisions.revision_id, articles.article_title, '+
-                                'articles.article_annotation,  articles.article_html, articles.category_article_id ',
+                                'articles.article_annotation,  articles.article_html, articles.category_article_id, articles.template',
                                 ' revisions ',
                                     {
                                 'whereStr': ' articles.article_id = ' + str(articleId) + 
@@ -571,7 +572,7 @@ class Article(Model):
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_html) ',
                                 'articles.article_id, revisions.revision_id, articles.article_title, ' +
-                                'articles.article_annotation, articles.category_article_id ',
+                                'articles.article_annotation, articles.category_article_id, articles.template ',
                                 ' revisions ',
                                     {
                                 'whereStr': ' articles.article_id = revisions.article_id '  +
@@ -581,18 +582,15 @@ class Article(Model):
                                  }
                                 )
     
+         logging.info( 'list:: getRez = ' + str(getRez))
          if len(getRez) == 0:
             raise err.WikiException( ARTICLE_NOT_FOUND )
          
          for oneObj in getRez:
-    #             logging.info( 'list:: Before oneArt = ' + str(oneObj))
-             
              oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
              articleTitle = oneObj.article_title.strip().strip(" \t\n")
-#              oneObj.article_title =  articleTitle.lower().replace(' ','_')
              oneObj.article_link  =  articleTitle.lower().replace(' ','_')
              oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
-    
 #              logging.info( 'list:: After oneArt = ' + str(oneObj))
     
          return getRez

@@ -11,9 +11,14 @@
 	        // Load data asynchronously.
 	            
 		$(document).ready(function(){
-			        $.ajax({url: "/rest/getArticleCategoryList/{{article.category_article_id}}", success: function(result){
-			            $("#selector2category").html(result);
-			        }});
+	        $.ajax({url: "/rest/getArticleCategoryList/{{article.category_article_id}}", success: function(result){
+	            $("#selector2category").html(result);
+	        }});
+	        $.ajax({url: "/rest/getArticleTemplateList/{{article.tpl_categofy_id}}", success: function(result){
+	            $("#selector2template").html(result);
+	        }});
+			        
+			        
 			});
 	        
         </script>
@@ -43,6 +48,10 @@
     <div id="selector2category">
 		Нужна работа с типами статей - выбрать - показать весь список типов, выбрав по умолчанию "4"-й
 	    <input type="hidden" name="category_article_id" value="{{ article.category_article_id }}"/>
+    </div>
+    <div id="selector2template">
+		Нужна работа с шаблонами - выбрать - показать весь список шаблонов, 
+	    <input type="hidden" name="template_id" value="{{ article.template }}"/>
     </div>
 
     </div>

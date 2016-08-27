@@ -68,22 +68,37 @@ class RestMinHandler(RestHandler):
     """
 
     @gen.coroutine
-    def get(self, commandName, currentCategory):
+    def get(self, commandName, curentParameter):
 
         logging.info('RestHandler:: commandName '+ str(commandName))
-        logging.info('RestHandler:: currentCategory '+ str(currentCategory))
+        logging.info('RestHandler:: curentParameter '+ str(curentParameter))
         
-        if int(currentCategory) == 0:
-            currentCategory = config.options.info_page_categofy_id
         
         if commandName == 'getArticleCategoryList':
 
+            if int(curentParameter) == 0:
+                curentParameter = config.options.info_page_categofy_id
+
             artControl = ControlArticle()
             articles = yield executor.submit( artControl.getListArticles, config.options.list_categofy_id)
-            logging.info('RestMinHandler:: commandName:: articles '+ str(articles))
+            logging.info('RestMinHandler:: commandName:: getArticleCategoryList '+ str(articles))
             # получить список данных
             
-            self.render("rest/ctegory_list.html", dataList=articles, selected=int(currentCategory))
+            self.render("rest/ctegory_list.html", dataList=articles, selected=int(curentParameter))
+
+
+        if commandName == 'getArticleTemplateList':
+
+            if int(curentParameter) == 0:
+                curentParameter = config.options.info_page_categofy_id
+
+            artControl = ControlArticle()
+            articles = yield executor.submit( artControl.getListArticles, config.options.list_tpl_categofy_id)
+            logging.info('RestMinHandler:: commandName:: getArticleTemplateList '+ str(articles))
+            # получить список данных
+            
+            self.render("rest/ctegory_list.html", dataList=articles, selected=int(curentParameter))
+
 
 
 

@@ -39,7 +39,13 @@ define("adminTplPath", default=r"admin/", help="Path to Apmen Area")
 
 define("main_page_id", default=5, help="Id of Main User Page")
 define("info_page_categofy_id", default=4, help="Information Page Category")
+
 define("list_categofy_id", default=1, help="Information Page Category")
+
+define("list_tpl_categofy_id", default=3, help="Template Page Category")
+define("main_info_template", default=6, help="Main tmplate of inforation page")
+
+
 
 
 # parse_config_file("./config/base.conf")
