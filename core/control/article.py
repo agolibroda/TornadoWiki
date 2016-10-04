@@ -56,15 +56,18 @@ class ControlArticle():
         try:
             article = self.artModel.getById( articleId )
             if not article: raise tornado.web.HTTPError(404)
-            fileControl = File()
-            fileList = fileControl.getFilesListForArticle( articleId, config.options.to_out_path)
+            fileModel = File()
+# вот тут надо посмотреть - что - то не работает выбор файлов!!!!!!!
+            fileList = fileModel.getFilesListForArticle( articleId, config.options.to_out_path)
                 
-            logging.info( 'ArticleHandler:: fileList = ' + str(fileList))
+#             logging.info( 'getArticleById:: article = ' + str(article))
+#             logging.info( 'getArticleById:: fileList = ' + str(fileList))
             return (article, fileList)
         except err.WikiException as e:   
 #             err.WikiException( ARTICLE_NOT_FOUND )
-            logging.info( 'getArticleById:: e = ' + str(e))
-            return (self.artModel, [])
+            logging.info( 'getArticleById::Have ERROR!!!  ' + str(e))
+            if not article: raise tornado.web.HTTPError(404)
+            else: return (article, [])
      
     
     def getListArticles(self, categoryId = 0):

@@ -83,13 +83,8 @@ class Application(tornado.web.Application):
 
 
 def main():
-    logging.info('config.options.main_port' + str(config.options.main_port))
-#     pikky = pickle.dumps(config.options)
-
-    pikky = json.dumps(config.options.mysql_db)
-#     pikky = json.dumps({'foo': 'bar'})
+    logging.info('config.options.main_port = ' + str(config.options.main_port))
     
-    logging.info('config.options.main_port '+ pikky)
     http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen(config.options.main_port)
     tornado.ioloop.IOLoop.current().start()

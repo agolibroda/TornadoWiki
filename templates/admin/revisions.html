@@ -36,7 +36,7 @@
         <div class="date" style="float: left; margin-right: 20px; ">
         {{ locale.format_date(article.revision_date, full_format=True, shorter=True) }};|| {{article.user_name}} ||
         </div>
-        <div class="title"><a href="admin/revisionView?aid={{ article.article_id }}&rid={{ article.revision_id }}">{{ article.article_title }}</a></div>
+        <div class="title"><a href="/admin/revisionView?aid={{ article.article_id }}&rid={{ article.revision_id }}">{{ article.article_title }}</a></div>
       </li>
     
   {% end %}

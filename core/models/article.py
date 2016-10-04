@@ -14,7 +14,7 @@ import zlib
 # import markdown
 
 import tornado.options
-import pymysql
+# import pymysql
 
 import hashlib
 import base64
@@ -27,6 +27,12 @@ import config
 
 from . import Model
 from .. import err
+
+# import core.models.template
+# from .template import Template
+# from . import Template
+from core.models.template   import Template
+
 
 from ..constants.data_base import * 
 
@@ -129,16 +135,16 @@ class Article(Model):
     
             getRez = self.select(
                                    'texts.article_id, revisions.revision_id, texts.text_html, annotations.annotation_text, titles.title_text, ' +
-                                   ' UNIX_TIMESTAMP(revisions.revision_date) AS revision_date, revisions.user_id, revisions.revision_actual_flag, ' +
+                                   ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date,  revisions.user_id, revisions.revision_actual_flag, ' +
                                    'articles.category_article_id, articles.template ' ,
                                    'titles, revisions, annotations, articles',
                                        {
-                                   'whereStr': '  texts.text_sha_hash =  revisions.text_sha_hash' +
-                                                ' AND titles.title_sha_hash = revisions.title_sha_hash ' +
-                                                ' AND annotations.annotation_sha_hash = revisions.annotation_sha_hash ' +
-                                                ' AND revisions.article_id = articles.article_id ' +
-                                                ' AND revisions.revision_id = ' + revisionId  + ' ' +
-                                                ' AND revisions.article_id = ' + articleId  + ' '   #### строка набор условий для выбора строк
+                                   'whereStr': "  texts.text_sha_hash =  revisions.text_sha_hash" +
+                                                " AND titles.title_sha_hash = revisions.title_sha_hash " +
+                                                " AND annotations.annotation_sha_hash = revisions.annotation_sha_hash " +
+                                                " AND revisions.article_id = articles.article_id " +
+                                                " AND revisions.revision_id = " + revisionId  + " " +
+                                                " AND revisions.article_id = " + articleId  + " "  #### строка набор условий для выбора строк
                                     }
                                    )
     
@@ -161,7 +167,7 @@ class Article(Model):
                 del(outArt.text_html) 
                 del(outArt.annotation_text) 
 
-                logging.info( 'TEXT ::: get2Edit outArt  = ' + str(outArt))
+#                 logging.info( 'TEXT ::: get2Edit outArt  = ' + str(outArt))
                  
                 return outArt
 
@@ -217,7 +223,7 @@ class Article(Model):
             """
             getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_html) ',
-                                   ' UNIX_TIMESTAMP(revisions.revision_date) AS revision_date, '+ 
+                                   ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date, '+ 
                                    ' revisions.article_id, revisions.revision_id, ' +
                                    ' titles.title_text, annotations.annotation_text, ' +
                                    ' users.user_id, users.user_name ',
@@ -259,9 +265,9 @@ class Article(Model):
                        ' revisions.text_sha_hash, revAnnotation.annotation_sha_hash, revTitle.title_sha_hash',
                        'revisions revTitle, revisions revAnnotation',
                            { 
-                       'whereStr': ' ( revTitle.title_sha_hash = "'+ titleHash + '" ' +
-                                    ' OR revAnnotation.annotation_sha_hash = "'+ annotationHash + '" ' +
-                                    ' OR revisions.text_sha_hash = "' + textHash  + '" ) ' , # строка набор условий для выбора строк
+                       'whereStr': " ( revTitle.title_sha_hash = '"+ titleHash + "' " +
+                                    " OR revAnnotation.annotation_sha_hash = '"+ annotationHash + "' " +
+                                    " OR revisions.text_sha_hash = '" + textHash  + "' ) " ,             # строка набор условий для выбора строк
                         }
                        )
             
@@ -270,12 +276,12 @@ class Article(Model):
 
 #########################################################################    
  
-    def __init__ (self): 
+    def __init__ (self, id=0, title = ''): 
 #         logging.info('article:: __init__')
 
         Model.__init__(self, 'articles')   
-        self.article_id = 0 # эти параметры прилетают из формы редактирования
-        self.article_title = '' # эти параметры прилетают из формы редактирования
+        self.article_id = id # эти параметры прилетают из формы редактирования
+        self.article_title = title # эти параметры прилетают из формы редактирования
         self.article_annotation = '' # Это аннотация статьи!!!!!
         self.article_html = '' # эти параметры прилетают из формы редактирования
         self.category_article_id = config.options.info_page_categofy_id # категория страницы (служебные?) 'inf','trm','nvg','tpl'
@@ -284,7 +290,7 @@ class Article(Model):
 
         
 
-    def save(self, user_id):
+    def save(self, user_id, templateDir):
         """
         сохранить данные.
         2.1 если текст новый
@@ -338,7 +344,7 @@ class Article(Model):
         annotationControl.annotation_text = base64.b64encode(tornado.escape.utf8(self.article_annotation)).decode(encoding='UTF-8')    
 #         del(self.article_annotation)
 
-        wrkHtml = self.article_html
+#         wrkHtml = self.article_html
 #         logging.info( 'wrkHtml = ' + repr(wrkHtml))
 # вот ту, перед укладкой на хранение, надо будет очищать исходник от вставок... 
         textControl.text_html = base64.b64encode(
@@ -383,12 +389,10 @@ class Article(Model):
                 if (oneRez.title_sha_hash == titleControl.title_sha_hash) :
                     newTitle = False
 
-            logging.info( 'after Testing:newText = ' + str(newText) + '; newAnnotation = ' + str(newAnnotation) + '; newTitle = ' + str (newTitle) )
-
 #             if not newText and not newAnnotation and not newTitle:
 #                 raise err.WikiException(LINK_OR_ARTICLE_NOT_UNIQ)
                     
-        logging.info( 'after Testing: self.article_id = ' + str(self.article_id) + '; newText = ' + str(newText) + '; newTitle = ' + str (newTitle) )
+        logging.info( 'after Testing: self.article_id = ' + str(self.article_id) + '; newText = ' + str(newText) + '; newTitle = ' + str (newTitle) + '; newAnnotation = ' + str (newAnnotation) )
 
         revisionControl.title_sha_hash = titleControl.title_sha_hash
         revisionControl.annotation_sha_hash = annotationControl.annotation_sha_hash
@@ -401,75 +405,93 @@ class Article(Model):
 #         htmlTextOut = markdown.markdown(wrkHtml)
 #  надо подготовить текст к публикации (возможно проанализаровать - есть ли в тексте какие - то данные, КОТОРЫЕ СТОИТ ОТДЛЬНО ОБРАБОТАТЬ.)
 # Внешних шаблонов нагородить...         
-        htmlTextOut = wrkHtml
+        htmlTextOut = self.article_html
         self.article_html = base64.b64encode(tornado.escape.utf8(htmlTextOut)).decode(encoding='UTF-8') 
         self.article_title = titleControl.title_text
         self.article_annotation = annotationControl.annotation_text                                   
         
+#         
+# вот тут по - идее, надо начать трансакцию... 
+# - почитать про трансакции в постгрисе. 
+# 
+# BEGIN;
+# UPDATE accounts SET balance = balance + 100.00 WHERE acctnum = 12345;
+# UPDATE accounts SET balance = balance - 100.00 WHERE acctnum = 7534;
+# COMMIT;
+#             self.rollback()
+
+
+        self.begin()
+
+        logging.info( 'article Before Save : self.article_id = ' + str(self) )
         
-        if self.article_id == 0:
-            try:
+        try:
+        
+            if int(self.article_id) == 0:
                 self.article_id = self.insert('article_id')
-            except Exception as e:
-# // pymysql.err.IntegrityError: (1062, "Duplicate entry '9153907302f2a10a1ffd58094528ab3361d3736654e3136cf26c7cbf828224a2' for key 'PRIMARY'")
-                logging.info( 'ComposeHandler:: Exception as et = ' + str(e))
-                return False
-#                 raise e
-#             err.WikiException(LINK_OR_ARTICLE_NOT_UNIQ)
-
-            self.commit
-                    
-            titleControl.article_id = self.article_id
-            annotationControl.article_id = self.article_id
-            textControl.article_id = self.article_id
-        else:
-            self.update('article_id = ' + str (self.article_id))
-            self.commit()
-            
-
-        if newText or newTitle or newAnnotation:
-            revisionUpd = self.RevisionLoc()
-            del(revisionUpd.revision_id) 
-            del(revisionUpd.article_id) 
-            del(revisionUpd.user_id) 
-#             del(revisionUpd.revision_date) 
-            del(revisionUpd.title_sha_hash) 
-            del(revisionUpd.annotation_sha_hash) 
-            del(revisionUpd.text_sha_hash) 
-
-            revisionUpd.revision_actual_flag = 'N'
-            revisionUpd.update('article_id = ' + str (self.article_id))
-            revisionControl.article_id =  self.article_id
-            revisionControl.insert()
-            self.commit
-            
-        if newText:
-            textControl.article_id = self.article_id
-            textControl.insert()
-            self.commit
-             
-        if newTitle:
-            titleControl.article_id = self.article_id
-            titleControl.insert()
-            self.commit
-        
-        if newAnnotation:
-            annotationControl.article_id = self.article_id
-            annotationControl.insert()
-            self.commit
-             
-#             published.article_id =  self.article_id
-# а вот ту надо добавить новую запись в таблицу ревизий!!
-        
-        self.article_link = titleText
+                        
+                titleControl.article_id = self.article_id
+                annotationControl.article_id = self.article_id
+                textControl.article_id = self.article_id
+            else:
+                self.update('article_id = ' + str (self.article_id))
                 
-        return True 
-#         try:
-#             rez = yield executor.submit( artModel.save, curentUser.user_id )
-#         except Exception as e:   
-#             logging.info( 'ComposeHandler:: Exception as et = ' + str(e))
-#             fileList = []
-#             self.render("compose.html", article=artModel,  fileList=fileList) 
+            if newText or newTitle or newAnnotation:
+                revisionUpd = self.RevisionLoc()
+                del(revisionUpd.revision_id) 
+                del(revisionUpd.article_id) 
+                del(revisionUpd.user_id) 
+    #             del(revisionUpd.revision_date) 
+                del(revisionUpd.title_sha_hash) 
+                del(revisionUpd.annotation_sha_hash) 
+                del(revisionUpd.text_sha_hash) 
+    
+                revisionUpd.revision_actual_flag = 'N'
+                revisionUpd.update('article_id = ' + str (self.article_id))
+                revisionControl.article_id =  self.article_id
+                revisionControl.revision_actual_flag = 'A'
+                revisionId = revisionControl.insert('revision_id')
+                
+                logging.info( 'after revisionControl.insert::: revisionId = ' + str(revisionId)  )
+                logging.info( 'after revisionControl.insert::: self.article_id = ' + str(self.article_id) + '; newText = ' + str(newText) + '; newTitle = ' + str (newTitle) + '; newAnnotation = ' + str (newAnnotation) )
+                
+                if newText:
+                    logging.info( 'SAVE!!!!!:: newText = ' + str(newText))
+                    textControl.article_id = self.article_id
+                    textControl.insert()
+                     
+                if newTitle:
+                    titleControl.article_id = self.article_id
+                    titleControl.insert()
+                
+                if newAnnotation:
+                    annotationControl.article_id = self.article_id
+                    annotationControl.insert()
+    
+                self.commit()
+        
+# вот после всего надо сохранить шаблон в шаблоновую директорию... 
+                logging.info( 'save:: save self.category_article_id = ' + str(self.category_article_id))
+                logging.info( 'save:: save 2 self.category_article_id = ' + str(int(self.category_article_id)))
+                logging.info( 'save:: save config.options.tpl_categofy_id = ' + str(config.options.tpl_categofy_id))
+                logging.info( 'save:: save 2 config.options.tpl_categofy_id = ' + str(int(config.options.tpl_categofy_id)))
+                logging.info( 'save:: save self.article_id = ' + str(self.article_id))
+                
+                if int(self.category_article_id) == int(config.options.tpl_categofy_id):
+                    logging.info( 'save:: save Template! = ' )
+                     
+                    wrkTpl = Template()
+                    wrkTpl.save(self.article_id, htmlTextOut, templateDir)
+
+
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            self.rollback()
+             
+        self.article_link = titleText.lower().replace(' ','_') 
+        logging.info( 'save:: save self.article_link! = ' + self.article_link )
+                
+        return self 
          
 
 
@@ -496,11 +518,11 @@ class Article(Model):
                                 'articles.article_annotation,  articles.article_html, articles.category_article_id, articles.template ',
                                 ' revisions, titles lfind ',
                                     {
-                                'whereStr': ' articles.article_id = lfind.article_id ' +
-                                             ' AND revisions.revision_actual_flag = "A" ' +
-                                             ' AND revisions.article_id =  articles.article_id ' +
-                                             ' AND articles.article_id = lfind.article_id ' +
-                                             ' AND lfind.title_sha_hash = "' + articleTitle  + '" ' , # строка набор условий для выбора строк
+                                'whereStr': " articles.article_id = lfind.article_id " +
+                                             " AND revisions.revision_actual_flag = 'A' " +
+                                             " AND revisions.article_id =  articles.article_id " +
+                                             " AND articles.article_id = lfind.article_id " +
+                                             " AND lfind.title_sha_hash = '" + articleTitle  + "' " , # строка набор условий для выбора строк
                                  }
                                 )
     
@@ -534,7 +556,7 @@ class Article(Model):
                                 ' revisions ',
                                     {
                                 'whereStr': ' articles.article_id = ' + str(articleId) + 
-                                             ' AND revisions.revision_actual_flag = "A" ' +
+                                             " AND revisions.revision_actual_flag = 'A' " +
                                              ' AND revisions.article_id =  articles.article_id ' ,
                                  }
                                 )
@@ -542,7 +564,7 @@ class Article(Model):
          if len(getRez) == 0:
             raise err.WikiException( ARTICLE_NOT_FOUND )
          elif len(getRez) == 1:   
-    #             logging.info( 'getRez = ' + str(getRez[0]))
+#              logging.info( ' getById getRez = ' + str(getRez[0]))
              outArt = getRez[0]
              outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
              outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
@@ -552,6 +574,7 @@ class Article(Model):
              articleTitle = outArt.article_title.strip().strip(" \t\n")
              outArt.article_link =  articleTitle.lower().replace(' ','_')
              
+#              logging.info( ' getById outArt = ' + str(outArt))
              return outArt
 
     
@@ -576,7 +599,7 @@ class Article(Model):
                                 ' revisions ',
                                     {
                                 'whereStr': ' articles.article_id = revisions.article_id '  +
-                                         ' AND revisions.revision_actual_flag = "A" ' + categoryStr, # строка набор условий для выбора строк
+                                         " AND revisions.revision_actual_flag = 'A' " + categoryStr, # строка набор условий для выбора строк
                                 'orderStr': ' articles.article_id ', # строка порядок строк
     #                                'orderStr': 'FROM_BASE64( articles.article_title )', # строка порядок строк
                                  }
@@ -584,7 +607,8 @@ class Article(Model):
     
          logging.info( 'list:: getRez = ' + str(getRez))
          if len(getRez) == 0:
-            raise err.WikiException( ARTICLE_NOT_FOUND )
+#             raise err.WikiException( ARTICLE_NOT_FOUND )
+            return []
          
          for oneObj in getRez:
              oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')

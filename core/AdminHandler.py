@@ -41,6 +41,8 @@ from core.models.file       import File
 
 from core.control.article   import ControlArticle 
 
+from core.models.template   import Template
+
 
 # A thread pool to be used for password hashing with bcrypt.
 executor = concurrent.futures.ThreadPoolExecutor(2)
@@ -56,11 +58,11 @@ class AdminBaseHandler(tornado.web.RequestHandler):
             user_id = int(self.get_secure_cookie("wiki_user"))
         except:
             user_id = 0
-        logging.info('BaseHandler:: get_current_user:: user_id '+ str(user_id))
+        logging.info('AdminBaseHandler:: get_current_user:: user_id '+ str(user_id))
         if not user_id: return None
         user = User()
         user = user.get(user_id)
-        logging.info('BaseHandler:: get_current_user:: user '+ str(user))
+#         logging.info('AdminBaseHandler:: get_current_user:: user '+ str(user))
 
         return user
 
@@ -83,7 +85,7 @@ class AdminHomeHandler(AdminBaseHandler):
         artControl = ControlArticle()
         articles = yield executor.submit( artControl.getListArticles )
 
-        self.render(config.options.adminTplPath+"articles.html", articles=articles, tplCategory=config.options.list_tpl_categofy_id )
+        self.render(config.options.adminTplPath+"articles.html", articles=articles, tplCategory=config.options.tpl_categofy_id )
 
 
 class AdminHomeArticlesCategory(AdminBaseHandler):
@@ -133,12 +135,13 @@ class AdminArticleHandler(AdminBaseHandler):
         
         artControl = ControlArticle()
         (article, fileList) = yield executor.submit( artControl.getArticleById, articleId )
-        logging.info( 'ArticleHandler:: article = ' + str(article))
-        logging.info( 'AdminHomeHandler:: fileList = ' + str(fileList))
+#         logging.info( 'AdminArticleHandler:: fileList = ' + str(fileList))
 
         if not article: raise tornado.web.HTTPError(404)
         wrkTpl = config.options.adminTplPath+"article.html"
-        logging.info( 'AdminHomeHandler:: wrkTpl = ' + str(wrkTpl))
+
+        logging.info( 'AdminArticleHandler:: article = ' + str(article))
+        logging.info( 'AdminArticleHandler:: wrkTpl = ' + str(wrkTpl))
         
         self.render( wrkTpl, article=article, fileList=fileList)
 
@@ -192,16 +195,16 @@ class AdminComposeHandler(AdminBaseHandler):
  
         articleId = self.get_argument("aid", None)
         revId = self.get_argument("rid", None)
-        logging.info( 'ComposeHandler:: self.get_argument("ned", 0) = ' + str(self.get_argument("ned", 0)))
+        logging.info( 'AdminComposeHandler:: self.get_argument("ned", 0) = ' + str(self.get_argument("ned", 0)))
         isNotEdit = self.get_argument("ned", 0)
-        logging.info( 'ComposeHandler:: isNotEdit = ' + str(isNotEdit))
+        logging.info( 'AdminComposeHandler:: isNotEdit = ' + str(isNotEdit))
         article = Article()
         fileList = []
 
         if articleId and revId:
             artControl = ControlArticle()
             (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
-#             logging.info( 'ComposeHandler:: get article = ' + str(article))
+            logging.info( 'AdminComposeHandler:: get article = ' + str(article))
         article.tpl_categofy_id = config.options.info_page_categofy_id 
         self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList, isCkEditMake=isNotEdit)
 
@@ -212,7 +215,7 @@ class AdminComposeHandler(AdminBaseHandler):
         artModel = Article()
 
         curentUser = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-#         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
+#         logging.info( 'AdminComposeHandler:: post rezult = ' + str(rezult))
 #         curentUser = rezult.result()
         
         if not curentUser.user_id: return False
@@ -223,21 +226,23 @@ class AdminComposeHandler(AdminBaseHandler):
         artModel.article_annotation = self.get_argument("article_annotation")
         artModel.article_html = self.get_argument("article_html")
         artModel.category_article_id = self.get_argument("category_article_id", 0)
-        artModel.template = self.get_argument("template_id", 0)
-        logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
+        artModel.template = int(self.get_argument("template_id", 0))
+        logging.info( 'AdminComposeHandler:: Before Save! artModel = ' + str(artModel))
 
         article_link =  artModel.article_title.lower().replace(' ','_')
         
-        rez = yield executor.submit( artModel.save, curentUser.user_id )
-        if rez:
-#             self.redirect("/article/" + tornado.escape.url_escape( artModel.article_link))
-#  artModel.getById, articleId 
-#             self.redirect(config.options.adminTplPath+"article/" + tornado.escape.url_escape( artModel.article_link))
-            redirectLink = "/"+config.options.adminTplPath + 'article/' + artModel.article_id # article_link
-            logging.info( 'ComposeHandler:: redirectLink = ' + str(redirectLink))
+        templateDir = self.get_template_path()
+        
+        try:
+            rez = yield executor.submit( artModel.save, curentUser.user_id, templateDir )
+            logging.info( 'AdminComposeHandler:: rez = ' + str(rez))
+            
+            redirectLink = "/"+config.options.adminTplPath + 'article/' + str(rez.article_id) # article_link
+            logging.info( 'AdminComposeHandler:: redirectLink = ' + str(redirectLink))
             self.redirect( redirectLink )
-        else:
-            logging.info( 'ComposeHandler:: rez = ' + str(rez))
+
+        except Exception as e:
+            logging.info( 'AdminComposeHandler:: !!! Eror = ' + str(e))
 #             как - то надо передать данные и ошибку - что - то пошло же не так... 
 #             да, и можно и ошибку то получить... 
 #             тоько КАК  - если эксепшин тут не работает... :-( )

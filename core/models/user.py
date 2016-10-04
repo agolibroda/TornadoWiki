@@ -15,7 +15,7 @@ import json
 
 import config
 
-import pymysql
+# import pymysql
 import bcrypt
 
 import tornado.options
@@ -71,13 +71,16 @@ class User(Model):
         else:
             raise err.WikiException(PASSWD_IS_ENPTY)
 
-        cur = self.db().cursor()
+#         cur = self.db().cursor()
         selectStr = 'user_id,  user_login, user_name, user_role, user_phon, user_email, user_external'
         fromStr = '' #'users'
         anyParams = {
-                    'whereStr': ' (user_login =  "' + loginMailStr + '" OR user_email =  "' + loginMailStr + '" ) AND user_pass =  "'  + test_pass + '" ' , 
+                    'whereStr': " (user_login =  '" + loginMailStr + "' OR user_email =  '" + loginMailStr + "' ) AND user_pass =  '"  + test_pass + "' " , 
                      }
         resList = self.select(selectStr, fromStr, anyParams)
+        
+        logging.info(' login:: resList = ' + str(resList))
+        
         if len(resList) == 1:
             objValuesNameList = list(resList[0].__dict__.keys())
             for objValue in objValuesNameList:

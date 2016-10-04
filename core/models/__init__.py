@@ -2,7 +2,8 @@
 #
 # Copyright 2015 Alec Goliboda
 #
-# users.py
+# 
+
 
 # from models.model import Model
 # from model import Model
@@ -17,7 +18,19 @@ from tornado import gen
 
 import tornado.options
 
-import pymysql
+# http://initd.org/psycopg/docs/index.html
+import psycopg2
+
+# from somewhere import namedtuple
+import collections
+# collections.namedtuple = namedtuple
+# from psycopg2.extras import NamedTupleConnection
+from psycopg2.extras import DictCursor
+# NamedTupleCursor
+
+
+
+
 from _ast import Try
 
 
@@ -38,23 +51,25 @@ def singleton(cls):
 # в общем, надо или убирать "одиночку" + открывать МНОГО конектов к базе  - один конект - один курсор
 # или, искать новый дравер, который сможет работать с несколькими курсорами, в одном конекте. 
 
-# @singleton 
+@singleton 
 class Connector:
     def __init__ (self):    
-        self._db = pymysql.connect(
-                                    host =      config.options.mysql_host, #'127.0.0.1', 
-#                                     port=       config.options.mysql_port, #3306, 
-                                    user=       config.options.mysql_user, #'root', 
-                                    passwd=     config.options.mysql_password, #'', 
-                                    db=         config.options.mysql_db, #'blog'
-                                    charset=    config.options.mysql_charset,
-#                                   init_command=None,
-#                                   init_command=' SET storage_engine=INNODB, SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE ',
-#                                   init_command=' SET storage_engine=INNODB, SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED ',
-#                                   init_command=' SET storage_engine=INNODB, SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ ',
-                                    cursorclass=pymysql.cursors.DictCursor
-                                    )
+        """
+        # Connect to an existing database
+        """
+        self._connectInstans = psycopg2.connect(
+                                                database= config.options.postgreBase, 
+                                                host= config.options.postgreHost,
+                                                port= config.options.postgrePort,
+                                                user= config.options.postgreUser, 
+                                                password= config.options.postgrePwd
+                                                )
+#         self._cursor = self._connectInstans.cursor(cursor_factory=NamedTupleCursor) DictCursor
+        self._cursor = self._connectInstans.cursor(cursor_factory=DictCursor) 
     
+    def getCursor (self):
+        return self._cursor
+
 
 
 
@@ -63,38 +78,57 @@ class Model: #Connector:
 #     @property
     def __init__ (self, tabName ):    
         connector = Connector()
-        self._db = connector._db
+        self._cursor = connector.getCursor()
         self._tabName = tabName 
-#         
 
 #     def __del__(self):
-#         self._db.close()
+#         self._cursor.close()
     
     
 #     @property
-    def db(self):
-        return self._db
+    def cursor(self):
+        return self._cursor
 
-    def start_transaction(self):
+    def begin(self, isolation= 'READ COMMITTED'):
         """
         START TRANSACTION;
+        отдаем объект, который и будет делать все, до окончания трансакции 
 
         """
-        self._db.begin()
+#         self._cursor.begin()
+        self._cursor.execute("BEGIN")     
+#         return self._cursor.xact(isolation)
+#         self._cursor.xact(isolation)
+
 
     def commit(self):
         """
         commit;
 
         """
-        self._db.commit()
+        self._cursor.execute("COMMIT")     
+#         self._cursor.commit()   
+
+
+# а вот так все описывается в документации!!!!!
+# 
+# 
+# BEGIN;
+# UPDATE accounts SET balance = balance + 100.00 WHERE acctnum = 12345;
+# UPDATE accounts SET balance = balance - 100.00 WHERE acctnum = 7534;
+# COMMIT;
+#             self.rollback()
+# 
+#         self.begin()
 
     def rollback(self):
         """
         rollback;
 
         """
-        self._db.rollback()
+        self._cursor.execute("ROLLBACK")  
+#         self._cursor.rollback()   
+
 
     
     def insert(self,  requestParamName = ''):
@@ -103,41 +137,34 @@ class Model: #Connector:
         вернуть максимальный ИД, если requestParamName не нудЁвый. 
         """
         try:
-            lCurs = self._db.cursor()
+            lCurs = self.cursor()
             if requestParamName != '':
                 del self.__dict__[requestParamName]
             paramsObj = self.splitAttributes()
             
-            sqlStr = 'INSERT INTO ' + self._tabName +' ( ' + paramsObj.strListAttrNames + ' ) VALUES ( ' + paramsObj.strListAttrValues + ' )'
+            sqlStr = "INSERT INTO " + self._tabName +" ( " + paramsObj.strListAttrNames + " ) VALUES ( " + paramsObj.strListAttrValues + " )"
             logging.info(' insert:: sqlStr = ' + sqlStr)
             lCurs.execute(sqlStr)
             
             if requestParamName != '':
                 
-                self.commit()
-#                 requestParamValue = None
-#                 lCurs.execute('SELECT @@tx_isolation;')
-#                 sourse = lCurs.fetchone() # .fetchall()
-#                 logging.info(' insert:: SELECT @@tx_isolation; = ' + str(sourse))
-
-                listSet = map(lambda x, y: str(x) + ' = "' + str(y) + '"', paramsObj.listAttrNames, paramsObj.listAttrValues)
-                strWhere =  ' AND '.join(listSet)
-                strQuery = "SELECT " + requestParamName +" AS " + requestParamName +" FROM "+ self._tabName +" WHERE " + strWhere + " ORDER BY "+ requestParamName +" DESC LIMIT 0,1 FOR UPDATE " 
+                listSet = map(lambda x, y: str(x) + " = '" + str(y) + "'", paramsObj.listAttrNames, paramsObj.listAttrValues)
+                strWhere =  " AND ".join(listSet)
+                strQuery = "SELECT " + requestParamName +" AS " + requestParamName +" FROM "+ self._tabName +" WHERE " + strWhere + " ORDER BY "+ requestParamName +" DESC FOR UPDATE " 
                 logging.info(' insert::MAXID!:: strQuery = ' + strQuery)
                 lCurs.execute(strQuery)
                 sourse = lCurs.fetchone() # .fetchall()
                 self.__dict__[requestParamName] = sourse[requestParamName]
-                self.commit()
+#                 self.commit()
                 return  sourse[requestParamName]
 #                 logging.info(' insert:: self = ' + str(self))
-            self.commit()
-        except pymysql.MySQLError as error:
+#             self.commit()
+        except psycopg2.Error as error:
+            
             logging.error (' insert exception:: ' + str (error) )
             logging.error(' insert exception:: sqlStr = ' + sqlStr )
-#             self.rollback() #execute('ROLLBACK')
-#             lCurs.close()
+            lCurs.rollback()
             raise err.WikiException(error)
-#         lCurs.execute('COMMIT')
 
 
     def update(self, whereSection):
@@ -147,19 +174,18 @@ class Model: #Connector:
         """
         try:
             
-            lCurs = self._db.cursor()
+            lCurs = self._cursor #.cursor()
             paramsObj = self.splitAttributes()
-            listSet = map(lambda x, y: str(x) + ' = "' + str(y) + '"', paramsObj.listAttrNames, paramsObj.listAttrValues)
-            strSet =  ', '.join(listSet)
-            sqlStr = 'UPDATE '+ self._tabName +' SET ' + strSet + ' WHERE ' + whereSection
+            listSet = map(lambda x, y: str(x) + " = '" + str(y) + "'", paramsObj.listAttrNames, paramsObj.listAttrValues)
+            strSet =  ", ".join(listSet)
+            sqlStr = "UPDATE "+ self._tabName +" SET " + strSet + " WHERE " + whereSection
             logging.info(' update:: sqlStr = ' + sqlStr)
             lCurs.execute(sqlStr)
-            self.commit()
-        except pymysql.MySQLError as error:
+#             self.commit()
+        except psycopg2.Error as error:
             logging.error(' update exception:: ' + str (error) )
             logging.error(' update exception:: sqlStr = ' + sqlStr )
-#             self.rollback() #execute('ROLLBACK')
-#             lCurs.close()
+            lCurs.rollback()
             raise err.WikiException(error)
 
     def select(self, 
@@ -202,7 +228,7 @@ class Model: #Connector:
         """
         try:
 #             logging.info(' select:: addTables = ' + str(addTables))
-            cur = self._db.cursor()
+            _loDb = self.cursor()
             sqlStr = 'SELECT '+ selectStr
             if addTables != None:
                 sqlStr += ' FROM ' + self._tabName 
@@ -218,17 +244,18 @@ class Model: #Connector:
             if str(anyParams.get('orderStr', ''))    != '':  sqlStr += ' ORDER BY ' + str(anyParams.get('orderStr'))
             if str(anyParams.get('limitStr', ''))    != '':  sqlStr += ' LIMIT ' + str(anyParams.get('limitStr'))
             logging.info(' select:: sqlStr = ' + sqlStr)
-            cur.execute(sqlStr)
-            sourse = cur.fetchall()
+
+            _loDb.execute(sqlStr)
+            sourse = _loDb.fetchall()
             logging.info('select:: list:: sourse = ' + str (sourse) )
-            cur.close()
             outListObj = self.dict2obj(sourse)    
+ 
+
             return outListObj
 
-        except pymysql.MySQLError as error:
-            logging.error(' update exception:: ' + str (error) )
-            logging.error(' update exception:: sqlStr = ' + sqlStr )
-            cur.close()
+        except psycopg2.Error as error:
+            logging.error(' select exception:: sqlStr = ' + sqlStr )
+            _loDb.rollback()
             raise err.WikiException(error)
 
 
@@ -242,7 +269,7 @@ class Model: #Connector:
         
         На выходе получим словарь из двух списков  
         """ 
-        objDict = self.__dict__
+#         objDict = self.__dict__
         objValuesNameList = list(self.__dict__.keys())
         listAttrNames = []
         listAttrValues = []        
@@ -256,24 +283,31 @@ class Model: #Connector:
         out = Out()
         out.listAttrNames = listAttrNames
         out.listAttrValues = listAttrValues    
-        out.strListAttrNames = ', '.join(listAttrNames)
-        out.strListAttrValues = '"' + '", "'.join(map(str,listAttrValues)) + '"'   
-#         out.strListAttrValues = '"' + '", "'.join(listAttrValues) + '"'   
+        out.strListAttrNames = ", ".join(listAttrNames)
+        out.strListAttrValues = "'" + "', '".join(map(str,listAttrValues)) + "'"   
+#         out.strListAttrValues = "'" + "', '".join(listAttrValues) + "'"   
         return out
 
 
+ 
     def dict2obj(self, dictSou):
         """
         преобразовать словарь (допустим, кортеж данных из селекта) в объект  
         """ 
         oList = []
         for row in dictSou:
+#             logging.info(' dict2obj:: row = ' + str(row))
+#             logging.info(' dict2obj:: type(row) = ' + str(type(row)))
+            rowDict = dict(row)
+#             logging.info(' dict2obj:: rowDict = ' + str(rowDict))
             oneObj = self.__class__()
-            for key in row.items(): #.__getattribute__(name):
+            for key in rowDict.items(): #.__getattribute__(name):
+#                 logging.info(' dict2obj:: key = ' + str(key))
                 oneObj.__setattr__(key[0], key[1])
             oList.append(oneObj)
                 
         return oList
+
 
 
     def __str__(self): 

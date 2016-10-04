@@ -15,7 +15,7 @@ import json
 
 import tornado.options
 
-import pymysql
+# import pymysql
 
 import hashlib
 import base64
@@ -30,7 +30,7 @@ import config
 from . import Model
 from .. import err
 from .article import Article
-
+from ..constants.data_base import * 
 
 
 
@@ -83,7 +83,6 @@ class File(Model):
         self.file_inside_name = ''
         self.file_extension = ''
         self.error = ''
-
 
 
     def getRealFileName(self, fname, storageDir):
@@ -248,6 +247,7 @@ class File(Model):
             return outFile
    
     def getFilesListForArticle(self, article_id, storageDir):
+        
         getRez = self.select(
                                'files.file_id, files.file_inside_name, files.file_extension, files.file_name ',
                                 '',
@@ -257,6 +257,7 @@ class File(Model):
                                 }
                                )
 
+        logging.info( 'file ::: getFilesListForArticle :: getRez = ' + str(getRez))
         if len(getRez) == 0:
             return []
 #             raise err.WikiException( FILE_NOT_FOUND )

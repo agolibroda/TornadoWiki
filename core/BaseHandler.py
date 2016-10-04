@@ -29,6 +29,7 @@ from core.models.user import User
 from core.models.article import Article
 from core.models.article import Revision
 from core.models.file import File
+from core.models.template import Template
 
 from core.control.article import ControlArticle 
 
@@ -52,7 +53,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if not user_id: return None
         user = User()
         user = user.get(user_id)
-        logging.info('BaseHandler:: get_current_user:: user '+ str(user))
+#         logging.info('BaseHandler:: get_current_user:: user '+ str(user))
 
         return user
 
@@ -82,10 +83,12 @@ class HomeHandler(BaseHandler):
         
         artControl = ControlArticle()
         (article, fileList) = yield executor.submit( artControl.getArticleById, articleId)
-#  ЭТО ПОКА ЗАТЫЧКА!!!!! ТУТ НАДО ПРАВИЛЬНО ПОСТРОИТЬ 
-# выборку шаблона, привязанную к ЭТОМУ документу, и тогда всех рендерить, и тогда уже всех показывать!!!!!
+        logging.info( 'HomeHandler get article = ' + str(article))
 
-        self.render("admin/article.html", article=article, fileList=fileList)
+#         templateName = "admin/article.html"
+        templateName = os.path.join(config.options.tmpTplPath, str(article.template) + config.options.tplExtension)
+        logging.info( 'HomeHandler get templateName = ' + str(templateName))
+        self.render(templateName, article=article, fileList=fileList)
 
 
 
@@ -154,12 +157,14 @@ class ArticleHandler(BaseHandler):
    
    # а вот тут я должен получить и распарсить шаблон - как - текст в статьях (особой категории!!!!)
         if article.article_id == 0 : 
-#             raise tornado.web.HTTPError(404)
-#             article.article_title = articleName
-#             self.render("compose.html", article=article,  fileList=fileList)
             self.redirect("/compose/" + articleName ) 
 
-        self.render("admin/article.html", article=article, fileList=fileList)
+        templateName = os.path.join(config.options.tmpTplPath, str(article.template) + config.options.tplExtension)
+
+        logging.info( 'ArticleHandler get templateName = ' + str(templateName))
+        logging.info( 'ArticleHandler:: article = ' + str(article))
+
+        self.render(templateName, article=article, fileList=fileList)
 
 
 class ComposeHandler(BaseHandler):
@@ -206,13 +211,15 @@ class ComposeHandler(BaseHandler):
         artModel.article_annotation = self.get_argument("article_annotation") # article_annotation
         artModel.article_html = self.get_argument("article_html") # article_html
         artModel.category_article_id = int(self.get_argument("category_article_id", 0))
-        logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
+        
+#         logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
         
         article_link =  artModel.article_title.lower().replace(' ','_')
-        
-        rez = yield executor.submit( artModel.save, curentUser.user_id )
+        templateDir = self.get_template_path()
 
-        logging.info( 'ComposeHandler:: AFTER Save! artModel = ' + str(artModel))
+        rez = yield executor.submit( artModel.save, curentUser.user_id, templateDir )
+
+#         logging.info( 'ComposeHandler:: AFTER Save! artModel = ' + str(artModel))
         
         if rez:
             self.redirect("/" + tornado.escape.url_escape(article_link))

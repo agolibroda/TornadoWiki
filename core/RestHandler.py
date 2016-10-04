@@ -48,11 +48,11 @@ class RestHandler(tornado.web.RequestHandler):
             user_id = int(self.get_secure_cookie("wiki_user"))
         except:
             user_id = 0
-        logging.info('RestHandler:: get_current_user:: user_id '+ str(user_id))
+#         logging.info('RestHandler:: get_current_user:: user_id '+ str(user_id))
         if not user_id: return None
         user = User()
         user = user.get(user_id)
-        logging.info('RestHandler:: get_current_user:: user '+ str(user))
+#         logging.info('RestHandler:: get_current_user:: user '+ str(user))
 
         return user
 
@@ -78,26 +78,28 @@ class RestMinHandler(RestHandler):
 
             if int(curentParameter) == 0:
                 curentParameter = config.options.info_page_categofy_id
-
+            
+            articles = [Article(0, 'Выберите значение ')]
             artControl = ControlArticle()
-            articles = yield executor.submit( artControl.getListArticles, config.options.list_categofy_id)
+            articles += yield executor.submit( artControl.getListArticles, config.options.list_categofy_id)
             logging.info('RestMinHandler:: commandName:: getArticleCategoryList '+ str(articles))
             # получить список данных
             
-            self.render("rest/ctegory_list.html", dataList=articles, selected=int(curentParameter))
+            self.render("rest/ctegory_list.html", dataList=articles,  itemName="category_article_id", selected=int(curentParameter))
 
 
         if commandName == 'getArticleTemplateList':
 
             if int(curentParameter) == 0:
-                curentParameter = config.options.info_page_categofy_id
+                curentParameter = config.options.main_info_template
 
+            articles = [Article(0, 'Выберите значение ')]
             artControl = ControlArticle()
-            articles = yield executor.submit( artControl.getListArticles, config.options.list_tpl_categofy_id)
+            articles += yield executor.submit( artControl.getListArticles, config.options.tpl_categofy_id)
             logging.info('RestMinHandler:: commandName:: getArticleTemplateList '+ str(articles))
             # получить список данных
-            
-            self.render("rest/ctegory_list.html", dataList=articles, selected=int(curentParameter))
+
+            self.render("rest/ctegory_list.html", dataList=articles, itemName="template_id", selected=int(curentParameter))
 
 
 

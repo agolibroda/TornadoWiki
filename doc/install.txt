@@ -19,9 +19,18 @@
  надо поставить какой - то пакет для работы с Postgre  
   трахатся уже с ней. 
   
-  PostgreSql user: postgres pwd: 123
+  PostgreSql user: postgres pwd: 123 
   
-  поставить ервер
+  поставить сервер
   поставить дравер между питоним и сервером
+  
+  дравер 
+  psycopg2 у меня в версии 
+  psycopg2-2.6.2.win32-py3.5-pg9.5.3-release.exe 
+  
+  дока 
+  http://pythonhosted.org/py-postgresql/
+  
+  
   
   

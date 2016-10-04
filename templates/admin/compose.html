@@ -14,7 +14,7 @@
 	        $.ajax({url: "/rest/getArticleCategoryList/{{article.category_article_id}}", success: function(result){
 	            $("#selector2category").html(result);
 	        }});
-	        $.ajax({url: "/rest/getArticleTemplateList/{{article.tpl_categofy_id}}", success: function(result){
+	        $.ajax({url: "/rest/getArticleTemplateList/{{article.template}}", success: function(result){
 	            $("#selector2template").html(result);
 	        }});
 			        
