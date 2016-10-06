@@ -81,11 +81,16 @@ class AdminHomeHandler(AdminBaseHandler):
     @tornado.web.authenticated
     @gen.coroutine
     def get(self):
-        logging.info( 'AdminHomeHandler:: get ')
-        artControl = ControlArticle()
-        articles = yield executor.submit( artControl.getListArticles )
-
-        self.render(config.options.adminTplPath+"articles.html", articles=articles, tplCategory=config.options.tpl_categofy_id )
+        try:
+            logging.info( 'AdminHomeHandler:: get ')
+            artControl = ControlArticle()
+            articles = yield executor.submit( artControl.getListArticles )
+    
+            self.render(config.options.adminTplPath+"articles.html", articles=articles, tplCategory=config.options.tpl_categofy_id )
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
 class AdminHomeArticlesCategory(AdminBaseHandler):
@@ -97,11 +102,16 @@ class AdminHomeArticlesCategory(AdminBaseHandler):
     @tornado.web.authenticated
     @gen.coroutine
     def get(self, categoryId):
-        logging.info( 'AdminHomeArticlesCategory:: get ')
-        artControl = ControlArticle()
-        articles = yield executor.submit( artControl.getListArticlesCategory, categoryId)
-
-        self.render(config.options.adminTplPath+"articles.html", articles=articles)
+        try:
+            logging.info( 'AdminHomeArticlesCategory:: get ')
+            artControl = ControlArticle()
+            articles = yield executor.submit( artControl.getListArticlesCategory, categoryId)
+    
+            self.render(config.options.adminTplPath+"articles.html", articles=articles)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
 
@@ -114,11 +124,15 @@ class AdminFeedHandler(AdminBaseHandler):
     @tornado.web.authenticated
     @gen.coroutine
     def get(self):
-
-        artControl = ControlArticle()
-        articles = yield executor.submit( artControl.getListArticles )
-        self.set_header("Content-Type", "application/atom+xml")
-        self.render(config.options.adminTplPath+"feed.xml", articles=articles)
+        try:
+            artControl = ControlArticle()
+            articles = yield executor.submit( artControl.getListArticles )
+            self.set_header("Content-Type", "application/atom+xml")
+            self.render(config.options.adminTplPath+"feed.xml", articles=articles)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
 
@@ -130,20 +144,24 @@ class AdminArticleHandler(AdminBaseHandler):
     @tornado.web.authenticated
     @gen.coroutine
     def get(self, articleId):
-        
-        artModel = Article()
-        
-        artControl = ControlArticle()
-        (article, fileList) = yield executor.submit( artControl.getArticleById, articleId )
-#         logging.info( 'AdminArticleHandler:: fileList = ' + str(fileList))
-
-        if not article: raise tornado.web.HTTPError(404)
-        wrkTpl = config.options.adminTplPath+"article.html"
-
-        logging.info( 'AdminArticleHandler:: article = ' + str(article))
-        logging.info( 'AdminArticleHandler:: wrkTpl = ' + str(wrkTpl))
-        
-        self.render( wrkTpl, article=article, fileList=fileList)
+        try:
+            artModel = Article()
+            
+            artControl = ControlArticle()
+            (article, fileList) = yield executor.submit( artControl.getArticleById, articleId )
+    #         logging.info( 'AdminArticleHandler:: fileList = ' + str(fileList))
+    
+            if not article: raise tornado.web.HTTPError(404)
+            wrkTpl = config.options.adminTplPath+"article.html"
+    
+            logging.info( 'AdminArticleHandler:: article = ' + str(article))
+            logging.info( 'AdminArticleHandler:: wrkTpl = ' + str(wrkTpl))
+            
+            self.render( wrkTpl, article=article, fileList=fileList)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
 
@@ -151,13 +169,18 @@ class AdminArticleHandler(AdminBaseHandler):
 class AdminRevisionsHandler(AdminBaseHandler):
     @gen.coroutine
     def get(self):
-        articleId = self.get_argument("id", None)
-        artModel = Article()
-        articles = yield executor.submit( artModel.revisionsList, articleId)
-        if not articles:
-            self.redirect(config.options.adminPath + "/compose")
-            return
-        self.render(config.options.adminTplPath+"revisions.html", articles=articles)
+        try:
+            articleId = self.get_argument("id", None)
+            artModel = Article()
+            articles = yield executor.submit( artModel.revisionsList, articleId)
+            if not articles:
+                self.redirect(config.options.adminPath + "/compose")
+                return
+            self.render(config.options.adminTplPath+"revisions.html", articles=articles)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
    
 
 
@@ -167,15 +190,19 @@ class AdminRevisionViewHandler(AdminBaseHandler):
     """
     @gen.coroutine
     def get(self):
-
-        articleId = self.get_argument("aid", None)
-        revId = self.get_argument("rid", None)
-        
-        revModel = Revision()
-        revision = yield executor.submit( revModel.get2Edit, articleId, revId )
-
-        logging.info( 'RevisionViewHandler:: revision = ' + str(revision))
-        self.render(config.options.adminTplPath+"revision.html", revision=revision)
+        try:
+            articleId = self.get_argument("aid", None)
+            revId = self.get_argument("rid", None)
+            
+            revModel = Revision()
+            revision = yield executor.submit( revModel.get2Edit, articleId, revId )
+    
+            logging.info( 'RevisionViewHandler:: revision = ' + str(revision))
+            self.render(config.options.adminTplPath+"revision.html", revision=revision)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
 
@@ -192,61 +219,61 @@ class AdminComposeHandler(AdminBaseHandler):
     @tornado.web.authenticated
     @gen.coroutine
     def get(self):
- 
-        articleId = self.get_argument("aid", None)
-        revId = self.get_argument("rid", None)
-        logging.info( 'AdminComposeHandler:: self.get_argument("ned", 0) = ' + str(self.get_argument("ned", 0)))
-        isNotEdit = self.get_argument("ned", 0)
-        logging.info( 'AdminComposeHandler:: isNotEdit = ' + str(isNotEdit))
-        article = Article()
-        fileList = []
-
-        if articleId and revId:
-            artControl = ControlArticle()
-            (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
-            logging.info( 'AdminComposeHandler:: get article = ' + str(article))
-        article.tpl_categofy_id = config.options.info_page_categofy_id 
-        self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList, isCkEditMake=isNotEdit)
+        try:
+            articleId = self.get_argument("aid", None)
+            revId = self.get_argument("rid", None)
+            logging.info( 'AdminComposeHandler:: self.get_argument("ned", 0) = ' + str(self.get_argument("ned", 0)))
+            isNotEdit = self.get_argument("ned", 0)
+            logging.info( 'AdminComposeHandler:: isNotEdit = ' + str(isNotEdit))
+            article = Article()
+            fileList = []
+    
+            if articleId and revId:
+                artControl = ControlArticle()
+                (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
+                logging.info( 'AdminComposeHandler:: get article = ' + str(article))
+            article.tpl_categofy_id = config.options.info_page_categofy_id 
+            self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList, isCkEditMake=isNotEdit)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
     @tornado.web.authenticated
     @gen.coroutine
     def post(self):
-
-        artModel = Article()
-
-        curentUser = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-#         logging.info( 'AdminComposeHandler:: post rezult = ' + str(rezult))
-#         curentUser = rezult.result()
-        
-        if not curentUser.user_id: return False
-
-
-        artModel.article_id = self.get_argument("id", 0)
-        artModel.article_title = self.get_argument("article_title")
-        artModel.article_annotation = self.get_argument("article_annotation")
-        artModel.article_html = self.get_argument("article_html")
-        artModel.category_article_id = self.get_argument("category_article_id", 0)
-        artModel.template = int(self.get_argument("template_id", 0))
-        logging.info( 'AdminComposeHandler:: Before Save! artModel = ' + str(artModel))
-
-        article_link =  artModel.article_title.lower().replace(' ','_')
-        
-        templateDir = self.get_template_path()
-        
         try:
+            artModel = Article()
+    
+            curentUser = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+    #         logging.info( 'AdminComposeHandler:: post rezult = ' + str(rezult))
+    #         curentUser = rezult.result()
+            
+            if not curentUser.user_id: return False
+    
+            artModel.article_id = self.get_argument("id", 0)
+            artModel.article_title = self.get_argument("article_title")
+            artModel.article_annotation = self.get_argument("article_annotation")
+            artModel.article_html = self.get_argument("article_html")
+            artModel.category_article_id = self.get_argument("category_article_id", 0)
+            artModel.template = int(self.get_argument("template_id", 0))
+            logging.info( 'AdminComposeHandler:: Before Save! artModel = ' + str(artModel))
+    
+            article_link =  artModel.article_title.lower().replace(' ','_')
+            
+            templateDir = self.get_template_path()
+            
             rez = yield executor.submit( artModel.save, curentUser.user_id, templateDir )
             logging.info( 'AdminComposeHandler:: rez = ' + str(rez))
             
             redirectLink = "/"+config.options.adminTplPath + 'article/' + str(rez.article_id) # article_link
             logging.info( 'AdminComposeHandler:: redirectLink = ' + str(redirectLink))
             self.redirect( redirectLink )
-
+    
         except Exception as e:
-            logging.info( 'AdminComposeHandler:: !!! Eror = ' + str(e))
-#             как - то надо передать данные и ошибку - что - то пошло же не так... 
-#             да, и можно и ошибку то получить... 
-#             тоько КАК  - если эксепшин тут не работает... :-( )
-#             self.redirect("/compose" ) 
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
 #############################################

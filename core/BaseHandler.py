@@ -78,17 +78,21 @@ class HomeHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
-        
-        articleId = config.options.main_page_id
-        
-        artControl = ControlArticle()
-        (article, fileList) = yield executor.submit( artControl.getArticleById, articleId)
-        logging.info( 'HomeHandler get article = ' + str(article))
-
-#         templateName = "admin/article.html"
-        templateName = os.path.join(config.options.tmpTplPath, str(article.template) + config.options.tplExtension)
-        logging.info( 'HomeHandler get templateName = ' + str(templateName))
-        self.render(templateName, article=article, fileList=fileList)
+        try:
+            articleId = config.options.main_page_id
+            
+            artControl = ControlArticle()
+            (article, fileList) = yield executor.submit( artControl.getArticleById, articleId)
+            logging.info( 'HomeHandler get article = ' + str(article))
+    
+    #         templateName = "admin/article.html"
+            templateName = os.path.join(config.options.tmpTplPath, str(article.template) + config.options.tplExtension)
+            logging.info( 'HomeHandler get templateName = ' + str(templateName))
+            self.render(templateName, article=article, fileList=fileList)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
 
@@ -100,42 +104,57 @@ class ArticleListHandler(BaseHandler):
     """
     @gen.coroutine
     def get(self):
-        artControl = ControlArticle()
-        articles = yield executor.submit( artControl.getListArticles, config.options.info_page_categofy_id )
-        if not articles:
-            self.redirect("/compose")
-            return
-        self.render("articles.html", articles=articles)
+        try:
+            artControl = ControlArticle()
+            articles = yield executor.submit( artControl.getListArticles, config.options.info_page_categofy_id )
+            if not articles:
+                self.redirect("/compose")
+                return
+            self.render("articles.html", articles=articles)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
 
 class RevisionsHandler(BaseHandler):
     @gen.coroutine
     def get(self):
-        articleId = self.get_argument("id", None)
-        artModel = Article()
-        articles = yield executor.submit( artModel.revisionsList, articleId)
-        if not articles:
-            self.redirect("/compose")
-            return
-        self.render("revisions.html", articles=articles)
+        try:
+            articleId = self.get_argument("id", None)
+            artModel = Article()
+            articles = yield executor.submit( artModel.revisionsList, articleId)
+            if not articles:
+                self.redirect("/compose")
+                return
+            self.render("revisions.html", articles=articles)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
    
    
 
 class RevisionViewHandler(BaseHandler):
     @gen.coroutine
     def get(self):
-        articleId = self.get_argument("aid", None)
-        revId = self.get_argument("rid", None)
-        revModel = Revision()
-        revision = yield executor.submit( revModel.get2Edit, articleId, revId )
-#         if not article:
-#             self.redirect("/compose")
-#             return
-        fileControl = File()
-
-        logging.info( 'RevisionViewHandler:: revision = ' + str(revision))
-        self.render("revision.html", revision=revision)
+        try:
+            articleId = self.get_argument("aid", None)
+            revId = self.get_argument("rid", None)
+            revModel = Revision()
+            revision = yield executor.submit( revModel.get2Edit, articleId, revId )
+    #         if not article:
+    #             self.redirect("/compose")
+    #             return
+            fileControl = File()
+    
+            logging.info( 'RevisionViewHandler:: revision = ' + str(revision))
+            self.render("revision.html", revision=revision)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
 
@@ -151,84 +170,100 @@ class ArticleHandler(BaseHandler):
     @gen.coroutine
     def get(self, articleName):
 
+        try:
+            artControl = ControlArticle()
+            (article, fileList) = yield executor.submit( artControl.getArticleByName, articleName )
+       
+       # а вот тут я должен получить и распарсить шаблон - как - текст в статьях (особой категории!!!!)
+            if article.article_id == 0 : 
+                self.redirect("/compose/" + articleName ) 
+    
+            templateName = os.path.join(config.options.tmpTplPath, str(article.template) + config.options.tplExtension)
+    
+            logging.info( 'ArticleHandler get templateName = ' + str(templateName))
+            logging.info( 'ArticleHandler:: article = ' + str(article))
+    
+            self.render(templateName, article=article, fileList=fileList)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
-        artControl = ControlArticle()
-        (article, fileList) = yield executor.submit( artControl.getArticleByName, articleName )
-   
-   # а вот тут я должен получить и распарсить шаблон - как - текст в статьях (особой категории!!!!)
-        if article.article_id == 0 : 
-            self.redirect("/compose/" + articleName ) 
 
-        templateName = os.path.join(config.options.tmpTplPath, str(article.template) + config.options.tplExtension)
-
-        logging.info( 'ArticleHandler get templateName = ' + str(templateName))
-        logging.info( 'ArticleHandler:: article = ' + str(article))
-
-        self.render(templateName, article=article, fileList=fileList)
 
 
 class ComposeHandler(BaseHandler):
     @tornado.web.authenticated
     @gen.coroutine
     def get(self, articleName = ''):
-        articleId = self.get_argument("aid", None)
-        revId = self.get_argument("rid", None)
-        article = None
-        fileList = []
-        artControl = ControlArticle()
-        artControl.setArticleCategiry (config.options.info_page_categofy_id) 
-        logging.info( 'ComposeHandler:: 1 artControl.getModel() = ' + str(artControl.getModel()))
-        
-        if articleId and revId:
-            (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
-            artControl.setModel(article)
-        elif articleName != '':
-            artControl.setArticleTitle (articleName)
-#         else:
-#             pass    
-         
-        logging.info( 'ComposeHandler:: 2 artControl.getModel() = ' + str(artControl.getModel()))
-#             logging.info( 'ComposeHandler:: get article = ' + str(article))
-        self.render("compose.html", article=artControl.getModel(),  fileList=fileList)
+        try:
+            articleId = self.get_argument("aid", None)
+            revId = self.get_argument("rid", None)
+            article = None
+            fileList = []
+            artControl = ControlArticle()
+            artControl.setArticleCategiry (config.options.info_page_categofy_id) 
+            logging.info( 'ComposeHandler:: 1 artControl.getModel() = ' + str(artControl.getModel()))
+            
+            if articleId and revId:
+                (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
+                artControl.setModel(article)
+            elif articleName != '':
+                artControl.setArticleTitle (articleName)
+    #         else:
+    #             pass    
+             
+            logging.info( 'ComposeHandler:: 2 artControl.getModel() = ' + str(artControl.getModel()))
+    #             logging.info( 'ComposeHandler:: get article = ' + str(article))
+            self.render("compose.html", article=artControl.getModel(),  fileList=fileList)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
+
 
     @tornado.web.authenticated
     @gen.coroutine
     def post(self, articleName = ''):
-
-        logging.info( 'ComposeHandler:: post articleName = ' + str(articleName))
-
-        artModel = Article()
-
-        curentUser = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-#         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
-#         curentUser = rezult.result()
-        
-        if not curentUser.user_id: return None
-
-
-        artModel.article_id = int(self.get_argument("id", 0))
-        artModel.article_title = self.get_argument("article_title")
-        artModel.article_annotation = self.get_argument("article_annotation") # article_annotation
-        artModel.article_html = self.get_argument("article_html") # article_html
-        artModel.category_article_id = int(self.get_argument("category_article_id", 0))
-        
-#         logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
-        
-        article_link =  artModel.article_title.lower().replace(' ','_')
-        templateDir = self.get_template_path()
-
-        rez = yield executor.submit( artModel.save, curentUser.user_id, templateDir )
-
-#         logging.info( 'ComposeHandler:: AFTER Save! artModel = ' + str(artModel))
-        
-        if rez:
-            self.redirect("/" + tornado.escape.url_escape(article_link))
-        else:
-            logging.info( 'ComposeHandler:: rez = ' + str(rez))
-#             как - то надо передать данные и ошибку - что - то пошло же не так... 
-#             да, и можно и ошибку то получить... 
-#             тоько КАК  - если эксепшин тут не работает... :-( )
-#             self.redirect("/compose" ) 
+        try:
+            logging.info( 'ComposeHandler:: post articleName = ' + str(articleName))
+    
+            artModel = Article()
+    
+            curentUser = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+    #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
+    #         curentUser = rezult.result()
+            
+            if not curentUser.user_id: return None
+    
+    
+            artModel.article_id = int(self.get_argument("id", 0))
+            artModel.article_title = self.get_argument("article_title")
+            artModel.article_annotation = self.get_argument("article_annotation") # article_annotation
+            artModel.article_html = self.get_argument("article_html") # article_html
+            artModel.category_article_id = int(self.get_argument("category_article_id", 0))
+            
+    #         logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
+            
+            article_link =  artModel.article_title.lower().replace(' ','_')
+            templateDir = self.get_template_path()
+    
+            rez = yield executor.submit( artModel.save, curentUser.user_id, templateDir )
+    
+    #         logging.info( 'ComposeHandler:: AFTER Save! artModel = ' + str(artModel))
+            
+            if rez:
+                self.redirect("/" + tornado.escape.url_escape(article_link))
+            else:
+                logging.info( 'ComposeHandler:: rez = ' + str(rez))
+    #             как - то надо передать данные и ошибку - что - то пошло же не так... 
+    #             да, и можно и ошибку то получить... 
+    #             тоько КАК  - если эксепшин тут не работает... :-( )
+    #             self.redirect("/compose" ) 
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
 class AuthCreateHandler(BaseHandler):
@@ -241,18 +276,23 @@ class AuthCreateHandler(BaseHandler):
 
     @gen.coroutine
     def post(self):
-        if self.any_author_exists():
-            raise tornado.web.HTTPError(400, "author already created")
- 
-        userLoc =  User()
-        userLoc.user_login = self.get_argument("name")
-        userLoc.user_email = self.get_argument("email")
-        userLoc.user_pass = self.get_argument("password")
-        rez = yield executor.submit( userLoc.save )
-        logging.info( 'AuthCreateHandler  post rez = ' + str(rez))
-        
-        self.set_secure_cookie("wiki_user", str(userLoc.user_id))
-        self.redirect(self.get_argument("next", "/"))
+        try:
+            if self.any_author_exists():
+                raise tornado.web.HTTPError(400, "author already created")
+     
+            userLoc =  User()
+            userLoc.user_login = self.get_argument("name")
+            userLoc.user_email = self.get_argument("email")
+            userLoc.user_pass = self.get_argument("password")
+            rez = yield executor.submit( userLoc.save )
+            logging.info( 'AuthCreateHandler  post rez = ' + str(rez))
+            
+            self.set_secure_cookie("wiki_user", str(userLoc.user_id))
+            self.redirect(self.get_argument("next", "/"))
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
 class AuthLoginHandler(BaseHandler):
@@ -265,16 +305,21 @@ class AuthLoginHandler(BaseHandler):
 
     @gen.coroutine
     def post(self):
-        userloginLoad =  User()
-
-        rezult = yield executor.submit( userloginLoad.login, self.get_argument("login"), self.get_argument("password") )
-        if rezult:
-            logging.info( 'AuthLoginHandler  userloginLoad = ' + str(userloginLoad))
-            
-            self.set_secure_cookie("wiki_user", str(userloginLoad.user_id))
-            self.redirect(self.get_argument("next", "/"))
-        else:
-            self.render("login.html", error="incorrect password")
+        try:
+            userloginLoad =  User()
+    
+            rezult = yield executor.submit( userloginLoad.login, self.get_argument("login"), self.get_argument("password") )
+            if rezult:
+                logging.info( 'AuthLoginHandler  userloginLoad = ' + str(userloginLoad))
+                
+                self.set_secure_cookie("wiki_user", str(userloginLoad.user_id))
+                self.redirect(self.get_argument("next", "/"))
+            else:
+                self.render("login.html", error="incorrect password")
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 #         self.db.get("SELECT * FROM authors WHERE email = %s",
 #                              self.get_argument("email"))
@@ -323,31 +368,35 @@ class UploadHandler(BaseHandler):
     @gen.coroutine
     @tornado.web.authenticated
     def post(self, article_id):
-
-        curentUser = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-#         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
-#         curentUser = rezult.result()
-        
-        user_id = curentUser.user_id
-        
-        fileContrl = File()
-        fileInfo = yield executor.submit(
-                                        fileContrl.upload, 
-                                        self.request.files, #['filearg'], 
-                                        article_id, user_id 
-                                        ) 
-#         fileInfo = fileContrl.upload(self.request.files, article_id, user_id ) 
-#         for oneRez in fileInfo:
-#             logging.info( 'UploadHandler:: post oneRez = '  + str(oneRez))
-# 
-#         if fileInfo.file_id != 0:
-#             error = fileInfo.error # None
-#         else:
-#             error =  fileInfo.error #'error upload file'
-#  вот тут надо послать некий сигнал, что все хорошо, и можно обновить 
-# данными из fileInfo нужную панель в приемнике, пичем, почему бы ЭТО не сделать сокетами?
-        error = None
-#         self.finish("file" + fileContrl.originalFname + " is uploaded")
-        self.redirect("/upload/" + article_id, error)
+        try:
+            curentUser = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+    #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
+    #         curentUser = rezult.result()
+            
+            user_id = curentUser.user_id
+            
+            fileContrl = File()
+            fileInfo = yield executor.submit(
+                                            fileContrl.upload, 
+                                            self.request.files, #['filearg'], 
+                                            article_id, user_id 
+                                            ) 
+    #         fileInfo = fileContrl.upload(self.request.files, article_id, user_id ) 
+    #         for oneRez in fileInfo:
+    #             logging.info( 'UploadHandler:: post oneRez = '  + str(oneRez))
+    # 
+    #         if fileInfo.file_id != 0:
+    #             error = fileInfo.error # None
+    #         else:
+    #             error =  fileInfo.error #'error upload file'
+    #  вот тут надо послать некий сигнал, что все хорошо, и можно обновить 
+    # данными из fileInfo нужную панель в приемнике, пичем, почему бы ЭТО не сделать сокетами?
+            error = None
+    #         self.finish("file" + fileContrl.originalFname + " is uploaded")
+            self.redirect("/upload/" + article_id, error)
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
 
 
