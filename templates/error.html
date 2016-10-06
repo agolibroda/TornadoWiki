@@ -1,0 +1,13 @@
+<!-- error.html -->
+
+{% extends "base.html" %}
+
+{% block body %}
+
+<div class="article">
+  <h1  class="eror">{{ error.code }}</h1>
+  <div class="body">{% raw error.message %}</div>
+</div>
+{% end %}
+
+<!-- / error.html -->

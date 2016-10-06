@@ -17,3 +17,13 @@ class WikiException(Exception):
         return repr(self.value)
 
 
+class Error():
+    """
+    просто класс для описания ошибок - 
+    ч бы было удобнее их отдавать получателю.
+    
+    """
+    def __init__(self, code, message):
+        self.code = code
+        self.message = message
+

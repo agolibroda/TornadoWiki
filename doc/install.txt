@@ -6,29 +6,19 @@
  	ставится таким образом:
  	
  	pip install tornado
- 	pip install pymysql
+ 	pip install psycopg2
  	pip install bcrypt
  	
- - инсталляция базы данных
  проверить, (и создать, если нет) директорию "filestorage" в "static" - тада будут складываться занружаемые файлы
  
- убрал я работу с мускулом, 
+ - инсталляция базы данных
+ сервер баз данных  PostgreSQL  
+ как его инсталлировать я не рассказываю, все люди взрослые... 
  
- pip uninstall pymysql
+ в директории "sql" лежит файл "ver_161004.SQL" его исполнить в инструментах по 
+ работе с сервером PostgreSQL  
  
- надо поставить какой - то пакет для работы с Postgre  
-  трахатся уже с ней. 
-  
-  PostgreSql user: postgres pwd: 123 
-  
-  поставить сервер
-  поставить дравер между питоним и сервером
-  
-  дравер 
-  psycopg2 у меня в версии 
-  psycopg2-2.6.2.win32-py3.5-pg9.5.3-release.exe 
-  
-  дока 
+  дока по драверу 
   http://pythonhosted.org/py-postgresql/
   
   
