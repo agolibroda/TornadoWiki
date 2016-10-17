@@ -18,9 +18,16 @@ import json
 
 import config
 
-from core.BaseHandler import *
-from core.AdminHandler import *
-from core.RestHandler import *
+from core.UserControl import *
+from core.ArticleControl import *
+from core.AdminControl import *
+
+from core.ProfileControl import *
+from core.GroupControl import *
+
+from core.RestControl import *
+
+
 
 # from tornado.options import define, options
 
@@ -36,24 +43,37 @@ class Application(tornado.web.Application):
         handlers = [
             (r"/", HomeHandler),
             (r"/article/([^/]+)", ArticleHandler),
-            (r"/articles", ArticleListHandler),
             (r"/compose", ComposeHandler),
             (r"/compose/([^/]+)", ComposeHandler),
+            (r"/upload/([^/]+)",  UploadHandler), # upload #filesupl
             (r"/revisions", RevisionsHandler),
             (r"/revisionView", RevisionViewHandler),
-            (r"/upload/([^/]+)",  UploadHandler), # upload #filesupl
+
+            (r"/my_profile", MyProfileHandler),
+            (r"/my_articles", MyArticletHandler),
+            (r"/my_group", MyGroupHandler),
+            
+            (r"/articles", ArticleListHandler),
+            
+            (r"/groups", GroupsHandler),
+            (r"/group/([^/]+)", GroupHandler),
+            
+            (r"/profiles", ProfilesHandler),
+            (r"/profile/([^/]+)", ProfileHandler), 
             
             (r"/auth/create", AuthCreateHandler),
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
 
+
+#             (config.options.adminPath, AdminHomeHandler, {"flag": "12345"}), # dict(flag=12345)
             (config.options.adminPath, AdminHomeHandler),
             (config.options.adminPath + r"/", AdminHomeHandler),
-            (config.options.adminPath + r"/articles", AdminFeedHandler),
-            (config.options.adminPath + r"/revisions", AdminRevisionsHandler),
-            (config.options.adminPath + r"/compose", AdminComposeHandler),
-            (config.options.adminPath + r"/revisionView", AdminRevisionViewHandler),
-            (config.options.adminPath + r"/article/([^/]+)", AdminArticleHandler),
+#             (config.options.adminPath + r"/articles", AdminFeedHandler),
+#             (config.options.adminPath + r"/revisions", AdminRevisionsHandler),
+#             (config.options.adminPath + r"/compose", AdminComposeHandler),
+#             (config.options.adminPath + r"/revisionView", AdminRevisionViewHandler),
+#             (config.options.adminPath + r"/article/([^/]+)", AdminArticleHandler),
 
 # /rest/getArticleCategoryList 
             (r"/rest/([^/]+)/([0-9]+)",  RestMinHandler), # upload #filesupl
@@ -62,8 +82,8 @@ class Application(tornado.web.Application):
         
         ]
         settings = dict(
-            wiki_title="Tornado Wiki",
-            wiki_title_admin="Tornado Wiki Admin layer",
+            wiki_title = "Tornado Wiki",
+            wiki_title_admin ="Tornado Wiki Admin layer",
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             ui_modules={

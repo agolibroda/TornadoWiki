@@ -2,6 +2,7 @@
 #
 # Copyright 2015 Alec Golibroda
 
+# RestControl.py
 
 import bcrypt
 import concurrent.futures
@@ -32,36 +33,15 @@ from core.models.file import File
 
 from core.control.article import ControlArticle 
 
+from core.BaseHandler import *
 
 
 # A thread pool to be used for password hashing with bcrypt.
 executor = concurrent.futures.ThreadPoolExecutor(2)
 
 
-class RestHandler(tornado.web.RequestHandler):
-#     @property
-#     def db(self):
-#         return self.application.db
 
-    def get_current_user(self):
-        try:
-            user_id = int(self.get_secure_cookie("wiki_user"))
-        except:
-            user_id = 0
-#         logging.info('RestHandler:: get_current_user:: user_id '+ str(user_id))
-        if not user_id: return None
-        user = User()
-        user = user.get(user_id)
-#         logging.info('RestHandler:: get_current_user:: user '+ str(user))
-
-        return user
-
-    def any_author_exists(self):
-        return bool(self.get_current_user())
-
-
-
-class RestMinHandler(RestHandler):
+class RestMinHandler(BaseHandler):
     """
     тут будем разбирать ситуЁвину - что и куда делать... 
     
@@ -70,8 +50,8 @@ class RestMinHandler(RestHandler):
     @gen.coroutine
     def get(self, commandName, curentParameter):
 
-        logging.info('RestHandler:: commandName '+ str(commandName))
-        logging.info('RestHandler:: curentParameter '+ str(curentParameter))
+        logging.info('BaseHandler:: commandName '+ str(commandName))
+        logging.info('BaseHandler:: curentParameter '+ str(curentParameter))
         
         
         if commandName == 'getArticleCategoryList':
