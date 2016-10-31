@@ -27,7 +27,7 @@ from core.models.article import Article
 from core.models.article import Revision
 from core.models.file import File
 
-from .. import err
+from .. import WikiException 
 
 
 class ControlArticle():

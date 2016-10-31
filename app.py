@@ -20,9 +20,9 @@ import config
 
 from core.UserControl import *
 from core.ArticleControl import *
-from core.AdminControl import *
-
 from core.ProfileControl import *
+from core.DeskTopControls import *
+
 from core.GroupControl import *
 
 from core.RestControl import *
@@ -42,47 +42,47 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", HomeHandler),
-            (r"/article/([^/]+)", ArticleHandler),
-            (r"/compose", ComposeHandler),
-            (r"/compose/([^/]+)", ComposeHandler),
-            (r"/upload/([^/]+)",  UploadHandler), # upload #filesupl
-            (r"/revisions", RevisionsHandler),
-            (r"/revisionView", RevisionViewHandler),
 
-            (r"/my_profile", MyProfileHandler),
-            (r"/my_articles", MyArticletHandler),
-            (r"/my_group", MyGroupHandler),
-            
-            (r"/articles", ArticleListHandler),
-            
-            (r"/groups", GroupsHandler),
-            (r"/group/([^/]+)", GroupHandler),
-            
-            (r"/profiles", ProfilesHandler),
-            (r"/profile/([^/]+)", ProfileHandler), 
-            
-            (r"/auth/create", AuthCreateHandler),
-            (r"/auth/login", AuthLoginHandler),
-            (r"/auth/logout", AuthLogoutHandler),
+            (r"/compose", ComposeHandler), # (ArticleControl) редактор - в зависимости от роли запускателя (или, откуда оно запускается?) такой набор инструментов и покажем.
+            (r"/compose/([^/]+)", ComposeHandler), # (ArticleControl)
+            (r"/upload/([^/]+)",  UploadHandler), # (ArticleControl) upload #filesupl
 
+            (r"/revisions", RevisionsHandler),# (ArticleControl) Список ревизий как отдельный список (???) 
+            (r"/revisionView", RevisionViewHandler), # (ArticleControl) просмотр одной рвизи????
 
+            (r"/auth/create", AuthCreateHandler), # (ProfileControl.py)
+            (r"/auth/login", AuthLoginHandler), # (ProfileControl.py)
+            (r"/auth/logout", AuthLogoutHandler), # (ProfileControl.py)
+            (r"/profile", MyProfileHandler), # (ProfileControl.py) мой собственный профиль - что бы поредактировать
+            (r"/profile/([^/]+)", UserProfile), # (ProfileControl.py) профиль любого пользователя - по ИД - ну надо же поглядеть!
+
+            (r"/perconalDeskTop", PerconalDeskTop), # (DeskTopControls) персональный рабочий стол пользователя - 
+            (r"/groupDeskTop", GroupDeskTop), # (DeskTopControls) рабочий стол участника группы
+            (r"/groupAdmDeskTop", GroupAdmDeskTop), # (DeskTopControls) РС Админа Группы
+            (r"/sysAdmDeskTop", SysAdmDeskTop), # (DeskTopControls) РС Админа СИСТЕМЫ 
+
+            (r"/rest/([^/]+)/([0-9]+)",  RestMinHandler), # (RestControl.py) все, что вызывается из клиента AJAX... 
+
+            (r"/([^/]+)", ArticleHandler), # (ArticleControl) Этим замыкаем список рутеров, так как он превнащает в название статьи ВСЕ!!!!
+
+# Это походу, надо вычистить - умерло.
+#             (r"/article/([^/]+)", ArticleHandler),
+#             (r"/my_articles", MyArticletHandler),
+#             (r"/my_group", MyGroupHandler),
+#             (r"/articles", ArticleListHandler),
 #             (config.options.adminPath, AdminHomeHandler, {"flag": "12345"}), # dict(flag=12345)
-            (config.options.adminPath, AdminHomeHandler),
-            (config.options.adminPath + r"/", AdminHomeHandler),
+#             (config.options.adminPath, AdminHomeHandler),
+#             (config.options.adminPath + r"/", AdminHomeHandler),
 #             (config.options.adminPath + r"/articles", AdminFeedHandler),
 #             (config.options.adminPath + r"/revisions", AdminRevisionsHandler),
 #             (config.options.adminPath + r"/compose", AdminComposeHandler),
 #             (config.options.adminPath + r"/revisionView", AdminRevisionViewHandler),
 #             (config.options.adminPath + r"/article/([^/]+)", AdminArticleHandler),
 
-# /rest/getArticleCategoryList 
-            (r"/rest/([^/]+)/([0-9]+)",  RestMinHandler), # upload #filesupl
-
-            (r"/([^/]+)", ArticleHandler), # Этим замыкаем список рутеров, так как он превнащает в название статьи ВСЕ!!!!
         
         ]
         settings = dict(
-            wiki_title = "Tornado Wiki",
+            wiki_title = "TorWiki",
             wiki_title_admin ="Tornado Wiki Admin layer",
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),

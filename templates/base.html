@@ -21,19 +21,7 @@
     <div id="body">
       <div id="header">
         <div style="float:right">
-          {% if current_user %}
-          	||{{ current_user.user_name }}||
-            <a href="/my_profile">{{ _("My profile") }}</a> -
-            <a href="/my_articles">{{ _("My Artikles") }}</a> -
-            <a href="/my_groups">{{ _("My Groups") }}</a> -
-            <a href="/compose">{{ _("New post") }}</a> -
-            <a href="/auth/logout?next={{ url_escape(request.uri) }}">{{ _("Sign out") }}</a> <br>
-            <a href="/autors">{{ _("list Autors") }}</a> -
-            <a href="/articles">{{ _("list Artikles") }}</a> -
-            <a href="/groups">{{ _("list Groups") }}</a> -
-          {% else %}
-            {% raw _('<a href="%(url)s">Sign in</a> to compose/edit') % {"url": "/auth/login?next=" + url_escape(request.uri)} %}
-          {% end %}
+           {%  include "menu.html" %}
         </div>
         <h1><a href="/">{{ escape(handler.settings["wiki_title"]) }}</a></h1>
       </div>

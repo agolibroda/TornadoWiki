@@ -42,6 +42,8 @@ from core.models.template import Template
 from core.control.article import ControlArticle 
 
 from core.BaseHandler import *
+from core.WikiException import *
+
 
 
 # A thread pool to be used for password hashing with bcrypt.

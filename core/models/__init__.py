@@ -36,7 +36,8 @@ from _ast import Try
 
 #############
 import config
-from .. import err
+# from .. import err
+from .. import WikiException 
 
 def singleton(cls):
     instances = {}

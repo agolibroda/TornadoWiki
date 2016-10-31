@@ -26,7 +26,7 @@ import config
 
 
 from . import Model
-from .. import err
+from .. import WikiException 
 
 # import core.models.template
 # from .template import Template

@@ -2,7 +2,7 @@
 #
 # Copyright 2015 Alec Goliboda
 #
-# err.py
+# WikiException.py
 
 
 
