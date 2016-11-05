@@ -8,10 +8,26 @@
 {% end %}
 
 <form action="/auth/login" method="POST">
-  Email: <input name="login" type="text"><br>
-  Password: <input name="password" type="password"><br>
+	
+	<div class="form-group"><label class="col-sm-3 control-label">Username</label>
+	
+	    <div class="col-sm-9 controls">
+	        <div class="row">
+	            <div class="col-xs-9"><input name="login" placeholder="username (e-mail)" class="form-control" type="text"></div>
+	        </div>
+	    </div>
+	</div>
+	<div class="form-group"><label class="col-sm-3 control-label">Password</label>
+	
+	    <div class="col-sm-9 controls">
+	        <div class="row">
+	            <div class="col-xs-4"><input name="password" placeholder="password" class="form-control" type="password"></div>
+	        </div>
+	    </div>
+	</div>
+	
   {% module xsrf_form_html() %}
-  <input type="submit">
+  <button class="btn btn-green btn-block" type="submit">login</button>
 </form>
 {% end %}
 

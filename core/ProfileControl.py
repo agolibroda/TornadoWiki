@@ -77,7 +77,7 @@ class AuthLoginHandler(BaseHandler):
 #         if not self.any_author_exists():
 #             self.redirect("/auth/create")
 #         else:
-        self.render("login.html", error=None)
+        self.render("login.html", error=None, page_name= 'Страница входа')
 
     @gen.coroutine
     def post(self):
@@ -172,8 +172,8 @@ class UserProfile(BaseHandler):
     """
     pass
 
-
-class ProfileHandler(BaseHandler):
-    pass
+# 
+# class ProfileHandler(BaseHandler):
+#     pass
 
 

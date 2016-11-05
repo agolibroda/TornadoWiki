@@ -23,8 +23,6 @@ from core.ArticleControl import *
 from core.ProfileControl import *
 from core.DeskTopControls import *
 
-from core.GroupControl import *
-
 from core.RestControl import *
 
 
@@ -48,7 +46,7 @@ class Application(tornado.web.Application):
             (r"/upload/([^/]+)",  UploadHandler), # (ArticleControl) upload #filesupl
 
             (r"/revisions", RevisionsHandler),# (ArticleControl) Список ревизий как отдельный список (???) 
-            (r"/revisionView", RevisionViewHandler), # (ArticleControl) просмотр одной рвизи????
+            (r"/revision_view", RevisionViewHandler), # (ArticleControl) просмотр одной рвизи????
 
             (r"/auth/create", AuthCreateHandler), # (ProfileControl.py)
             (r"/auth/login", AuthLoginHandler), # (ProfileControl.py)
@@ -56,10 +54,10 @@ class Application(tornado.web.Application):
             (r"/profile", MyProfileHandler), # (ProfileControl.py) мой собственный профиль - что бы поредактировать
             (r"/profile/([^/]+)", UserProfile), # (ProfileControl.py) профиль любого пользователя - по ИД - ну надо же поглядеть!
 
-            (r"/perconalDeskTop", PerconalDeskTop), # (DeskTopControls) персональный рабочий стол пользователя - 
-            (r"/groupDeskTop", GroupDeskTop), # (DeskTopControls) рабочий стол участника группы
-            (r"/groupAdmDeskTop", GroupAdmDeskTop), # (DeskTopControls) РС Админа Группы
-            (r"/sysAdmDeskTop", SysAdmDeskTop), # (DeskTopControls) РС Админа СИСТЕМЫ 
+            (r"/perconal_desk_top", PerconalDeskTop), # (DeskTopControls) персональный рабочий стол пользователя - 
+            (r"/group_desk_top", GroupDeskTop), # (DeskTopControls) рабочий стол участника группы
+            (r"/group_adm_desk_top", GroupAdmDeskTop), # (DeskTopControls) РС Админа Группы
+            (r"/sys_adm_desk_top", SysAdmDeskTop), # (DeskTopControls) РС Админа СИСТЕМЫ 
 
             (r"/rest/([^/]+)/([0-9]+)",  RestMinHandler), # (RestControl.py) все, что вызывается из клиента AJAX... 
 
@@ -82,8 +80,8 @@ class Application(tornado.web.Application):
         
         ]
         settings = dict(
-            wiki_title = "TorWiki",
-            wiki_title_admin ="Tornado Wiki Admin layer",
+            wiki_title = config.options.Project_Name,
+            wiki_title_admin ="TorWiki Admin layer",
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             ui_modules={

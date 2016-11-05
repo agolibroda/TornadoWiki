@@ -12,6 +12,9 @@ from tornado.options import define, options, parse_config_file
 # options.logging = debug #None
 
 
+#
+define("Project_Name", default= 'TorWiki', help="Project name")
+
 define("salt", default= '$2b$12$.b9454ab5a22859b68bb48a65ed3be7ab208c', help="Main salt")
 define("cookie_secret", default= '64d1c3defc5f9e829010881cfae22db38732', help="Main cookie_secret")
 
