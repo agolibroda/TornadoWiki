@@ -2,31 +2,45 @@
            <nav id="sidebar" role="navigation" data-step="2" data-intro="Template has &lt;b&gt;many navigation styles&lt;/b&gt;"
                 data-position="right" class="navbar-default navbar-static-side">
             <div class="sidebar-collapse menu-scroll">
+            <div  style="height: 250px; display:block; margin:15px auto 25px; ">
+            	<img src="/static/images/avatar/48.jpg" alt="" class="img-responsive img-circle"/>
+            </div>
                 <ul id="side-menu" class="nav">
                     
                      <div class="clearfix"></div>
  
 {% if current_user %}
 
-                    <li class="active"><a href="/perconal_desk_top"><i class="fa fa-th-list fa-fw">
-                        <div class="icon-bg bg-blue"></div>
-                    </i><span class="menu-title">Мой рабочий стол</span></a>
-                          
                     <li><a href="compose"><i class="fa fa-edit fa-fw">
                         <div class="icon-bg bg-orange"></div>
                     </i><span class="menu-title">Написать статью</span></a></li>
+
+{% if current_user.user_role == "admin"  %}
+
+                    <li {% if link == 'admin_desk_top'  %} class="active"  {% end %}><a href="/admin_desk_top">
+                    	<i class="fa fa-th-list fa-fw">
+                        <div class="icon-bg bg-blue"></div>
+                    </i><span class="menu-title">Администратор Системы </span></a>
                     </li>
+
+ {% end %}
+
+                    <li {% if link == 'perconal_desk_top'  %} class="active"  {% end %}>
+                    	<a href="/perconal_desk_top"><i class="fa fa-th-list fa-fw">
+                        <div class="icon-bg bg-blue"></div>
+                    </i><span class="menu-title">Мой рабочий стол</span></a>
+                    </li>
+                    
+                    <li><a href="/perconal_desk_top"><i class="fa fa-th-list fa-fw">
+                        <div class="icon-bg bg-blue"></div>
+                    </i><span class="menu-title">Длинный список моих групп</span></a>
+                    </li>
+
+                          
                 </ul>
             </div>
         </nav>
 
-{% else %}
-                <ul id="side-menu" class="nav">
-
-                    <li><a href="Animation.html"><i class="fa fa-slack fa-fw">
-                        <div class="icon-bg bg-green"></div>
-                    </i><span class="menu-title">Animations</span></a></li>
-                </ul>
  {% end %}
             </div>
         </nav>

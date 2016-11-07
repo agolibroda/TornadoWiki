@@ -50,14 +50,14 @@
                 </div>
                  -->
                 <ul class="nav navbar navbar-top-links navbar-right mbn">
-                    <li class="dropdown"><a data-hover="dropdown" href="#" class="dropdown-toggle"><i class="fa fa-envelope fa-fw"></i><span class="badge badge-orange">0</span></a>
-                    </li>
+                    <!-- <li class="dropdown"><a data-hover="dropdown" href="#" class="dropdown-toggle"><i class="fa fa-envelope fa-fw"></i><span class="badge badge-orange">0</span></a>
+                    </li> -->
                     <li class="dropdown"><a data-hover="dropdown" href="#" class="dropdown-toggle"><i class="fa fa-tasks fa-fw"></i><span class="badge badge-yellow">0</span></a>
                     </li>
  {% if current_user %}
                     <li class="dropdown topbar-user">
                     <a data-hover="dropdown" href="#" class="dropdown-toggle">
-                    <img src="/static/images/avatar/48.jpg" alt="" class="img-responsive img-circle"/>&nbsp;<span class="hidden-xs" style="display: inline-block;">{{user.user_name}}</span>&nbsp;<span class="caret"></span></a>
+                    <img src="/static/images/avatar/48.jpg" alt="" class="img-responsive img-circle"/>&nbsp;<span class="hidden-xs" style="display: inline-block; width: 98px; white-space: nowrap; overflow: hidden;">{{current_user.user_name}}</span>&nbsp;<span class="caret"></span></a>
                         <ul class="dropdown-menu dropdown-user pull-right">
                             <li><a href="/profile"><i class="fa fa-user"></i>My Profile</a></li>
                             <li><a href="/perconal_desk_top"><i class="fa fa-th-list fa-fw"></i>Мой рабочий стол</a></li>
