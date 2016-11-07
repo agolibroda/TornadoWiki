@@ -89,7 +89,7 @@ class AuthLoginHandler(BaseHandler):
                 logging.info( 'AuthLoginHandler  userloginLoad = ' + str(userloginLoad))
                 
                 self.set_secure_cookie("wiki_user", str(userloginLoad.user_id))
-                self.redirect(self.get_argument("next", "/"))
+                self.redirect(self.get_argument("next", "/perconal_desk_top"))
             else:
                 self.render("login.html", error="incorrect password")
         except Exception as e:

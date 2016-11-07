@@ -98,7 +98,7 @@ class PerconalDeskTop(BaseHandler):
             logging.info( 'AdminHomeHandler:: user ' + str(user))
     
 #             self.render("personal_dt.html", page_name= 'Рабочий стол ' + " пользователь??? " , tplCategory=config.options.tpl_categofy_id )
-            self.render("personal_dt.html", user=user, page_name= 'Рабочий стол ' + user.user_name)
+            self.render("personal_dt.html", page_name= 'Рабочий стол ' + user.user_name, link='perconal_desk_top')
 
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
