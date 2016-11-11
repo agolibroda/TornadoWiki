@@ -22,7 +22,7 @@ import config
 
 import core.models
 
-from core.models.user import User
+from core.models.author import Author
 from core.models.article import Article
 from core.models.article import Revision
 from core.models.file import File
@@ -30,7 +30,7 @@ from core.models.file import File
 from .. import WikiException 
 
 
-class ControlArticle():
+class HelperArticle():
     """
     загрузить и сохранить статью
     
@@ -75,6 +75,18 @@ class ControlArticle():
         rezult = self.artModel.list (categoryId)
         if not rezult: rezult = []
         logging.info( 'getListArticles:: rezult = ' + str(rezult))
+        return  rezult #.result()
+
+
+    def getListArticlesByAutorId(self, authorId = 0):
+        """
+        получить список статей одного автора
+        
+        """
+    
+        rezult = self.artModel.listByAutorId (authorId)
+        if not rezult: rezult = []
+#         logging.info( 'getListArticles:: rezult = ' + str(rezult))
         return  rezult #.result()
 
     def getArticleByIdRevId(self, articleId, revId):

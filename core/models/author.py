@@ -2,7 +2,7 @@
 #
 # Copyright 2015 Alec Goliboda
 #
-# users.py
+# authors.py
 
 # from models.model import Model
 # from model import Model
@@ -26,19 +26,19 @@ from ..constants.data_base import *
 from . import Model
 from .. import WikiException 
 
-class User(Model):
+class Author(Model):
 
     def __init__ (self): 
-#         logging.info('User:: __init__')
-        Model.__init__(self, 'users')   
+#         logging.info('Author:: __init__')
+        Model.__init__(self, 'authors')   
 
-        self.user_id = 0
-        self.user_login = ''
-        self.user_name  = '' 
-        self.user_role = ''
-        self.user_phon = '' 
-        self.user_email = ''
-        self.user_external = ''
+        self.author_id = 0
+        self.author_login = ''
+        self.author_name  = '' 
+        self.author_role = ''
+        self.author_phon = '' 
+        self.author_email = ''
+        self.author_external = ''
  
     def save(self):
         """
@@ -46,13 +46,13 @@ class User(Model):
         свойства объекта
         пароль (новый,старый) перешифровывается 
         """
-        if self.user_pass != '':
+        if self.author_pass != '':
             bbsalt =  config.options.salt.encode()
-            self.user_pass = bcrypt.hashpw( tornado.escape.utf8(self.user_pass),  bbsalt ).decode('utf-8') 
-        if self.user_id == 0:
-            self.user_id = self.insert('user_id')
+            self.author_pass = bcrypt.hashpw( tornado.escape.utf8(self.author_pass),  bbsalt ).decode('utf-8') 
+        if self.author_id == 0:
+            self.author_id = self.insert('author_id')
         else:
-            self.update('user_id = ' + str(self.user_id))
+            self.update('author_id = ' + str(self.author_id))
         return True
         
         
@@ -71,10 +71,10 @@ class User(Model):
             raise err.WikiException(PASSWD_IS_ENPTY)
 
 #         cur = self.db().cursor()
-        selectStr = 'user_id,  user_login, user_name, user_role, user_phon, user_email, user_external'
-        fromStr = '' #'users'
+        selectStr = 'author_id,  author_login, author_name, author_role, author_phon, author_email, author_external'
+        fromStr = '' #'authors'
         anyParams = {
-                    'whereStr': " (user_login =  '" + loginMailStr + "' OR user_email =  '" + loginMailStr + "' ) AND user_pass =  '"  + test_pass + "' " , 
+                    'whereStr': " (author_login =  '" + loginMailStr + "' OR author_email =  '" + loginMailStr + "' ) AND author_pass =  '"  + test_pass + "' " , 
                      }
         resList = self.select(selectStr, fromStr, anyParams)
         
@@ -90,18 +90,18 @@ class User(Model):
             raise err.WikiException(LOGIN_ERROR)
 
 
-    def get(self, userId):
+    def get(self, authorId):
         """
         загрузить ОДНО значение - по ИД пользователя
         """
         resList = self.select(
-                    'user_id,  user_login, user_name, user_role, user_phon, user_email user_external ', # строка - чего хотим получить из селекта
-                    '', #'users',  # строка - список таблиц 
+                    'author_id,  author_login, author_name, author_role, author_phon, author_email author_external ', # строка - чего хотим получить из селекта
+                    '', #'authors',  # строка - список таблиц 
                     {
-                     'whereStr': "  user_id = " + str(userId)
+                     'whereStr': "  author_id = " + str(authorId)
                      } #  все остальные секции селекта
                     )
-#         logging.info('User:: get:: resList = ')
+#         logging.info('Author:: get:: resList = ')
 #         logging.info(resList)
         if len(resList) == 1:
 #             return resList[0]
@@ -117,10 +117,10 @@ class User(Model):
 
     def list(self):
         cur = self.db().cursor()
-        selectStr = 'user_id,  user_login, user_name, user_role, user_phon, user_email, user_external'
-        fromStr = '' #'users'
+        selectStr = 'author_id,  author_login, author_name, author_role, author_phon, author_email, author_external'
+        fromStr = '' #'authors'
         anyParams = {
-                    'orderStr': ' user_id', # строка порядок строк
+                    'orderStr': ' author_id', # строка порядок строк
                      }
 
         return self.select(selectStr, fromStr, anyParams)

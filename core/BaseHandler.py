@@ -31,7 +31,7 @@ import config
 
 import core.models
 
-from core.models.user import User
+from core.models.author import Author
 # from core.models.article import Article
 # from core.models.article import Revision
 # from core.models.file import File
@@ -50,21 +50,21 @@ class BaseHandler(tornado.web.RequestHandler):
 #     def db(self):
 #         return self.application.db
 
-    def get_current_user(self):
+    def get_current_author(self):
         try:
-            user_id = int(self.get_secure_cookie("wiki_user"))
+            author_id = int(self.get_secure_cookie("wiki_author"))
         except:
-            user_id = 0
-        logging.info('BaseHandler:: get_current_user:: user_id '+ str(user_id))
-        if not user_id: return None
-        user = User()
-        user = user.get(user_id)
-#         logging.info('BaseHandler:: get_current_user:: user '+ str(user))
+            author_id = 0
+        logging.info('BaseHandler:: get_current_author:: author_id '+ str(author_id))
+        if not author_id: return None
+        author = Author()
+        author = author.get(author_id)
+#         logging.info('BaseHandler:: get_current_author:: author '+ str(author))
 
-        return user
+        return author
 
     def any_author_exists(self):
-        return bool(self.get_current_user())
+        return bool(self.get_current_author())
 
 
 

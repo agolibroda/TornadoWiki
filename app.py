@@ -18,7 +18,7 @@ import json
 
 import config
 
-from core.UserControl import *
+from core.ProfileControl import *
 from core.ArticleControl import *
 from core.ProfileControl import *
 from core.DeskTopControls import *
@@ -40,6 +40,8 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", HomeHandler),
+            (r"/index.html", HomeHandler),
+            
 
             (r"/compose", ComposeHandler), # (ArticleControl) редактор - в зависимости от роли запускателя (или, откуда оно запускается?) такой набор инструментов и покажем.
             (r"/compose/([^/]+)", ComposeHandler), # (ArticleControl)
@@ -52,7 +54,7 @@ class Application(tornado.web.Application):
             (r"/auth/login", AuthLoginHandler), # (ProfileControl.py)
             (r"/auth/logout", AuthLogoutHandler), # (ProfileControl.py)
             (r"/profile", MyProfileHandler), # (ProfileControl.py) мой собственный профиль - что бы поредактировать
-            (r"/profile/([^/]+)", UserProfile), # (ProfileControl.py) профиль любого пользователя - по ИД - ну надо же поглядеть!
+            (r"/profile/([^/]+)", AuthorProfile), # (ProfileControl.py) профиль любого пользователя - по ИД - ну надо же поглядеть!
 
             (r"/perconal_desk_top", PerconalDeskTop), # (DeskTopControls) персональный рабочий стол пользователя - 
             (r"/group_desk_top", GroupDeskTop), # (DeskTopControls) рабочий стол участника группы

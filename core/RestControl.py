@@ -26,12 +26,13 @@ import config
 
 import core.models
 
-from core.models.user import User
+from core.models.author import Author
 from core.models.article import Article
 from core.models.article import Revision
 from core.models.file import File
 
-from core.control.article import ControlArticle 
+from core.helpers.article import HelperArticle 
+
 
 from core.BaseHandler import *
 
@@ -60,8 +61,8 @@ class RestMinHandler(BaseHandler):
                 curentParameter = config.options.info_page_categofy_id
             
             articles = [Article(0, 'Выберите значение ')]
-            artControl = ControlArticle()
-            articles += yield executor.submit( artControl.getListArticles, config.options.list_categofy_id)
+            artHelper = HelperArticle()
+            articles += yield executor.submit( artHelper.getListArticles, config.options.list_categofy_id)
             logging.info('RestMinHandler:: commandName:: getArticleCategoryList '+ str(articles))
             # получить список данных
             
@@ -74,13 +75,29 @@ class RestMinHandler(BaseHandler):
                 curentParameter = config.options.main_info_template
 
             articles = [Article(0, 'Выберите значение ')]
-            artControl = ControlArticle()
-            articles += yield executor.submit( artControl.getListArticles, config.options.tpl_categofy_id)
+            artHelper = HelperArticle()
+            articles += yield executor.submit( artHelper.getListArticles, config.options.tpl_categofy_id)
             logging.info('RestMinHandler:: commandName:: getArticleTemplateList '+ str(articles))
             # получить список данных
 
             self.render("rest/ctegory_list.html", dataList=articles, itemName="template_id", selected=int(curentParameter))
 
+
+        if commandName == 'getPersonalArticlesList': 
+            try:
+                curentAuthor = yield executor.submit(self.get_current_author ) #self.get_current_author ()
+                logging.info( 'getPersonalArticlesList:: get curentAuthor = ' + str(curentAuthor))
+                
+                artHelper = HelperArticle()
+                articles = yield executor.submit( artHelper.getListArticlesByAutorId, curentAuthor.author_id )
+                if not articles:
+                    self.redirect("/compose")
+                    return
+                self.render("rest/articles_list.html", articles=articles)
+            except Exception as e:
+                logging.info( 'Load:: Exception as et = ' + str(e))
+                error = Error ('500', 'что - то пошло не так :-( ')
+                self.render('table_error.html', error=error)
 
 
 

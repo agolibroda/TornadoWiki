@@ -44,12 +44,13 @@ import config
 
 import core.models
 
-from core.models.user       import User
+from core.models.author       import Author
 from core.models.article    import Article
 from core.models.article    import Revision
 from core.models.file       import File
 
-from core.control.article   import ControlArticle 
+from core.helpers.article import HelperArticle 
+
 
 from core.models.template   import Template
 
@@ -94,11 +95,11 @@ class PerconalDeskTop(BaseHandler):
 #             artControl = ControlArticle()
 #             articles = yield executor.submit( artControl.getListArticles )
     
-            user = self.get_current_user()
-            logging.info( 'AdminHomeHandler:: user ' + str(user))
+            author = self.get_current_author()
+            logging.info( 'AdminHomeHandler:: author ' + str(author))
     
 #             self.render("personal_dt.html", page_name= 'Рабочий стол ' + " пользователь??? " , tplCategory=config.options.tpl_categofy_id )
-            self.render("personal_dt.html", page_name= 'Рабочий стол ' + user.user_name, link='perconal_desk_top')
+            self.render("personal_dt.html", page_name= 'Рабочий стол ' + author.author_name, link='perconal_desk_top')
 
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))

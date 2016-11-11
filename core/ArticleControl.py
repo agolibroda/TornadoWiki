@@ -7,7 +7,7 @@
 # надо сюда добавить 
 # список ПОльзователей
 # список Групп
-
+#
 # ArticleControl.py 
 
 
@@ -33,13 +33,13 @@ import config
 
 import core.models
 
-from core.models.user import User
+from core.models.author import Author
 from core.models.article import Article
 from core.models.article import Revision
 from core.models.file import File
 from core.models.template import Template
 
-from core.control.article import ControlArticle 
+from core.helpers.article import HelperArticle 
 
 from core.BaseHandler import *
 from core.WikiException import *
@@ -69,8 +69,8 @@ class HomeHandler(BaseHandler):
         try:
             articleId = config.options.main_page_id
             
-            artControl = ControlArticle()
-            (article, fileList) = yield executor.submit( artControl.getArticleById, articleId)
+            artHelper = HelperArticle()
+            (article, fileList) = yield executor.submit( artHelper.getArticleById, articleId)
             logging.info( 'HomeHandler get article = ' + str(article))
     
     #         templateName = "admin/article.html"
@@ -93,8 +93,8 @@ class ArticleListHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         try:
-            artControl = ControlArticle()
-            articles = yield executor.submit( artControl.getListArticles, config.options.info_page_categofy_id )
+            artHelper = HelperArticle()
+            articles = yield executor.submit( artHelper.getListArticles, config.options.info_page_categofy_id )
             if not articles:
                 self.redirect("/compose")
                 return
@@ -121,8 +121,8 @@ class ArticleListHandler(BaseHandler):
 #     def get(self, categoryId):
 #         try:
 #             logging.info( 'AdminHomeArticlesCategory:: get ')
-#             artControl = ControlArticle()
-#             articles = yield executor.submit( artControl.getListArticlesCategory, categoryId)
+#             artHelper = HelperArticle()
+#             articles = yield executor.submit( artHelper.getListArticlesCategory, categoryId)
 #     
 #             self.render(config.options.adminTplPath+"articles.html", articles=articles)
 #         except Exception as e:
@@ -146,8 +146,8 @@ class ArticleHandler(BaseHandler):
     def get(self, articleName):
 
         try:
-            artControl = ControlArticle()
-            (article, fileList) = yield executor.submit( artControl.getArticleByName, articleName )
+            artHelper = HelperArticle()
+            (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleName )
        
        # а вот тут я должен получить и распарсить шаблон - как - текст в статьях (особой категории!!!!)
             if article.article_id == 0 : 
@@ -178,21 +178,21 @@ class ComposeHandler(BaseHandler):
             revId = self.get_argument("rid", None)
             article = None
             fileList = []
-            artControl = ControlArticle()
-            artControl.setArticleCategiry (config.options.info_page_categofy_id) 
-            logging.info( 'ComposeHandler:: 1 artControl.getModel() = ' + str(artControl.getModel()))
+            artHelper = HelperArticle()
+            artHelper.setArticleCategiry (config.options.info_page_categofy_id) 
+            logging.info( 'ComposeHandler:: 1 artHelper.getModel() = ' + str(artHelper.getModel()))
             
             if articleId and revId:
-                (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
-                artControl.setModel(article)
+                (article, fileList) = yield executor.submit( artHelper.getArticleByIdRevId, articleId, revId ) 
+                artHelper.setModel(article)
             elif articleName != '':
-                artControl.setArticleTitle (articleName)
+                artHelper.setArticleTitle (articleName)
     #         else:
     #             pass    
              
-            logging.info( 'ComposeHandler:: 2 artControl.getModel() = ' + str(artControl.getModel()))
+            logging.info( 'ComposeHandler:: 2 artHelper.getModel() = ' + str(artHelper.getModel()))
     #             logging.info( 'ComposeHandler:: get article = ' + str(article))
-            self.render("compose.html", article=artControl.getModel(),  fileList=fileList)
+            self.render("compose.html", article=artHelper.getModel(),  fileList=fileList)
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
@@ -207,11 +207,11 @@ class ComposeHandler(BaseHandler):
     
             artModel = Article()
     
-            curentUser = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+            curentAuthor = yield executor.submit(self.get_current_author ) #self.get_current_author ()
     #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
-    #         curentUser = rezult.result()
+    #         curentAuthor = rezult.result()
             
-            if not curentUser.user_id: return None
+            if not curentAuthor.author_id: return None
     
     
             artModel.article_id = int(self.get_argument("id", 0))
@@ -225,7 +225,7 @@ class ComposeHandler(BaseHandler):
             article_link =  artModel.article_title.lower().replace(' ','_')
             templateDir = self.get_template_path()
     
-            rez = yield executor.submit( artModel.save, curentUser.user_id, templateDir )
+            rez = yield executor.submit( artModel.save, curentAuthor.author_id, templateDir )
     
     #         logging.info( 'ComposeHandler:: AFTER Save! artModel = ' + str(artModel))
             
@@ -271,8 +271,8 @@ class AdminComposeHandler(BaseHandler):
             fileList = []
     
             if articleId and revId:
-                artControl = ControlArticle()
-                (article, fileList) = yield executor.submit( artControl.getArticleByIdRevId, articleId, revId ) 
+                artHelper = HelperArticle()
+                (article, fileList) = yield executor.submit( artHelper.getArticleByIdRevId, articleId, revId ) 
                 logging.info( 'AdminComposeHandler:: get article = ' + str(article))
             article.tpl_categofy_id = config.options.info_page_categofy_id 
             self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList, isCkEditMake=isNotEdit)
@@ -287,11 +287,11 @@ class AdminComposeHandler(BaseHandler):
         try:
             artModel = Article()
     
-            curentUser = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+            curentAuthor = yield executor.submit(self.get_current_author ) #self.get_current_author ()
     #         logging.info( 'AdminComposeHandler:: post rezult = ' + str(rezult))
-    #         curentUser = rezult.result()
+    #         curentAuthor = rezult.result()
             
-            if not curentUser.user_id: return False
+            if not curentAuthor.author_id: return False
     
             artModel.article_id = self.get_argument("id", 0)
             artModel.article_title = self.get_argument("article_title")
@@ -305,7 +305,7 @@ class AdminComposeHandler(BaseHandler):
             
             templateDir = self.get_template_path()
             
-            rez = yield executor.submit( artModel.save, curentUser.user_id, templateDir )
+            rez = yield executor.submit( artModel.save, curentAuthor.author_id, templateDir )
             logging.info( 'AdminComposeHandler:: rez = ' + str(rez))
             
             redirectLink = "/"+config.options.adminTplPath + 'article/' + str(rez.article_id) # article_link
@@ -390,19 +390,19 @@ class UploadHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self, article_id):
         try:
-            curentUser = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+            curentAuthor = yield executor.submit(self.get_current_author ) #self.get_current_author ()
     #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
-    #         curentUser = rezult.result()
+    #         curentAuthor = rezult.result()
             
-            user_id = curentUser.user_id
+            author_id = curentAuthor.author_id
             
             fileContrl = File()
             fileInfo = yield executor.submit(
                                             fileContrl.upload, 
                                             self.request.files, #['filearg'], 
-                                            article_id, user_id 
+                                            article_id, author_id 
                                             ) 
-    #         fileInfo = fileContrl.upload(self.request.files, article_id, user_id ) 
+    #         fileInfo = fileContrl.upload(self.request.files, article_id, author_id ) 
     #         for oneRez in fileInfo:
     #             logging.info( 'UploadHandler:: post oneRez = '  + str(oneRez))
     # 
@@ -431,8 +431,8 @@ class FeedHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         try:
-            artControl = ControlArticle()
-            articles = yield executor.submit( artControl.getListArticles )
+            artHelper = HelperArticle()
+            articles = yield executor.submit( artHelper.getListArticles )
             self.set_header("Content-Type", "application/atom+xml")
             self.render("feed.xml", articles=articles)
         except Exception as e:

@@ -95,7 +95,7 @@ class File(Model):
         self.wrkDir = os.path.join(storageDir, '/'.join(filePath))
         return os.path.join(self.wrkDir, str(fname) + self.file_extension)
  
-    def uploadOneFile(self, file, article_id, user_id):
+    def uploadOneFile(self, file, article_id, author_id):
         """
         загрузим файл, сделаем для него запись в табличке "файлы" 
         сделаем для него статью типа "термин" при попдании на страницу будет открываться файл и можно будет делать описание... 
@@ -120,7 +120,7 @@ class File(Model):
                 output_file = open( self.realFileName, 'wb')
                 output_file.write(file['body'])
 # вот теперь сохраним в базу.            
-                self.save(fname, self.file_name, self.file_extension,  article_id, user_id)            
+                self.save(fname, self.file_name, self.file_extension,  article_id, author_id)            
             else:
 # если файл есть, то его надо найти в базе, по - имени, и отдать на выход ИД файла. 
                 existingfile = self.loadFileNamedAndArticle(fname, article_id) 
@@ -141,28 +141,28 @@ class File(Model):
 
 #     @gen.coroutine
 #     def post(self):
-#         userloginLoad =  User()
+#         authorloginLoad =  Author()
 # 
-#         rezult = yield executor.submit( userloginLoad.login, self.get_argument("login"), self.get_argument("password") )
+#         rezult = yield executor.submit( authorloginLoad.login, self.get_argument("login"), self.get_argument("password") )
                         
    
-    def upload(self, files, article_id, user_id):
+    def upload(self, files, article_id, author_id):
         """
         Обработка очереди входных файлов 
         
         """  
 #         logging.info( 'upload files = '  + str(files))
 #         logging.info( 'upload article_id = '  + str(article_id))
-#         logging.info( 'upload user_id = '  + str(user_id))
+#         logging.info( 'upload author_id = '  + str(author_id))
         
         rezult = []
         for oneFile in files['filearg']:
-            fileOut = self.uploadOneFile(oneFile, article_id, user_id)
+            fileOut = self.uploadOneFile(oneFile, article_id, author_id)
             rezult.append(fileOut)
         
         return rezult
                         
-    def save(self, file_inside_name, fileName, fileExtension, article_id, user_id):
+    def save(self, file_inside_name, fileName, fileExtension, article_id, author_id):
         """
         Запомнить описание файла. 
         имеем дело всегда с новыми файлами... 
@@ -174,7 +174,7 @@ class File(Model):
         del(self.realFileName)
         del(self.wrkDir)
         del(self.error)
-        self.user_id = user_id
+        self.author_id = author_id
         self.file_name = fileName
         self.file_inside_name = file_inside_name
         self.file_extension = fileExtension
@@ -190,7 +190,7 @@ class File(Model):
         
         artModel.article_title =  self.file_name
         artModel.article_html =  self.file_name
-        artModel.save ( user_id )
+        artModel.save ( author_id )
         
         kross.file_kros_flag = 'M'
         kross.save(self.file_id, artModel.article_id)

@@ -104,12 +104,12 @@ class Article(Model):
         (автор, хеш статьи, хеш заголовка, дата...)
     
     получить список статей 
-    - выбираем данные из "published" - 
+    - выбираем данные из "articles" - 
     
     получить одну статью 
     - по одному из имен (старых - новых не важно) 
-    выбираем данные из "published" и "articles" берем как ХТМЛ, так и РТФ ну и активный тайтл (ил "articles")
-    имя ищем по ХЕШУ в таблице "titles"
+    выбираем данные из  "articles" 
+    данные ревизий берутся  по ХЕШУ-ам в таблицах "titles", "annotations", "texts"
     
     получить историю статьи 
     - по  ИД (одному из имен) выбрать все версии статьи из "revisions"
@@ -135,8 +135,8 @@ class Article(Model):
     
             getRez = self.select(
                                    'texts.article_id, revisions.revision_id, texts.text_html, annotations.annotation_text, titles.title_text, ' +
-                                   ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date,  revisions.user_id, revisions.revision_actual_flag, ' +
-                                   'articles.category_article_id, articles.template ' ,
+                                   ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date,  revisions.author_id, revisions.revision_actual_flag, ' +
+                                   'articles.category_article_id, articles.template, articles.author_id ' ,
                                    'titles, revisions, annotations, articles',
                                        {
                                    'whereStr': "  texts.text_sha_hash =  revisions.text_sha_hash" +
@@ -202,7 +202,7 @@ class Article(Model):
             Model.__init__(self, 'revisions')   
             self.revision_id = 0
             self.article_id = 0
-            self.user_id = 0
+            self.author_id = 0
 # дата создания ревизии   
 #             self.revision_date = 0
 #             self.revision_actual_flag  = 'A'
@@ -217,7 +217,7 @@ class Article(Model):
             Обязательно - автора!
     
     
-            - выбираем данные из "texts"  и "annotations"  и "titles"  и "users" 
+            - выбираем данные из "texts"  и "annotations"  и "titles"  и "authors" 
             
             
             """
@@ -226,12 +226,12 @@ class Article(Model):
                                    ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date, '+ 
                                    ' revisions.article_id, revisions.revision_id, ' +
                                    ' titles.title_text, annotations.annotation_text, ' +
-                                   ' users.user_id, users.user_name ',
-                                   ' titles, annotations, users ',
+                                   ' authors.author_id, authors.author_name ',
+                                   ' titles, annotations, authors ',
                                        {
                                    'whereStr': ' revisions.title_sha_hash = titles.title_sha_hash '  +
                                             ' AND revisions.annotation_sha_hash = annotations.annotation_sha_hash '  +
-                                            ' AND revisions.user_id =  users.user_id '  +
+                                            ' AND revisions.author_id =  authors.author_id '  +
                                             ' AND revisions.article_id =  ' + str(articleId), # строка набор условий для выбора строк
                                    'orderStr': ' revisions.revision_date DESC ', # строка порядок строк
     #                                'orderStr': 'FROM_BASE64( articles.article_title )', # строка порядок строк
@@ -281,6 +281,7 @@ class Article(Model):
 
         Model.__init__(self, 'articles')   
         self.article_id = id # эти параметры прилетают из формы редактирования
+        self.author_id = 0;
         self.article_title = title # эти параметры прилетают из формы редактирования
         self.article_annotation = '' # Это аннотация статьи!!!!!
         self.article_html = '' # эти параметры прилетают из формы редактирования
@@ -290,7 +291,7 @@ class Article(Model):
 
         
 
-    def save(self, user_id, templateDir):
+    def save(self, author_id, templateDir):
         """
         сохранить данные.
         2.1 если текст новый
@@ -328,7 +329,7 @@ class Article(Model):
         annotationControl = self.Annotation()
         textControl = self.Text()       
 
-        revisionControl.user_id = user_id
+        revisionControl.author_id = author_id
 
         titleControl.title_text = self.article_title.strip().strip(" \t\n")
 #         del(self.article_title)
@@ -429,6 +430,7 @@ class Article(Model):
         
             if int(self.article_id) == 0:
                 self.article_id = self.insert('article_id')
+                self.author_id = author_id
                         
                 titleControl.article_id = self.article_id
                 annotationControl.article_id = self.article_id
@@ -440,7 +442,7 @@ class Article(Model):
                 revisionUpd = self.RevisionLoc()
                 del(revisionUpd.revision_id) 
                 del(revisionUpd.article_id) 
-                del(revisionUpd.user_id) 
+                del(revisionUpd.author_id) 
     #             del(revisionUpd.revision_date) 
                 del(revisionUpd.title_sha_hash) 
                 del(revisionUpd.annotation_sha_hash) 
@@ -515,7 +517,7 @@ class Article(Model):
     
          getRez = self.select(
                                 'articles.article_id, revisions.revision_id, articles.article_title, ' + 
-                                'articles.article_annotation,  articles.article_html, articles.category_article_id, articles.template ',
+                                'articles.article_annotation,  articles.article_html, articles.category_article_id, articles.author_id, articles.template ',
                                 ' revisions, titles lfind ',
                                     {
                                 'whereStr': " articles.article_id = lfind.article_id " +
@@ -552,7 +554,7 @@ class Article(Model):
     
          getRez = self.select(
                                 'articles.article_id, revisions.revision_id, articles.article_title, '+
-                                'articles.article_annotation,  articles.article_html, articles.category_article_id, articles.template',
+                                'articles.article_annotation,  articles.article_html, articles.category_article_id, articles.author_id, articles.template',
                                 ' revisions ',
                                     {
                                 'whereStr': ' articles.article_id = ' + str(articleId) + 
@@ -595,7 +597,7 @@ class Article(Model):
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_html) ',
                                 'articles.article_id, revisions.revision_id, articles.article_title, ' +
-                                'articles.article_annotation, articles.category_article_id, articles.template ',
+                                'articles.article_annotation, articles.category_article_id, articles.author_id, articles.template ',
                                 ' revisions ',
                                     {
                                 'whereStr': ' articles.article_id = revisions.article_id '  +
@@ -618,7 +620,48 @@ class Article(Model):
 #              logging.info( 'list:: After oneArt = ' + str(oneObj))
     
          return getRez
+ 
+    def listByAutorId(self, authorId = 0):
+         """
+         получить список статей
+         одного автор - все статьи, всех категорий!
     
+         получить список статей 
+         - выбираем данные из "articles" - получить при этом АКТАЛЬНЫЕ ИД ревизий!
+                 
+         """
+    
+         autorIdStr = '';
+         if authorId > 0 :
+             autorIdStr = ' AND articles.author_id  = ' + str(authorId)
+             
+         getRez = self.select(
+    #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_html) ',
+                                'articles.article_id, revisions.revision_id, articles.article_title, ' +
+                                'articles.article_annotation, articles.category_article_id, articles.author_id, articles.template ',
+                                ' revisions ',
+                                    {
+                                'whereStr': ' articles.article_id = revisions.article_id '  +
+                                         " AND revisions.revision_actual_flag = 'A' " + autorIdStr, # строка набор условий для выбора строк
+                                'orderStr': ' articles.article_id ', # строка порядок строк
+    #                                'orderStr': 'FROM_BASE64( articles.article_title )', # строка порядок строк
+                                 }
+                                )
+    
+         logging.info( 'list:: getRez = ' + str(getRez))
+         if len(getRez) == 0:
+#             raise err.WikiException( ARTICLE_NOT_FOUND )
+            return []
+         
+         for oneObj in getRez:
+             oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
+             articleTitle = oneObj.article_title.strip().strip(" \t\n")
+             oneObj.article_link  =  articleTitle.lower().replace(' ','_')
+             oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
+#              logging.info( 'list:: After oneArt = ' + str(oneObj))
+    
+         return getRez
+   
     
     def get2Edit( self, articleId, revisionId ):
         """
@@ -638,7 +681,7 @@ class Article(Model):
         упорядочивать по дате ревизии - в начале - самые последние
         Обязательно - автора!
 
-        - выбираем данные из "revisions"  и "titles"  и "users" 
+        - выбираем данные из "revisions"  и "titles"  и "authors" 
         """
         revControl = self.RevisionLoc()
         return revControl.revisionsList(articleId)

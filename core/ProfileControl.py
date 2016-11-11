@@ -31,7 +31,7 @@ import config
 
 import core.models
 
-from core.models.user       import User
+from core.models.author       import Author
 
 from core.BaseHandler import *
 
@@ -56,14 +56,14 @@ class AuthCreateHandler(BaseHandler):
             if self.any_author_exists():
                 raise tornado.web.HTTPError(400, "author already created")
      
-            userLoc =  User()
-            userLoc.user_login = self.get_argument("name")
-            userLoc.user_email = self.get_argument("email")
-            userLoc.user_pass = self.get_argument("password")
-            rez = yield executor.submit( userLoc.save )
+            authorLoc =  Author()
+            authorLoc.author_login = self.get_argument("name")
+            authorLoc.author_email = self.get_argument("email")
+            authorLoc.author_pass = self.get_argument("password")
+            rez = yield executor.submit( authorLoc.save )
             logging.info( 'AuthCreateHandler  post rez = ' + str(rez))
             
-            self.set_secure_cookie("wiki_user", str(userLoc.user_id))
+            self.set_secure_cookie("wiki_author", str(authorLoc.author_id))
             self.redirect(self.get_argument("next", "/"))
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
@@ -82,13 +82,13 @@ class AuthLoginHandler(BaseHandler):
     @gen.coroutine
     def post(self):
         try:
-            userloginLoad =  User()
+            authorloginLoad =  Author()
     
-            rezult = yield executor.submit( userloginLoad.login, self.get_argument("login"), self.get_argument("password") )
+            rezult = yield executor.submit( authorloginLoad.login, self.get_argument("login"), self.get_argument("password") )
             if rezult:
-                logging.info( 'AuthLoginHandler  userloginLoad = ' + str(userloginLoad))
+                logging.info( 'AuthLoginHandler  authorloginLoad = ' + str(authorloginLoad))
                 
-                self.set_secure_cookie("wiki_user", str(userloginLoad.user_id))
+                self.set_secure_cookie("wiki_author", str(authorloginLoad.author_id))
                 self.redirect(self.get_argument("next", "/perconal_desk_top"))
             else:
                 self.render("login.html", error="incorrect password")
@@ -106,7 +106,7 @@ class AuthLoginHandler(BaseHandler):
 #             bcrypt.hashpw, tornado.escape.utf8(self.get_argument("password")),
 #             tornado.escape.utf8(author.hashed_password))
 #         if hashed_password == author.hashed_password:
-#             self.set_secure_cookie("wiki_user", str(author.id))
+#             self.set_secure_cookie("wiki_author", str(author.id))
 #             self.redirect(self.get_argument("next", "/"))
 #         else:
 #             self.render("login.html", error="incorrect password")
@@ -114,7 +114,7 @@ class AuthLoginHandler(BaseHandler):
 
 class AuthLogoutHandler(BaseHandler):
     def get(self):
-        self.clear_cookie("wiki_user")
+        self.clear_cookie("wiki_author")
         self.redirect(self.get_argument("next", "/"))
 
 
@@ -165,7 +165,7 @@ class MyProfileHandler(BaseHandler):
 
 
 
-class UserProfile(BaseHandler):
+class AuthorProfile(BaseHandler):
     """
     показать профиль любого пользователя
     

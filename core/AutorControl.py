@@ -65,7 +65,7 @@ class AuthCreateHandler(BaseHandler):
             rez = yield executor.submit( userLoc.save )
             logging.info( 'AuthCreateHandler  post rez = ' + str(rez))
             
-            self.set_secure_cookie("wiki_user", str(userLoc.user_id))
+            self.set_secure_cookie("wiki_author", str(userLoc.user_id))
             self.redirect(self.get_argument("next", "/"))
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
@@ -90,7 +90,7 @@ class AuthLoginHandler(BaseHandler):
             if rezult:
                 logging.info( 'AuthLoginHandler  userloginLoad = ' + str(userloginLoad))
                 
-                self.set_secure_cookie("wiki_user", str(userloginLoad.user_id))
+                self.set_secure_cookie("wiki_author", str(userloginLoad.user_id))
                 self.redirect(self.get_argument("next", "/"))
             else:
                 self.render("login.html", error="incorrect password")
@@ -108,7 +108,7 @@ class AuthLoginHandler(BaseHandler):
 #             bcrypt.hashpw, tornado.escape.utf8(self.get_argument("password")),
 #             tornado.escape.utf8(author.hashed_password))
 #         if hashed_password == author.hashed_password:
-#             self.set_secure_cookie("wiki_user", str(author.id))
+#             self.set_secure_cookie("wiki_author", str(author.id))
 #             self.redirect(self.get_argument("next", "/"))
 #         else:
 #             self.render("login.html", error="incorrect password")
@@ -116,7 +116,7 @@ class AuthLoginHandler(BaseHandler):
 
 class AuthLogoutHandler(BaseHandler):
     def get(self):
-        self.clear_cookie("wiki_user")
+        self.clear_cookie("wiki_author")
         self.redirect(self.get_argument("next", "/"))
 
 

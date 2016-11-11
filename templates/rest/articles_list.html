@@ -1,0 +1,32 @@
+<!-- articles_list.html -->
+
+<div class="article">
+ 
+	 <table class="table table-hover">
+	     <thead>
+	     <tr>
+	         <th>Название</th>
+	         <th>Кратке содержание</th>
+	         <th>Редактировать</th>
+	         <th>Видимость</th>
+	         <th>Status</th>
+	     </tr>
+	     </thead>
+	     <tbody>
+                                    
+  {% for article in articles %}
+			
+			 <tr>
+			     <td><a href="admin/article/{{ article.article_id }}">{{ article.article_title }}</a></td>
+			     <td>{% raw article.article_annotation %}</td>
+			     <td><a href="compose?aid={{ article.article_id }}&rid={{ article.revision_id }}">{{ _("Edit this wiki") }}</a></td>
+			     <td><span class="label label-sm label-success">Approved</span></td>
+			     <td><span class="label label-sm label-success">Approved</span></td>
+			 </tr>
+			
+  {% end %}
+                                    
+	     </tbody>
+	 </table>
+
+ <!-- / articles_list.html -->
