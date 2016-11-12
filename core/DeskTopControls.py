@@ -95,7 +95,7 @@ class PerconalDeskTop(BaseHandler):
 #             artControl = ControlArticle()
 #             articles = yield executor.submit( artControl.getListArticles )
     
-            author = self.get_current_author()
+            author = self.get_current_user()
             logging.info( 'AdminHomeHandler:: author ' + str(author))
     
 #             self.render("personal_dt.html", page_name= 'Рабочий стол ' + " пользователь??? " , tplCategory=config.options.tpl_categofy_id )

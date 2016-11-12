@@ -207,7 +207,7 @@ class ComposeHandler(BaseHandler):
     
             artModel = Article()
     
-            curentAuthor = yield executor.submit(self.get_current_author ) #self.get_current_author ()
+            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
     #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
     #         curentAuthor = rezult.result()
             
@@ -287,7 +287,7 @@ class AdminComposeHandler(BaseHandler):
         try:
             artModel = Article()
     
-            curentAuthor = yield executor.submit(self.get_current_author ) #self.get_current_author ()
+            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
     #         logging.info( 'AdminComposeHandler:: post rezult = ' + str(rezult))
     #         curentAuthor = rezult.result()
             
@@ -390,7 +390,7 @@ class UploadHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self, article_id):
         try:
-            curentAuthor = yield executor.submit(self.get_current_author ) #self.get_current_author ()
+            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
     #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
     #         curentAuthor = rezult.result()
             

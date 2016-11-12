@@ -17,7 +17,7 @@
                         <div class="icon-bg bg-orange"></div>
                     </i><span class="menu-title">Написать статью</span></a></li>
 
-{% if current_user.user_role == "admin"  %}
+{% if current_user.author_role == "admin"  %}
 
                     <li {% if link == 'admin_desk_top'  %} class="active"  {% end %}><a href="/admin_desk_top">
                     	<i class="fa fa-th-list fa-fw">

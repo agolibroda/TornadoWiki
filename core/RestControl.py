@@ -85,7 +85,7 @@ class RestMinHandler(BaseHandler):
 
         if commandName == 'getPersonalArticlesList': 
             try:
-                curentAuthor = yield executor.submit(self.get_current_author ) #self.get_current_author ()
+                curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
                 logging.info( 'getPersonalArticlesList:: get curentAuthor = ' + str(curentAuthor))
                 
                 artHelper = HelperArticle()
