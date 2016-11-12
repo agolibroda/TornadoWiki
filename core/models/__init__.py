@@ -214,16 +214,16 @@ class Model: #Connector:
         - лимит вот как то так,  
         общий вид селекта, может выглядеть примерно так:
         SELECT 
-            users.user_id,  
-            users.user_login, 
-            users.user_name, 
-            users.user_role, 
-            users.user_phon, 
-            users.user_email, 
-            users.user_external 
+            users.author_id,  
+            users.author_login, 
+            users.author_name, 
+            users.author_role, 
+            users.author_phon, 
+            users.author_email, 
+            users.author_external 
         FROM users 
-        WHERE (user_login =  "login" OR user_email =  "login" ) 
-        AND user_pass =  "$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0." 
+        WHERE (author_login =  "login" OR author_email =  "login" ) 
+        AND author_pass =  "$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0." 
         
               
         """
