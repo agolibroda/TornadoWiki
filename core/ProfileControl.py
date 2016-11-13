@@ -97,20 +97,6 @@ class AuthLoginHandler(BaseHandler):
             error = Error ('500', 'что - то пошло не так :-( ')
             self.render('error.html', error=error)
 
-#         self.db.get("SELECT * FROM authors WHERE email = %s",
-#                              self.get_argument("email"))
-#         if not author:
-#             self.render("login.html", error="email not found")
-#             return
-#         hashed_password = yield executor.submit(
-#             bcrypt.hashpw, tornado.escape.utf8(self.get_argument("password")),
-#             tornado.escape.utf8(author.hashed_password))
-#         if hashed_password == author.hashed_password:
-#             self.set_secure_cookie("wiki_author", str(author.id))
-#             self.redirect(self.get_argument("next", "/"))
-#         else:
-#             self.render("login.html", error="incorrect password")
-
 
 class AuthLogoutHandler(BaseHandler):
     def get(self):
