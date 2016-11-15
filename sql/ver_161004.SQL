@@ -262,6 +262,14 @@ CREATE TABLE IF NOT EXISTS members (
    
 );
 
+
+CREATE INDEX members_group_id_idx ON members (group_id);
+CREATE INDEX members_author_id_idx ON members (author_id);
+CREATE INDEX member_role_type_idx ON members (member_role_type);
+CREATE INDEX member_actual_flag_idx ON members (member_actual_flag);
+CREATE INDEX member_revision_date_idx ON members (member_revision_date);
+
+
 DROP TABLE IF EXISTS revision_members CASCADE;
 CREATE TABLE IF NOT EXISTS revision_members (
   group_id int NOT NULL references groups(group_id),
@@ -275,13 +283,14 @@ CREATE TABLE IF NOT EXISTS revision_members (
 
 );
   
+CREATE INDEX revision_members_group_id_idx ON revision_members (group_id);
+CREATE INDEX revision_members_author_id_idx ON revision_members (author_id);
+CREATE INDEX revision_members_member_role_type_idx ON revision_members (member_role_type);
 
+CREATE INDEX revision_members_actual_flag_idx ON revision_members (member_actual_flag);
+CREATE INDEX revision_members_revision_date_idx ON revision_members (member_revision_date);
+CREATE INDEX revision_members_revision_author_id_idx ON revision_members (revision_author_id);
 
-CREATE INDEX members_group_id_idx ON members (group_id);
-CREATE INDEX members_author_id_idx ON members (author_id);
-CREATE INDEX member_role_type_idx ON members (member_role_type);
-CREATE INDEX member_actual_flag_idx ON members (member_actual_flag);
-CREATE INDEX member_revision_date_idx ON members (member_revision_date);
 
 
 DROP TYPE IF EXISTS library_permission_type_def CASCADE;
