@@ -62,3 +62,4 @@ class Gpoup(Model):
         pass
         
     def list(self, ):
+        pass

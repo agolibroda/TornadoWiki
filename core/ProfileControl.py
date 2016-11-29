@@ -141,7 +141,7 @@ class MyProfileHandler(BaseHandler):
             articles = yield executor.submit( artControl.getListArticles )
     
     
-            self.render(config.options.adminTplPath+"admin_home.html", articles=articles, tplCategory=config.options.tpl_categofy_id )
+            self.render(config.options.adminTplPath+"my_profile.html", articles=articles, tplCategory=config.options.tpl_categofy_id )
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')

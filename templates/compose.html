@@ -10,9 +10,9 @@
     </div>
     
     <div style="margin-bottom:5px">
-    <textarea name="article_html" rows="30" cols="80" class="article_html">{{ article.article_html if article else "" }}</textarea>
+    <textarea name="article_sourse" rows="30" cols="80" class="article_sourse">{{ article.article_sourse if article else "" }}</textarea>
             <script>
-            CKEDITOR.replace( 'article_html' );
+            CKEDITOR.replace( 'article_sourse' );
         </script>
     
     </div>
@@ -47,7 +47,7 @@
     $(function() {
       $("input[name=article_title]").select();
       $("form.compose").submit(function() {
-          var required = ["article_title", "article_html"];
+          var required = ["article_title", "article_sourse"];
           var form = $(this).get(0);
           for (var i = 0; i < required.length; i++) {
               if (!form[required[i]].value) {

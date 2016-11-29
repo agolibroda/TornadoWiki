@@ -35,10 +35,10 @@ class Author(Model):
         self.author_id = 0
         self.author_login = ''
         self.author_name  = '' 
+        self.author_surname = ''
         self.author_role = ''
         self.author_phon = '' 
         self.author_email = ''
-        self.author_external = ''
  
     def save(self):
         """
@@ -71,7 +71,7 @@ class Author(Model):
             raise err.WikiException(PASSWD_IS_ENPTY)
 
 #         cur = self.db().cursor()
-        selectStr = 'author_id,  author_login, author_name, author_role, author_phon, author_email, author_external'
+        selectStr = 'author_id,  author_login, author_name, author_surname, author_role, author_phon, author_email'
         fromStr = '' #'authors'
         anyParams = {
                     'whereStr': " (author_login =  '" + loginMailStr + "' OR author_email =  '" + loginMailStr + "' ) AND author_pass =  '"  + test_pass + "' " , 
@@ -95,7 +95,7 @@ class Author(Model):
         загрузить ОДНО значение - по ИД пользователя
         """
         resList = self.select(
-                    'author_id,  author_login, author_name, author_role, author_phon, author_email author_external ', # строка - чего хотим получить из селекта
+                    'author_id,  author_login, author_name,  author_surname, author_role, author_phon, author_email', # строка - чего хотим получить из селекта
                     '', #'authors',  # строка - список таблиц 
                     {
                      'whereStr': "  author_id = " + str(authorId)
@@ -117,7 +117,7 @@ class Author(Model):
 
     def list(self):
         cur = self.db().cursor()
-        selectStr = 'author_id,  author_login, author_name, author_role, author_phon, author_email, author_external'
+        selectStr = 'author_id,  author_login, author_name,author_surname, author_role, author_phon, author_email'
         fromStr = '' #'authors'
         anyParams = {
                     'orderStr': ' author_id', # строка порядок строк

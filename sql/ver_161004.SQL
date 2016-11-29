@@ -1,6 +1,9 @@
 -- повод ревизии - добавил  - отредактировал - удалил
 DROP TYPE IF EXISTS revision_data_type CASCADE;
-CREATE TYPE revision_data_type AS enum('I','U', 'D');
+CREATE TYPE revision_data_type AS enum('I', 'U', 'D');
+
+DROP TYPE IF EXISTS revision_actual_type;
+CREATE TYPE revision_actual_type AS ENUM ( 'A', 'O' );
 
 DROP TYPE IF EXISTS author_type;
 CREATE TYPE author_type AS enum('admin','volunteer');
@@ -16,37 +19,60 @@ CREATE TABLE IF NOT EXISTS authors (
   author_create timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   author_login varchar(50) NOT NULL,
   author_name varchar(254) DEFAULT NULL,
-  author_external varchar(50) DEFAULT NULL,
+  author_surname varchar(50) DEFAULT NULL,
   author_pass varchar(70) DEFAULT NULL,
   author_phon varchar(50) DEFAULT NULL,
   author_email varchar(254) DEFAULT NULL,
   author_role author_type NOT NULL DEFAULT 'volunteer'
 );
 
-CREATE INDEX authors_author_name ON authors (author_name);
-CREATE INDEX authors_author_pass ON authors (author_pass);
-CREATE INDEX authors_author_phon ON authors (author_phon);
-CREATE INDEX authors_author_email ON authors (author_email);
+CREATE INDEX authors_author_id ON authors (author_id);
+CREATE INDEX authors_author_create_id ON authors (author_create);
+CREATE INDEX authors_author_login_id ON authors (author_login);
+CREATE INDEX authors_author_name_id ON authors (author_name);
+CREATE INDEX authors_author_surname_id ON authors (author_surname);
+
+
+CREATE INDEX authors_author_pass_id ON authors (author_pass);
+CREATE INDEX authors_author_phon_id ON authors (author_phon);
+CREATE INDEX authors_author_email_id ON authors (author_email);
 
 
 DROP TABLE IF EXISTS revisions_authors;
 CREATE TABLE IF NOT EXISTS revisions_authors (
   author_id int  NOT NULL references authors(author_id),
-  author_create timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  author_create timestamp NOT NULL,
   author_login varchar(50) NOT NULL,
   author_name varchar(254) DEFAULT NULL,
-  author_external varchar(50) DEFAULT NULL,
+  author_surname varchar(50) DEFAULT NULL,
   author_pass varchar(70) DEFAULT NULL,
   author_phon varchar(50) DEFAULT NULL,
   author_email varchar(254) DEFAULT NULL,
   author_role author_type NOT NULL DEFAULT 'volunteer',
   
-  actual_flag revision_data_type NOT NULL,
+  revisions_sha_hash character varying(66) NOT NULL  primary key,
+  revision_actual_flag revision_actual_type NOT NULL,
+  
+  operation_flag revision_data_type NOT NULL,
   revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id),
-  CONSTRAINT revisions_authors_pkey PRIMARY KEY (author_id, actual_flag, revision_date)
+  revision_author_id int NOT NULL references authors(author_id)
   
 );
+
+CREATE INDEX revisions_authors_author_id ON revisions_authors (author_id);
+CREATE INDEX revisions_authors_author_create_id ON revisions_authors (author_create);
+CREATE INDEX revisions_authors_author_login_id ON revisions_authors (author_login);
+CREATE INDEX revisions_authors_author_name_id ON revisions_authors (author_name);
+CREATE INDEX revisions_authors_author_surname_id ON revisions_authors (author_surname);
+
+CREATE INDEX revisions_authors_author_pass_id ON revisions_authors (author_pass);
+CREATE INDEX revisions_authors_author_phon_id ON revisions_authors (author_phon);
+CREATE INDEX revisions_authors_author_email_id ON revisions_authors (author_email);
+
+CREATE INDEX revisions_authors_articles_operation_flag_idx ON revisions_authors (operation_flag);
+CREATE INDEX revisions_authors_articles_revision_date_idx ON revisions_authors (revision_date);
+CREATE INDEX revisions_authors_articles_revision_author_id_idx ON revisions_authors (revision_author_id);
+CREATE INDEX revisions_authors_revision_actual_flag_idx ON revisions_authors (revision_actual_flag);
 
 
 
@@ -76,14 +102,14 @@ ALTER SEQUENCE articles_article_id_seq OWNED BY articles.article_id;
 
 CREATE INDEX articles_article_id_idx ON articles (article_id);
 CREATE INDEX articles_author_id_idx ON articles (author_id);
-CREATE INDEX category_article_id ON articles (category_article_id);
-CREATE INDEX template ON articles (template);
-CREATE INDEX permissions ON articles (permissions);
+CREATE INDEX articles_category_article_id ON articles (category_article_id);
+CREATE INDEX articles_template_id ON articles (template);
+CREATE INDEX articles_permissions_id ON articles (permissions);
 
 
-DROP TABLE IF EXISTS revision__articles;
-CREATE TABLE IF NOT EXISTS revision__articles (
-  article_id int unique not null DEFAULT nextval('articles_article_id_seq') primary key,
+DROP TABLE IF EXISTS revisions_articles;
+CREATE TABLE IF NOT EXISTS revisions_articles (
+  article_id int not null  references articles(article_id),
   author_id int NOT NULL references authors(author_id),
   article_title text NOT NULL,
   article_annotation text,
@@ -92,21 +118,25 @@ CREATE TABLE IF NOT EXISTS revision__articles (
   template int DEFAULT NULL,
   permissions permission_type  NOT NULL DEFAULT 'pbl',
   
-  actual_flag revision_data_type NOT NULL,
+  revisions_sha_hash character varying(66) NOT NULL  primary key,
+  revision_actual_flag revision_actual_type NOT NULL,
+  
+  operation_flag revision_data_type NOT NULL,
   revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id),
-  CONSTRAINT revision__articles_pkey PRIMARY KEY (article_id, author_id, actual_flag, revision_date)
+  revision_author_id int NOT NULL references authors(author_id)
   
 );
 
+CREATE INDEX revision_articles_article_id_idx ON revisions_articles (article_id);
+CREATE INDEX revision_articles_author_id_idx ON revisions_articles (author_id);
+CREATE INDEX revision_articles_category_article_id ON revisions_articles (category_article_id);
+CREATE INDEX revision_articles_template_id ON revisions_articles (template);
+CREATE INDEX revision_articles_permissions_id ON revisions_articles (permissions);
 
+CREATE INDEX revision_articles_operation_flag_idx ON revisions_articles (operation_flag);
+CREATE INDEX revision_articles_revision_date_idx ON revisions_articles (revision_date);
+CREATE INDEX revision_articles_revision_author_id_idx ON revisions_articles (revision_author_id);
 
---ALTER TABLE products ADD CHECK (name <> '');
---ALTER TABLE products ADD CONSTRAINT some_name UNIQUE (product_no);
---ALTER TABLE products ADD FOREIGN KEY (product_group_id) REFERENCES product_groups;
---To add a not-null constraint, which cannot be written as a table constraint, use this syntax:
---
---ALTER TABLE products ALTER COLUMN product_no SET NOT NULL;
 
 
 -- Дамп структуры для таблица wiki.files
@@ -124,28 +154,41 @@ CREATE TABLE IF NOT EXISTS files (
 );
 ALTER SEQUENCE files_file_id_seq OWNED BY files.file_id;
 
+CREATE INDEX file_file_id ON files (file_id);
+CREATE INDEX file_author_id ON files (author_id);
+CREATE INDEX file_create_date_id ON files (file_create_date);
+CREATE INDEX file_extension_id ON files (file_extension);
+CREATE INDEX file_name_id ON files (file_name);
 
-CREATE INDEX file_create_date ON files (file_create_date);
-CREATE INDEX file_extension ON files (file_extension);
-CREATE INDEX file_name ON files (file_name);
-CREATE INDEX files_author_id ON files (author_id);
 
-
-DROP TABLE IF EXISTS revision__files;
-CREATE TABLE IF NOT EXISTS revision__files (
-  file_id int not null DEFAULT nextval('files_file_id_seq') primary key,
+DROP TABLE IF EXISTS revisions_files;
+CREATE TABLE IF NOT EXISTS revisions_files (
+  file_id int not null references files(file_id),
   author_id int NOT NULL references authors(author_id),
-  file_create_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  file_create_date timestamp NOT NULL,
   file_inside_name varchar(66) NOT NULL,
   file_extension varchar(20) NOT NULL,
   file_name varchar(254) NOT NULL,
   
-  actual_flag revision_data_type NOT NULL,
+  revisions_sha_hash character varying(66) NOT NULL  primary key,
+  revision_actual_flag revision_actual_type NOT NULL,
+  
+  operation_flag revision_data_type NOT NULL,
   revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id),
-  CONSTRAINT revision__files_pkey PRIMARY KEY (file_id, author_id, actual_flag, revision_date)
+  revision_author_id int NOT NULL references authors(author_id)
   
 );
+
+CREATE INDEX revision_files_file_id ON revisions_files (file_id);
+CREATE INDEX revision_files_author_id ON revisions_files (author_id);
+CREATE INDEX revision_files_create_date_id ON revisions_files (file_create_date);
+CREATE INDEX revision_files_extension_id ON revisions_files (file_extension);
+CREATE INDEX revision_files_name_id ON revisions_files (file_name);
+
+
+CREATE INDEX revision_files_operation_flag_idx ON revisions_files (operation_flag);
+CREATE INDEX revision_files_revision_date_idx ON revisions_files (revision_date);
+CREATE INDEX revision_files_revision_author_id_idx ON revisions_files (revision_author_id);
 
 
 DROP TYPE IF EXISTS files_kross_type;
@@ -163,28 +206,40 @@ CREATE TABLE IF NOT EXISTS files_kroses (
 
 CREATE INDEX files_kroses_file_id ON files_kroses (file_id);
 CREATE INDEX files_kroses_article_id ON files_kroses (article_id);
-CREATE INDEX file_kros_create_date ON files_kroses (file_kros_create_date);
-CREATE INDEX file_kros_flag ON files_kroses (file_kros_flag);
+CREATE INDEX file_kros_create_date_idx ON files_kroses (file_kros_create_date);
+CREATE INDEX file_kros_flag_id ON files_kroses (file_kros_flag);
 
 
-DROP TABLE IF EXISTS revision_files_kroses;
-CREATE TABLE IF NOT EXISTS revision_files_kroses (
+DROP TABLE IF EXISTS revisions_files_kroses;
+CREATE TABLE IF NOT EXISTS revisions_files_kroses (
   file_id int not null references files(file_id),
   article_id int NOT NULL references articles(article_id),
-  file_kros_create_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  file_kros_create_date timestamp NOT NULL,
   file_kros_flag files_kross_type NOT NULL,
   
-  actual_flag revision_data_type NOT NULL,
+  revisions_sha_hash character varying(66) NOT NULL  primary key,
+  revision_actual_flag revision_actual_type NOT NULL,
+  
+  operation_flag revision_data_type NOT NULL,
   revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id),
-  CONSTRAINT revision_files_kroses_pkey PRIMARY KEY (file_id, article_id, group_actual_flag, group_revision_date)
+  revision_author_id int NOT NULL references authors(author_id)
 );
 
+CREATE INDEX revision_files_kroses_file_id ON revisions_files_kroses (file_id);
+CREATE INDEX revision_files_kroses_article_id ON revisions_files_kroses (article_id);
+CREATE INDEX revision_file_kros_create_date_idx ON revisions_files_kroses (file_kros_create_date);
+CREATE INDEX revision_file_kros_flag_id ON revisions_files_kroses (file_kros_flag);
+
+
+CREATE INDEX revision_files_kroses_operation_flag_idx ON revisions_files_kroses (operation_flag);
+CREATE INDEX revision_files_kroses_revision_date_idx ON revisions_files_kroses (revision_date);
+CREATE INDEX revision_files_kroses_revision_author_id_idx ON revisions_files_kroses (revision_author_id);
+CREATE INDEX revision_files_kroses_revision_actual_flag_idx ON revisions_files_kroses (revision_actual_flag);
 
 
 
-INSERT INTO  authors (author_id, author_create, author_login, author_name, author_external, author_pass, author_phon, author_email, author_role) VALUES 
-(1,	'2015-12-25 12:53:08',	'login',	'MyName And SurName',	'',	'$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0.',	'1234-65432-4444',	'mail_0001@mail.com',	'admin');
+INSERT INTO  authors (author_id, author_create, author_login, author_name, author_surname, author_pass, author_phon, author_email, author_role) VALUES 
+(1,	'2015-12-25 12:53:08',	'login',	'MyName',	'SurName',	'$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0.',	'1234-65432-4444',	'mail_0001@mail.com',	'admin');
 ALTER SEQUENCE authors_author_id_seq OWNED BY authors.author_id;
 
 
@@ -192,6 +247,9 @@ ALTER SEQUENCE authors_author_id_seq OWNED BY authors.author_id;
 SELECT setval('authors_author_id_seq', COALESCE((SELECT MAX(author_id)+1 FROM authors), 1), false);
 --ALTER SEQUENCE articles_article_id_seq START (SELECT MAX(article_id)+1 FROM articles) ;
 
+INSERT INTO  revisions_authors (author_id, author_create, author_login, author_name, author_surname, author_pass, author_phon, author_email, author_role, operation_flag, revision_author_id, revision_actual_flag, revisions_sha_hash) VALUES 
+(1,	'2015-12-25 12:53:08',	'login',	'MyName',	'SurName',	'$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0.',	'1234-65432-4444',	'mail_0001@mail.com',	'admin', 'I', 1, 'A', 'b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB');
+ALTER SEQUENCE authors_author_id_seq OWNED BY authors.author_id;
 
 
 INSERT INTO  articles (article_id, author_id, article_title, article_annotation, article_html, category_article_id, template, permissions) VALUES 
@@ -226,9 +284,9 @@ ALTER SEQUENCE groups_group_id_seq OWNED BY groups.group_id;
 
 CREATE INDEX groups_group_id_idx ON groups (group_id);
 CREATE INDEX groups_author_id_idx ON groups (author_id);
+CREATE INDEX group_create_date_idx ON groups (group_create_date);
 CREATE INDEX group_title_idx ON groups (group_title);
 CREATE INDEX group_status_idx ON groups (group_status);
-CREATE INDEX group_create_date_idx ON groups (group_create_date);
 
 
 
@@ -236,18 +294,30 @@ DROP TABLE IF EXISTS revisions_groups CASCADE;
 CREATE TABLE IF NOT EXISTS revisions_groups (
   group_id int  references groups(group_id),
   author_id int NOT NULL references authors(author_id),
+  group_create_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   group_title varchar(254) NOT NULL,
   group_annotation text,
   group_status group_status_def  NOT NULL DEFAULT 'pbl',
-  actual_flag revision_data_type NOT NULL,
+  
+  revisions_sha_hash character varying(66) NOT NULL  primary key,
+  revision_actual_flag revision_actual_type NOT NULL,
+  
+  operation_flag revision_data_type NOT NULL,
   revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id),
-  CONSTRAINT revisions_groups_pkey PRIMARY KEY (group_id, author_id, group_actual_flag, group_revision_date)
+  revision_author_id int NOT NULL references authors(author_id)
 
 );
 
-CREATE INDEX revision_group_actual_flag ON revisions_groups (group_actual_flag);
-CREATE INDEX revision_group_revision_date ON revisions_groups (group_revision_date);
+CREATE INDEX revisions_groups_group_id_idx ON revisions_groups (group_id);
+CREATE INDEX revisions_groups_author_id_idx ON revisions_groups (author_id);
+CREATE INDEX revisions_groups_create_date_idx ON revisions_groups (group_create_date);
+CREATE INDEX revisions_groups_title_idx ON revisions_groups (group_title);
+CREATE INDEX revisions_groups_status_idx ON revisions_groups (group_status);
+
+CREATE INDEX revision_group_operation_flag_idx ON revisions_groups (operation_flag);
+CREATE INDEX revision_group_revision_date_idx ON revisions_groups (revision_date);
+CREATE INDEX revision_group_revision_author_id_idx ON revisions_groups (revision_author_id);
+CREATE INDEX revision_group_revision_actual_flag_idx ON revisions_groups (revision_actual_flag);
 
 
 DROP TYPE IF EXISTS role_type CASCADE;
@@ -266,31 +336,31 @@ CREATE TABLE IF NOT EXISTS members (
 CREATE INDEX members_group_id_idx ON members (group_id);
 CREATE INDEX members_author_id_idx ON members (author_id);
 CREATE INDEX member_role_type_idx ON members (member_role_type);
-CREATE INDEX member_actual_flag_idx ON members (member_actual_flag);
-CREATE INDEX member_revision_date_idx ON members (member_revision_date);
 
 
-DROP TABLE IF EXISTS revision_members CASCADE;
-CREATE TABLE IF NOT EXISTS revision_members (
+DROP TABLE IF EXISTS revisions_members CASCADE;
+CREATE TABLE IF NOT EXISTS revisions_members (
   group_id int NOT NULL references groups(group_id),
   author_id int NOT NULL references authors(author_id),
   member_role_type role_type NOT NULL,
 
-  actual_flag revision_data_type NOT NULL,
+  revisions_sha_hash character varying(66) NOT NULL  primary key,
+  revision_actual_flag revision_actual_type NOT NULL,
+  
+  operation_flag revision_data_type NOT NULL,
   revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id),
-  CONSTRAINT revision_members_pkey PRIMARY KEY (group_id, author_id, actual_flag, revision_date)
+  revision_author_id int NOT NULL references authors(author_id)
 
 );
   
-CREATE INDEX revision_members_group_id_idx ON revision_members (group_id);
-CREATE INDEX revision_members_author_id_idx ON revision_members (author_id);
-CREATE INDEX revision_members_member_role_type_idx ON revision_members (member_role_type);
+CREATE INDEX revision_members_group_id_idx ON revisions_members (group_id);
+CREATE INDEX revision_members_author_id_idx ON revisions_members (author_id);
+CREATE INDEX revision_members_member_role_type_idx ON revisions_members (member_role_type);
 
-CREATE INDEX revision_members_actual_flag_idx ON revision_members (member_actual_flag);
-CREATE INDEX revision_members_revision_date_idx ON revision_members (member_revision_date);
-CREATE INDEX revision_members_revision_author_id_idx ON revision_members (revision_author_id);
-
+CREATE INDEX revision_members_operation_flag_idx ON revisions_members (operation_flag);
+CREATE INDEX revision_members_revision_date_idx ON revisions_members (revision_date);
+CREATE INDEX revision_members_revision_author_id_idx ON revisions_members (revision_author_id);
+CREATE INDEX revision_members_revision_actual_flag_idx ON revisions_members (revision_actual_flag);
 
 
 DROP TYPE IF EXISTS library_permission_type_def CASCADE;
@@ -301,7 +371,7 @@ DROP TABLE IF EXISTS librarys CASCADE;
 CREATE TABLE IF NOT EXISTS librarys (
   group_id int NOT NULL references groups(group_id),
   article_id int NOT NULL references articles(article_id),
-  library_permission_type library_permission_type_def NOT NULL
+  library_permission_type library_permission_type_def NOT NULL,
   CONSTRAINT librarys_pkey PRIMARY KEY (group_id, article_id)
 );
 
@@ -310,20 +380,28 @@ CREATE INDEX librarys_article_id_idx ON librarys (article_id);
 CREATE INDEX library_permission_type_idx ON librarys (library_permission_type);
 
 
-DROP TABLE IF EXISTS revision_librarys CASCADE;
-CREATE TABLE IF NOT EXISTS revision_librarys (
+DROP TABLE IF EXISTS revisions_librarys CASCADE;
+CREATE TABLE IF NOT EXISTS revisions_librarys (
   group_id int NOT NULL references groups(group_id),
   article_id int NOT NULL references articles(article_id),
   library_permission_type library_permission_type_def NOT NULL,
 
-  actual_flag revision_data_type NOT NULL,
+  revisions_sha_hash character varying(66) NOT NULL  primary key,
+  revision_actual_flag revision_actual_type NOT NULL,
+  
+  operation_flag revision_data_type NOT NULL,
   revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id),
-  CONSTRAINT revision_librarys_pkey PRIMARY KEY (group_id, article_id, actual_flag, revision_date)
+  revision_author_id int NOT NULL references authors(author_id)
   );
 
-CREATE INDEX library_actual_flag_idx ON librarys (library_actual_flag);
-CREATE INDEX library_revision_date_idx ON librarys (library_revision_date);
+CREATE INDEX revision_librarys_group_id_idx ON revisions_librarys (group_id);
+CREATE INDEX revision_librarys_article_id_idx ON revisions_librarys (article_id);
+CREATE INDEX revision_librarys_permission_type_idx ON revisions_librarys (library_permission_type);
+
+CREATE INDEX revision_librarys_operation_flag_idx ON revisions_librarys (operation_flag);
+CREATE INDEX revision_librarys_revision_date_idx ON revisions_librarys (revision_date);
+CREATE INDEX revision_librarys_revision_author_id_idx ON revisions_librarys (revision_author_id);
+CREATE INDEX revision_librarys_revision_actual_flag_idx ON revisions_librarys (revision_actual_flag);
 
 
 
