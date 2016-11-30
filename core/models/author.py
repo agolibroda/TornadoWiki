@@ -51,8 +51,16 @@ class Author(Model):
             self.author_pass = bcrypt.hashpw( tornado.escape.utf8(self.author_pass),  bbsalt ).decode('utf-8') 
         if self.author_id == 0:
             self.author_id = self.insert('author_id')
+            operationFlag = 'I'
         else:
             self.update('author_id = ' + str(self.author_id))
+            operationFlag = 'U'
+            
+        mainPrimaryObj = {primaryName: 'author_id', primaryValue: self.author_id }
+        revisions_sha_hash =  hashlib.sha256(
+                    tornado.escape.utf8(self.author_login + self.author_name + self.author_surname + self.author_role +self.author_phon + self.author_email  )
+                                            ).hexdigest() 
+        self.saveRevision(self.author_id, operationFlag, mainPrimaryObj, revisions_sha_hash)
         return True
         
         

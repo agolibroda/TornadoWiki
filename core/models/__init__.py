@@ -140,12 +140,12 @@ class Model: #Connector:
 
 
                 
-    def insert(self, userId, requestParamName = ''):
+    def insert(self, autorId, requestParamName = ''):
         """
         добавить в таблицу "tabName"  атрибуты класса, 
         вернуть максимальный ИД, если requestParamName не пустой. 
         
-        userId - Это АВТОР РЕВИЗИИ - тот, кто делает конкретную запись!!!!!!
+        autorId - Это АВТОР РЕВИЗИИ - тот, кто делает конкретную запись!!!!!!
         requestParamName - название столбца, который является "автоинкрементным",  
         
         """
@@ -167,7 +167,7 @@ class Model: #Connector:
                 logging.info(' insert:: sqlStr = ' + sqlStr)
                 lCurs.execute(sqlStr)
                 
-            self.saverevision(userId, 'I')
+            self.saverevision(autorId, 'I')
             
         except psycopg2.Error as error:
             
@@ -177,7 +177,7 @@ class Model: #Connector:
             raise err.WikiException(error)
 
 
-    def update(self, userId, whereSection):
+    def update(self, autorId, whereSection):
         """
         изменить данные в таблицу "tabName"  атрибуты класса, 
         вернуть максимальный ИД, если requestParamName не нудЁвый. 
@@ -191,7 +191,7 @@ class Model: #Connector:
             sqlStr = "UPDATE "+ self._tabName +" SET " + strSet + " WHERE " + whereSection
             logging.info(' update:: sqlStr = ' + sqlStr)
             lCurs.execute(sqlStr)
-            self.saverevision(userId, 'U')
+            self.saverevision(autorId, 'U')
 
 #             self.commit()
         except psycopg2.Error as error:
@@ -337,7 +337,7 @@ class Model: #Connector:
 # - получить оду ревизию...
 # - узнать является ли набор данных уникальным (не похожим на текущее значение данных - значит, у нас возможны циклы!!!!!)
 
-    def saveRevision(self, userId, operationFlag, mainPrimaryObj, revisions_sha_hash):
+    def saveRevision(self, autorId, operationFlag, mainPrimaryObj, revisions_sha_hash):
         """
         сохранение ревизии для данных.
         при сохранении ревизии стоит (наверное) делать так:
@@ -348,9 +348,9 @@ class Model: #Connector:
         mainPrimaryObj = {primaryName: 'article_id', primaryValue: 123 }
          
         INSERT INTO distributors (did, dname)
-    VALUES (5, 'Gizmo Transglobal')
-    ON CONFLICT (did) DO UPDATE SET dname = EXCLUDED.dname;
-        
+        VALUES (5, 'Gizmo Transglobal')
+        ON CONFLICT (did) DO UPDATE SET dname = EXCLUDED.dname;
+            
         """
         paramsObj = self.splitAttributes()
 # во тут надо добавить араметры ревизии в инсерт!!
@@ -362,14 +362,14 @@ class Model: #Connector:
             _loDb = self.cursor()
             _loDb.begin()
     
-# Все ревизии ЭТОЙ записи - устарели!!!! - проабдейтим список ревизий
+            # Все ревизии ЭТОЙ записи - устарели!!!! - проабдейтим список ревизий
             sqlStr = "UPDATE revisions_" + self._tabName + "SET revision_actual_flag = 'O' WHERE " +\
                      mainPrimaryObj.primaryName + " = "  + mainPrimaryObj.primaryValue
             _loDb.execute(sqlStr)
 
-# Теперь можно записать новые данные  в ревизии.    
+            # Теперь можно записать новые данные  в ревизии.    
             paramsObj.strListAttrNames += ', revision_actual_flag, revision_author_id,  operation_flag, revisions_sha_hash '
-            paramsObj.strListAttrValues += ", 'A', " +  str(userId) + ", '" + operationFlag + "',  '" + revisions_sha_hash + "' "
+            paramsObj.strListAttrValues += ", 'A', " +  str(autorId) + ", '" + operationFlag + "',  '" + revisions_sha_hash + "' "
     
             sqlStr = "INSERT INTO revisions_" + self._tabName +" ( " + paramsObj.strListAttrNames + ") VALUES " +\
                     "( " + paramsObj.strListAttrValues + " ) " + \
@@ -377,7 +377,7 @@ class Model: #Connector:
             logging.info(' insert:: sqlStr = ' + sqlStr)
             _loDb.execute(sqlStr)
 
-            _loDbcommit()
+            _loDb.commit()
         except psycopg2.Error as error:
             logging.error(' update exception:: ' + str (error) )
             logging.error(' update exception:: sqlStr = ' + sqlStr )
