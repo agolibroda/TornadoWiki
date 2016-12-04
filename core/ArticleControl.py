@@ -35,7 +35,6 @@ import core.models
 
 from core.models.author import Author
 from core.models.article import Article
-from core.models.article import Revision
 from core.models.file import File
 from core.models.template import Template
 

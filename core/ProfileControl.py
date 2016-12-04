@@ -31,15 +31,13 @@ import config
 
 import core.models
 
-from core.models.author       import Author
+from core.models.author         import Author
 
-from core.BaseHandler import *
+from core.BaseHandler           import *
 
 
 # A thread pool to be used for password hashing with bcrypt.
 executor = concurrent.futures.ThreadPoolExecutor(2)
-
-
 
 
 class AuthCreateHandler(BaseHandler):
@@ -73,10 +71,6 @@ class AuthCreateHandler(BaseHandler):
 
 class AuthLoginHandler(BaseHandler):
     def get(self):
-        # If there are no authors, redirect to the account creation page.
-#         if not self.any_author_exists():
-#             self.redirect("/auth/create")
-#         else:
         self.render("login.html", error=None, page_name= 'Страница входа')
 
     @gen.coroutine
@@ -114,16 +108,6 @@ class MyProfileHandler(BaseHandler):
     
     """
     
-#     def initialize(self, flag):
-#         logging.info( 'AdminHomeHandler:: __init__:: flag = ' + str(flag))
-#         self.flag = flag
-
-#     def __init__(self, flag):
-#         """
-#         """
-#         logging.info( 'AdminHomeHandler:: __init__:: flag = ' + str(flag))
-         
-         
     @tornado.web.authenticated
     @gen.coroutine
     def get(self):
@@ -136,12 +120,14 @@ class MyProfileHandler(BaseHandler):
 
         """
         try:
-            logging.info( 'AdminHomeHandler:: get ')
-            artControl = ControlArticle()
-            articles = yield executor.submit( artControl.getListArticles )
-    
-    
-            self.render(config.options.adminTplPath+"my_profile.html", articles=articles, tplCategory=config.options.tpl_categofy_id )
+
+            curentAuthor = yield executor.submit(self.get_current_user ) 
+            logging.info( 'MyProfileHandler GET :: curentAuthor = ' + str(curentAuthor))
+
+            if not curentAuthor.author_id: raise tornado.web.HTTPError(404, "data not found")
+            
+            
+            self.render("my_profile.html", autor=curentAuthor, link='profile', page_name=curentAuthor.author_name + ' '+ curentAuthor.author_surname )
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
@@ -156,7 +142,35 @@ class AuthorProfile(BaseHandler):
     показать профиль любого пользователя
     
     """
-    pass
+    @tornado.web.authenticated
+    @gen.coroutine
+    def get(self):
+        """
+        и шаблон должен быть что - то типа "просмотр данных пользователя" -) 
+
+        """
+        try:
+
+            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+    #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
+    #         curentAuthor = rezult.result()
+            
+            if not curentAuthor.author_id: return None
+            
+            logging.info( 'AdminHomeHandler:: get ')
+            artControl = ControlArticle()
+            articles = yield executor.submit( artControl.getListArticles )
+    
+    
+            self.render(config.options.adminTplPath+"my_profile.html", articles=articles )
+        except Exception as e:
+            logging.info( 'Save:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('error.html', error=error)
+
+
+
+
 
 # 
 # class ProfileHandler(BaseHandler):

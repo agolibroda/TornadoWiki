@@ -306,9 +306,9 @@ class Article(Model):
 # где - то после сохранения данных, должна быть сохранена и ревизия, причем, в единой трансакции!!!!
 #   -- вот, такое изменение уже есть, и нефок его заново запихивать!
 #   revisions_sha_hash character varying(66) NOT NULL,
-тут для каждого применения надо придумать КАК задавать уникльный ХЕШ.   
-кстати про трансакцию - походу не стоит ее делать единой  - ну и что, что ЭТА (старая трансакция)  стала "боевой" - может, 
-именно так и правильно? ) то есть, при восстановлении актуального текста после вандализма.... 
+# тут для каждого применения надо придумать КАК задавать уникльный ХЕШ.   
+# кстати про трансакцию - походу не стоит ее делать единой  - ну и что, что ЭТА (старая трансакция)  стала "боевой" - может, 
+# именно так и правильно? ) то есть, при восстановлении актуального текста после вандализма.... 
 
                 
                 self.saveRevision( userId, operationFlag, revisions_sha_hash)
@@ -324,11 +324,11 @@ class Article(Model):
         return self 
          
 
-где - то после сохранения данных, должна быть сохранена и ревизия, причем, в единой трансакции!!!!
-  -- вот, такое изменение уже есть, и нефок его заново запихивать!
-  revisions_sha_hash character varying(66) NOT NULL, 
-
-процедура - сохранить трансакцию!!!!!
+# где - то после сохранения данных, должна быть сохранена и ревизия, причем, в единой трансакции!!!!
+#   -- вот, такое изменение уже есть, и нефок его заново запихивать!
+#   revisions_sha_hash character varying(66) NOT NULL, 
+# 
+# процедура - сохранить трансакцию!!!!!
 
 
     def get(self, articleTitle):
@@ -349,7 +349,7 @@ class Article(Model):
     
          getRez = self.select(
                                 'articles.article_id, articles.article_title, ' + 
-                                'articles.article_annotation,  articles.article_sourse, articles.category_article_id, articles.author_id, articles.template ',
+                                'articles.article_annotation,  articles.article_source, articles.category_article_id, articles.author_id, articles.template ',
                                 ' revisions_articles lfind ',
                                     {
                                 'whereStr': " articles.article_id = lfind.article_id " +
@@ -383,7 +383,7 @@ class Article(Model):
     
          getRez = self.select(
                                 'articles.article_id, articles.article_title, '+
-                                'articles.article_annotation,  articles.article_sourse, articles.category_article_id, articles.author_id, articles.template',
+                                'articles.article_annotation,  articles.article_source, articles.category_article_id, articles.author_id, articles.template',
                                 '',
                                     {
                                 'whereStr': ' articles.article_id = ' + str(articleId)  ,
@@ -422,7 +422,7 @@ class Article(Model):
              categoryStr = ' AND articles.category_article_id = ' + str(categoryId)
              
          getRez = self.select(
-    #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_sourse) ',
+    #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
                                 'articles.article_id, articles.article_title, ' +
                                 'articles.article_annotation, articles.category_article_id, articles.author_id, articles.template ',
                                 '',
@@ -463,13 +463,12 @@ class Article(Model):
              autorIdStr = ' AND articles.author_id  = ' + str(authorId)
              
          getRez = self.select(
-    #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_sourse) ',
+    #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
                                 'articles.article_id, articles.article_title, ' +
                                 'articles.article_annotation, articles.category_article_id, articles.author_id, articles.template ',
                                 '',
                                     {
-                                'whereStr': ' articles.article_id = revisions.article_id '  +
-                                         autorIdStr, # строка набор условий для выбора строк
+                                'whereStr': autorIdStr, # строка набор условий для выбора строк
                                 'orderStr': ' articles.article_id ', # строка порядок строк
     #                                'orderStr': 'FROM_BASE64( articles.article_title )', # строка порядок строк
                                  }
@@ -510,8 +509,9 @@ class Article(Model):
 
         - выбираем данные из "revisions"  и "titles"  и "authors" 
         """
-        revControl = self.RevisionLoc()
-        return revControl.revisionsList(articleId)
+        pass
+#         revControl = self.RevisionLoc()
+#         return revControl.revisionsList(articleId)
 
 
     def IsUniqueRevision(self, titleHash, annotationHash, articleHash):
@@ -526,9 +526,12 @@ class Article(Model):
 
 
 
-    def getOneRevision ( self, articleId, revisionId ):
+    def getOneRevision ( self, articleId, revisionHash ):
         """
-        получить ОДНУ ревизию статьи        
+        получить ОДНУ ревизию статьи  
+        у всякой ревизии есть ее уникальный Хуш!       
+        для всякого типа данных известно, как этот Хеш создается, и знаит,
+        по такому Хешу мохно поднять любую трансакцию!!!!
         
         Это делаем для РЕДАКТИРОВНИЯ!!!
         
@@ -580,9 +583,9 @@ class Article(Model):
 #                anyParams = {} #  все остальные секции селекта
 #                ):
         
-вот тут надо добавить к списку того, что может придти из наследной модели :-)  
-"чисто" ревизные вещи - дату, автора, флаг 
-и уже в таком порядке все и выбирать... 
+# вот тут надо добавить к списку того, что может придти из наследной модели :-)  
+# "чисто" ревизные вещи - дату, автора, флаг 
+# и уже в таком порядке все и выбирать... 
         
         def revisionsList(self, articleId):
             """
@@ -596,16 +599,18 @@ class Article(Model):
             
             """
             getRez = self.select(
-    #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_sourse) ',
+    #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
                                    ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date, '+ 
-                                   ' revisions.article_id, revisions.revision_id, ' +
-                                   ' titles.title_text, annotations.annotation_text, ' +
-                                   ' authors.author_id, authors.author_name ',
-                                   ' titles, annotations, authors ',
+                                   ' revisions_articles.article_id, revisions_articles.revisions_sha_hash, ' +
+                                   ' revisions_articles.article_title, revisions_articles.article_annotation, ' +
+                                   ' revisions_articles.author_id, authors.author_name, authors.author_surname ' +
+                                   ' revisions_articles.revision_author_id, rev_author.author_name AS revision_author_name, rev_author.author_surname AS revision_author_surname',
+                                   
+                                   ' revisions_articles, authors, authors rev_author ',
+                                   
                                        {
-                                   'whereStr': ' revisions.title_sha_hash = titles.title_sha_hash '  +
-                                            ' AND revisions.annotation_sha_hash = annotations.annotation_sha_hash '  +
-                                            ' AND revisions.author_id =  authors.author_id '  +
+                                   'whereStr': ' revisions.author_id =  authors.author_id '  +
+                                            ' AND revisions.revision_author_id =  rev_author.author_id '  +
                                             ' AND revisions.article_id =  ' + str(articleId), # строка набор условий для выбора строк
                                    'orderStr': ' revisions.revision_date DESC ', # строка порядок строк
     #                                'orderStr': 'FROM_BASE64( articles.article_title )', # строка порядок строк

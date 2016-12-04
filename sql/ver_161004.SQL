@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS articles (
   author_id int NOT NULL references authors(author_id),
   article_title text NOT NULL,
   article_annotation text,
-  article_html text NOT NULL,
+  article_source text NOT NULL,
   category_article_id int NOT NULL,
   template int DEFAULT NULL,
   permissions permission_type  NOT NULL DEFAULT 'pbl'
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS revisions_articles (
   author_id int NOT NULL references authors(author_id),
   article_title text NOT NULL,
   article_annotation text,
-  article_html text NOT NULL,
+  article_source text NOT NULL,
   category_article_id int NOT NULL,
   template int DEFAULT NULL,
   permissions permission_type  NOT NULL DEFAULT 'pbl',
@@ -252,7 +252,7 @@ INSERT INTO  revisions_authors (author_id, author_create, author_login, author_n
 ALTER SEQUENCE authors_author_id_seq OWNED BY authors.author_id;
 
 
-INSERT INTO  articles (article_id, author_id, article_title, article_annotation, article_html, category_article_id, template, permissions) VALUES 
+INSERT INTO  articles (article_id, author_id, article_title, article_annotation, article_source, category_article_id, template, permissions) VALUES 
 (1,	1, '0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk=',	'0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk=',	'PHA+0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk8L3A+',	0,	'0',	'pbl'),
 (2,	1, '0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuA==',	'0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuA==',	'PHA+0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuDwvcD4=',	1,	'0',	'pbl'),
 (3,	1, '0KjQsNCx0LvQvtC90Ys=',	'0KjQsNCx0LvQvtC90Ys=',	'PHA+0KjQsNCx0LvQvtC90Ys8L3A+',	1,	'0',	'pbl'),
