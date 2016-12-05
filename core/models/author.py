@@ -103,10 +103,10 @@ class Author(Model):
         загрузить ОДНО значение - по ИД пользователя
         """
         resList = self.select(
-                    'author_id,  author_login, author_name,  author_surname, author_role, author_phon, author_email', # строка - чего хотим получить из селекта
+                    'author_id,  author_login, author_name,  author_surname, author_role, author_phon, author_email, EXTRACT(EPOCH FROM author_create) AS author_create ', # строка - чего хотим получить из селекта
                     '', #'authors',  # строка - список таблиц 
                     {
-                     'whereStr': "  author_id = " + str(authorId)
+                     'whereStr': " author_id = " + str(authorId)
                      } #  все остальные секции селекта
                     )
 #         logging.info('Author:: get:: resList = ')
@@ -125,7 +125,7 @@ class Author(Model):
 
     def list(self):
         cur = self.db().cursor()
-        selectStr = 'author_id,  author_login, author_name,author_surname, author_role, author_phon, author_email'
+        selectStr = 'author_id,  author_login, author_name,author_surname, author_role, author_phon, author_email, EXTRACT(EPOCH FROM author_create) AS author_create'
         fromStr = '' #'authors'
         anyParams = {
                     'orderStr': ' author_id', # строка порядок строк
