@@ -21,40 +21,41 @@
                               
                                     
                               <div class="row">
-                    <div class="col-md-12"><h2>Profile: John Doe</h2>
+                    <div class="col-md-12"><h2>{{_("Profile")}}: {{ page_name }}</h2>
 
                         <div class="row mtl">
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <div class="text-center mbl"><img src="http://lorempixel.com/640/480/business/1/" alt="" class="img-responsive"/></div>
                                     <div class="text-center mbl"><a href="#" class="btn btn-green"><i class="fa fa-upload"></i>&nbsp;
-                                        Upload</a></div>
+                                         {{_("Upload")}}</a></div>
                                 </div>
                                 <table class="table table-striped table-hover">
                                     <tbody>
                                     <tr>
-                                        <td>User Name</td>
-                                        <td>John Doe</td>
+                                        <td>{{_("Autor Name")}}</td>
+                                        <td>{{ page_name }}</td>
                                     </tr>
                                     <tr>
-                                        <td>Email</td>
-                                        <td>name@example.com</td>
+                                        <td>{{_("Email")}}</td>
+                                        <td>{{autor.author_email}}</td>
                                     </tr>
-                                    <tr>
-                                        <td>Address</td>
+<!--                                     <tr>
+                                        <td>{{_("Address")}}</td>
                                         <td>Street 123, Avenue 45, Country</td>
                                     </tr>
                                     <tr>
-                                        <td>Status</td>
+                                        <td>{{_("Autor Status")}}</td>
                                         <td><span class="label label-success">Active</span></td>
                                     </tr>
-                                    <tr>
-                                        <td>User Rating</td>
-                                        <td><i class="fa fa-star text-yellow fa-fw"></i><i class="fa fa-star text-yellow fa-fw"></i><i class="fa fa-star text-yellow fa-fw"></i><i class="fa fa-star text-yellow fa-fw"></i><i class="fa fa-star text-yellow fa-fw"></i></td>
+ -->
+                                     <tr>
+                                        <td>{{_("Autor Role")}}</td>
+                                        <td><span class="label label-success">{{autor.author_role}}</span></td>
                                     </tr>
                                     <tr>
-                                        <td>Member Since</td>
-                                        <td> Jun 03, 2014</td>
+                                        <td>{{_("Member Since")}}</td>
+                                        <td> {{ locale.format_date(autor.author_create, full_format=True, shorter=True) }}</td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -62,118 +63,94 @@
 								<div class="common-modal modal fade" id="common-Modal1" tabindex="-1" role="dialog" aria-hidden="true">
 									<div class="modal-content">
 										<ul class="list-inline item-details">
-											<li><a href="http://themifycloud.com">Admin templates</a></li>
-											<li><a href="http://themescloud.org">Bootstrap themes</a></li>
+											<li><a href="http://themifycloud.com">{{_("Admin templates")}}</a></li>
+											<li><a href="http://themescloud.org">{{_("Bootstrap themes")}}</a></li>
 										</ul>
 									</div>
 								</div>
                             </div>
                             <div class="col-md-9">
                                 <ul class="nav nav-tabs">
-                                    <li class="active"><a href="#tab-edit" data-toggle="tab">Edit Profile</a></li>
-                                    <li><a href="#tab-messages" data-toggle="tab">Messages</a></li>
+                                    <li class="active"><a href="#tab-edit" data-toggle="tab">{{_("Edit Profile")}}</a></li>
                                 </ul>
                                 <div id="generalTabContent" class="tab-content">
                                     <div id="tab-edit" class="tab-pane fade in active">
-                                        <form action="#" class="form-horizontal"><h3>Account Setting</h3>
+                                        <form action="#" class="form-horizontal"><h3>{{_("Account Setting")}}</h3>
 
-                                            <div class="form-group"><label class="col-sm-3 control-label">Email</label>
+                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Email")}}</label>
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input type="email" placeholder="email@yourcompany.com" class="form-control"/></div>
+                                                        <div class="col-xs-9"><input name="author_email" value="{{autor.author_email}}" type="email" placeholder="email@yourcompany.com" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">Username</label>
+                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Login")}}</label>
 
                                                 <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="username" class="form-control"/></div>
+                                                        <div class="col-xs-9"> 
+                                                    <div class="row"> <input name="author_login" value="{{autor.author_login}}" type="text" placeholder="login" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">Password</label>
+                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Password")}}</label>
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-4"><input type="password" placeholder="password" class="form-control"/></div>
+                                                        <div class="col-xs-4"><input name="author_pass" type="password" placeholder="password" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">Confirm Password</label>
+                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Confirm Password")}}</label>
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-4"><input type="password" placeholder="password" class="form-control"/></div>
+                                                        <div class="col-xs-4"><input name="author_pass_conf" type="password" placeholder="password" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <hr/>
-                                            <h3>Profile Setting</h3>
+                                            <h3>{{_("Profile Setting")}}</h3>
 
-                                            <div class="form-group"><label class="col-sm-3 control-label">First Name</label>
 
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="first name" class="form-control"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">Last Name</label>
+
+                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("First Name")}}</label>
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="last name" class="form-control"/></div>
+                                                        <div class="col-xs-9"><input name="author_name" value="{{autor.author_name}}"  type="text" placeholder="first name" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">Gender</label>
+                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Last Name")}}</label>
+
+                                                <div class="col-sm-9 controls">
+                                                    <div class="row">
+                                                        <div class="col-xs-9"><input type="text"name="author_surname" value="{{autor.author_surname}}"  placeholder="last name" class="form-control"/></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+<!--                                             <div class="form-group"><label class="col-sm-3 control-label">{{_("Gender")}}</label>
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
                                                         <div class="col-xs-9">
-                                                            <div class="radio"><label class="radio-inline"><input type="radio" value="0" name="gender" checked="checked"/>&nbsp;
-                                                                Male</label><label class="radio-inline"><input type="radio" value="1" name="gender"/>&nbsp;
-                                                                Female</label></div>
+                                                            <div class="radio"><label class="radio-inline"><input type="radio" value="0" name="author_gender" checked="checked"/>&nbsp;
+                                                                {{_("Male")}}</label><label class="radio-inline"><input type="radio" value="1" name="author_gender"/>&nbsp;
+                                                                {{_("Female")}}</label></div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">Birthday</label>
+                                            <div class="form-group"><label class="col-sm-3 control-label"{{_("Birthday")}}"></label>
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-4"><input id="datepicker-normal" type="text" class="form-control"/></div>
+                                                        <div class="col-xs-4"><input id="datepicker-normal" name="author_birthday" value="{{autor.author_surname}}" type="text" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">Marital Status</label>
-
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-4"><select class="form-control">
-                                                            <option>Single</option>
-                                                            <option>Married</option>
-                                                        </select></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">Position</label>
-
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-4"><select class="form-control">
-                                                            <option>CEO</option>
-                                                            <option>Director</option>
-                                                            <option>Manager</option>
-                                                            <option>Staff</option>
-                                                            <option>Office Boy</option>
-                                                        </select></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">About</label>
+                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Birthday")}}x</label>
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
@@ -181,71 +158,45 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <hr/>
-                                            <h3>Contact Setting</h3>
+ -->                                            <hr/>
+                                            
+                                            <h3>{{_("Contact Setting")}}</h3>
 
-                                            <div class="form-group"><label class="col-sm-3 control-label">Mobile Phone</label>
-
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="mobile phone" class="form-control"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">Website</label>
+                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Mobile Phone")}}</label>
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="website" class="form-control"/></div>
+                                                        <div class="col-xs-9"><input type="text" placeholder="mobile phone" class="form-control" name="author_phon" value="{{autor.author_phon}}" /></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">Facebook</label>
+<!--                                             <div class="form-group"><label class="col-sm-3 control-label"{{_("Website")}}"></label>
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="facebook" class="form-control"/></div>
+                                                        <div class="col-xs-9"><input type="text" placeholder="website" class="form-control" name="author_name" value="{{autor.author_login}}"/></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">Twitter</label>
+                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Facebook")}}</label>
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="twitter" class="form-control"/></div>
+                                                        <div class="col-xs-9"><input type="text" placeholder="facebook" class="form-control" name="author_name" value="{{autor.author_login}}"/></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <hr/>
-                                            <button type="submit" class="btn btn-green btn-block">Finish</button>
+                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Facebook")}}x</label>
+
+                                                <div class="col-sm-9 controls">
+                                                    <div class="row">
+                                                        <div class="col-xs-9"><input type="text" placeholder="twitter" class="form-control" name="author_name" value="{{autor.author_login}}"/></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+ -->                                            <hr/>
+                                            <button type="submit" class="btn btn-green btn-block">{{_("Finish")}}</button>
                                         </form>
-                                    </div>
-                                    <div id="tab-messages" class="tab-pane fade in">
-                                        <div class="row mbl">
-                                            <div class="col-lg-6"><span style="margin-left: 15px"></span><input type="checkbox"/><a href="#" class="btn btn-success btn-sm mlm mrm"><i class="fa fa-send-o"></i>&nbsp;
-                                                Write Mail</a><a href="#" class="btn btn-white btn-sm"><i class="fa fa-trash-o"></i>&nbsp;
-                                                Delete</a></div>
-                                            <div class="col-lg-6">
-                                                <div class="input-group"><input type="text" class="form-control"/><span class="input-group-btn"><button type="button" class="btn btn-white">Search</button></span></div>
-                                            </div>
-                                        </div>
-                                        <div class="list-group"><a href="#" class="list-group-item"><input type="checkbox"/><span class="fa fa-star text-yellow mrm mlm"></span><span style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp; - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit</span><span
-                                                class="badge">12:10 AM</span><span class="pull-right mrl"><span class="glyphicon glyphicon-paperclip"></span></span></a><a href="#" class="list-group-item"><input type="checkbox"/><span class="fa fa-star-o mrm mlm"></span><span style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp;
-                                            - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt</span><span class="badge">12:10 AM</span><span class="pull-right mrl"><span class="glyphicon glyphicon-paperclip"></span></span></a><a href="#" class="list-group-item"><input type="checkbox"/><span
-                                                class="fa fa-star text-yellow mrm mlm"></span><span style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp; - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod</span><span
-                                                class="badge">12:10 AM</span><span class="pull-right mrl"><span class="glyphicon glyphicon-paperclip"></span></span></a><a href="#" class="list-group-item"><input type="checkbox"/><span class="fa fa-star-o mrm mlm"></span><span style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp;
-                                            - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit</span><span class="badge">12:10 AM</span><span class="pull-right mrl"><span class="glyphicon glyphicon-paperclip"></span></span></a><a href="#" class="list-group-item"><input type="checkbox"/><span class="fa fa-star-o mrm mlm"></span><span
-                                                style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp; - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt</span><span class="badge">12:10 AM</span><span class="pull-right mrl"><span
-                                                class="glyphicon glyphicon-paperclip"></span></span></a><a href="#" class="list-group-item"><input type="checkbox"/><span class="fa fa-star-o mrm mlm"></span><span style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp; - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod</span><span
-                                                class="badge">12:10 AM</span><span class="pull-right mrl"><span class="glyphicon glyphicon-paperclip"></span></span></a><a href="#" class="list-group-item"><input type="checkbox"/><span class="fa fa-star-o mrm mlm"></span><span style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp;
-                                            - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit</span><span class="badge">12:10 AM</span><span class="pull-right mrl"><span class="glyphicon glyphicon-paperclip"></span></span></a><a href="#" class="list-group-item"><input type="checkbox"/><span class="fa fa-star-o mrm mlm"></span><span
-                                                style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp; - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt</span><span class="badge">12:10 AM</span><span class="pull-right mrl"><span
-                                                class="glyphicon glyphicon-paperclip"></span></span></a><a href="#" class="list-group-item"><input type="checkbox"/><span class="fa fa-star-o mrm mlm"></span><span style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp; - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod</span><span
-                                                class="badge">12:10 AM</span><span class="pull-right mrl"><span class="glyphicon glyphicon-paperclip"></span></span></a><a href="#" class="list-group-item"><input type="checkbox"/><span class="fa fa-star-o mrm mlm"></span><span style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp;
-                                            - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit</span><span class="badge">12:10 AM</span><span class="pull-right mrl"><span class="glyphicon glyphicon-paperclip"></span></span></a><a href="#" class="list-group-item"><input type="checkbox"/><span class="fa fa-star-o mrm mlm"></span><span
-                                                style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp; - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt</span><span class="badge">12:10 AM</span><span class="pull-right mrl"><span
-                                                class="glyphicon glyphicon-paperclip"></span></span></a><a href="#" class="list-group-item"><input type="checkbox"/><span class="fa fa-star-o mrm mlm"></span><span style="min-width: 120px; display: inline-block;" class="name">Bhaumik Patel</span><span>Sed ut perspiciatis unde</span>&nbsp; - &nbsp;<span style="font-size: 11px;" class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod</span><span
-                                                class="badge">12:10 AM</span><span class="pull-right mrl"><span class="glyphicon glyphicon-paperclip"></span></span></a></div>
                                     </div>
                                 </div>
                             </div>

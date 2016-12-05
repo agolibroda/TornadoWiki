@@ -460,7 +460,7 @@ class Article(Model):
     
          autorIdStr = '';
          if authorId > 0 :
-             autorIdStr = ' AND articles.author_id  = ' + str(authorId)
+             autorIdStr = ' articles.author_id  = ' + str(authorId)
              
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',

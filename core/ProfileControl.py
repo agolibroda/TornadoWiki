@@ -46,7 +46,7 @@ class AuthCreateHandler(BaseHandler):
     - страница регистрации пользователя
     """
     def get(self):
-        self.render("create_author.html")
+        self.render("create_author.html",  page_name= 'Регистрация нового Автора')
 
     @gen.coroutine
     def post(self):
