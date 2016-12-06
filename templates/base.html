@@ -67,7 +67,7 @@
                              -->
                             <li class="divider"></li>
                             <!-- <li><a href="#"><i class="fa fa-lock"></i>Lock Screen</a></li> -->
-                            <li><a href="/auth/logout?next={{ url_escape(request.uri) }}"><i class="fa fa-key"></i>Log Out</a></li>
+                            <li><a href="/auth/logout"><i class="fa fa-key"></i>Log Out</a></li>
                          </ul>
  {% else %}
  							<li class="dropdown topbar-user">{% raw _('<a data-hover="dropdown"  class="dropdown-toggle" href="%(url)s">Sign in</a>') % {"url": "/auth/login?next=" + url_escape(request.uri)} %}</li>

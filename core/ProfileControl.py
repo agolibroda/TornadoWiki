@@ -46,7 +46,7 @@ class AuthCreateHandler(BaseHandler):
     - страница регистрации пользователя
     """
     def get(self):
-        self.render("create_author.html",  page_name= 'Регистрация нового Автора')
+        self.render("create_author.html", link='auth/create', page_name= 'Регистрация нового Автора')
 
     @gen.coroutine
     def post(self):
@@ -54,10 +54,26 @@ class AuthCreateHandler(BaseHandler):
             if self.any_author_exists():
                 raise tornado.web.HTTPError(400, "author already created")
      
+            passwd = self.get_argument("pass")
+            passwd2 = self.get_argument("pass_conf")
+            if passwd != passwd2: 
+#  надо добавить сообщение о том,что пароли не совпадают, и вывести эти сообщеия в правильном месте!!!!                
+                error = Error ('500', 'Пароли не совпадают! ')
+                raise error
+                
             authorLoc =  Author()
-            authorLoc.author_login = self.get_argument("name")
+            authorLoc.author_role = 'volunteer'
+            
+            authorLoc.author_login = self.get_argument("login")
             authorLoc.author_email = self.get_argument("email")
-            authorLoc.author_pass = self.get_argument("password")
+            authorLoc.author_pass = passwd
+            
+            authorLoc.author_name = self.get_argument("name")
+            authorLoc.author_surname = self.get_argument("surname")
+            authorLoc.author_phon = self.get_argument("phon")
+
+            logging.info( 'AuthCreateHandler  post authorLoc = ' + str(authorLoc))
+            
             rez = yield executor.submit( authorLoc.save )
             logging.info( 'AuthCreateHandler  post rez = ' + str(rez))
             
@@ -71,7 +87,7 @@ class AuthCreateHandler(BaseHandler):
 
 class AuthLoginHandler(BaseHandler):
     def get(self):
-        self.render("login.html", error=None, page_name= 'Страница входа')
+        self.render("login.html", error=None, link='auth/login',  page_name= 'Страница входа')
 
     @gen.coroutine
     def post(self):
@@ -83,7 +99,7 @@ class AuthLoginHandler(BaseHandler):
                 logging.info( 'AuthLoginHandler  authorloginLoad = ' + str(authorloginLoad))
                 
                 self.set_secure_cookie("wiki_author", str(authorloginLoad.author_id))
-                self.redirect(self.get_argument("next", "/perconal_desk_top"))
+                self.redirect(self.get_argument("next", "/personal_desk_top"))
             else:
                 self.render("login.html", error="incorrect password")
         except Exception as e:

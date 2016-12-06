@@ -56,7 +56,7 @@ class Application(tornado.web.Application):
             (r"/profile", MyProfileHandler), # (ProfileControl.py) мой собственный профиль - что бы поредактировать
             (r"/profile/([0-9]+)", AuthorProfile), # (ProfileControl.py) профиль любого пользователя - по ИД - ну надо же поглядеть!
 
-            (r"/perconal_desk_top", PerconalDeskTop), # (DeskTopControls) персональный рабочий стол пользователя - 
+            (r"/personal_desk_top", PersonalDeskTop), # (DeskTopControls) персональный рабочий стол пользователя - 
             (r"/group_desk_top", GroupDeskTop), # (DeskTopControls) рабочий стол участника группы
             (r"/group_adm_desk_top", GroupAdmDeskTop), # (DeskTopControls) РС Админа Группы
             (r"/sys_adm_desk_top", SysAdmDeskTop), # (DeskTopControls) РС Админа СИСТЕМЫ 

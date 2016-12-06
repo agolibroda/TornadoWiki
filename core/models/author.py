@@ -24,7 +24,9 @@ import tornado.escape
 from ..constants.data_base import *
 
 from . import Model
-from .. import WikiException 
+# from .. import WikiException 
+from core.WikiException import *
+
 
 class Author(Model):
 
@@ -70,13 +72,14 @@ class Author(Model):
         операция логина - 
         ли логин - 
         """
+#         er = WikiException()
         if loginMailStr == '':
-            raise err.WikiException(LOGIN_IS_ENPTY)
+            raise WikiException(LOGIN_IS_ENPTY)
         if pwdStr != '':
             bbsalt =  config.options.salt.encode()
             test_pass = bcrypt.hashpw( tornado.escape.utf8(pwdStr),  bbsalt ).decode('utf-8') 
         else:
-            raise err.WikiException(PASSWD_IS_ENPTY)
+            raise WikiException(PASSWD_IS_ENPTY)
 
 #         cur = self.db().cursor()
         selectStr = 'author_id,  author_login, author_name, author_surname, author_role, author_phon, author_email'
@@ -95,7 +98,7 @@ class Author(Model):
                     self.__setattr__(objValue,resList[0].__getattribute__(objValue) )
             return self
         else:
-            raise err.WikiException(LOGIN_ERROR)
+            raise WikiException(LOGIN_ERROR)
 
 
     def get(self, authorId):
@@ -120,7 +123,7 @@ class Author(Model):
             return self
         
         else:
-            raise err.WikiException(LOAD_ONE_VALUE_ERROR)
+            raise WikiException(LOAD_ONE_VALUE_ERROR)
 
 
     def list(self):

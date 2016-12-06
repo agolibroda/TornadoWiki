@@ -62,7 +62,7 @@ from core.WikiException import *
 executor = concurrent.futures.ThreadPoolExecutor(2)
 
 
-class PerconalDeskTop(BaseHandler):
+class PersonalDeskTop(BaseHandler):
     """
     Персональнвый рабочий стол пользователя.
     
@@ -98,7 +98,7 @@ class PerconalDeskTop(BaseHandler):
             logging.info( 'AdminHomeHandler:: author ' + str(author))
     
 #             self.render("personal_dt.html", page_name= 'Рабочий стол ' + " пользователь??? " , tplCategory=config.options.tpl_categofy_id )
-            self.render("personal_dt.html", page_name= 'Рабочий стол ' + author.author_name, link='perconal_desk_top')
+            self.render("personal_dt.html", page_name= 'Рабочий стол ' + author.author_name, link='personal_desk_top')
 
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))

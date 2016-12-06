@@ -140,16 +140,14 @@ class Model: #Connector:
 
 
                 
-    def insert(self, autorId, requestParamName = ''):
+    def insert(self, requestParamName = ''):
         """
         добавить в таблицу "tabName"  атрибуты класса, 
         вернуть максимальный ИД, если requestParamName не пустой. 
         
-        autorId - Это АВТОР РЕВИЗИИ - тот, кто делает конкретную запись!!!!!!
-        requestParamName - название столбца, который является "автоинкрементным",  
-        
         """
         try:
+            logging.info(' insert:: requestParamName = ' + str(requestParamName))
             lCurs = self.cursor()
             if requestParamName != '':
                 del self.__dict__[requestParamName]
@@ -159,15 +157,15 @@ class Model: #Connector:
                 sqlStr = "INSERT INTO " + self._tabName +" ( " + paramsObj.strListAttrNames + " ) VALUES ( " + paramsObj.strListAttrValues + " )  returning " + requestParamName
                 logging.info(' insert:: sqlStr = ' + sqlStr)
                 lCurs.execute(sqlStr)
-                sourse = lCurs.fetchall()
+                sourse = lCurs.fetchone()
+                logging.info(' insert:: sourse = ' + str(sourse))
+                logging.info(' insert:: sourse[requestParamName] = ' + str(sourse[requestParamName]))
                 self.__dict__[requestParamName] = sourse[requestParamName]
                 return  sourse[requestParamName]
             else:
                 sqlStr = "INSERT INTO " + self._tabName +" ( " + paramsObj.strListAttrNames + " ) VALUES ( " + paramsObj.strListAttrValues + " )"
                 logging.info(' insert:: sqlStr = ' + sqlStr)
                 lCurs.execute(sqlStr)
-                
-            self.saverevision(autorId, 'I')
             
         except psycopg2.Error as error:
             
@@ -177,7 +175,7 @@ class Model: #Connector:
             raise err.WikiException(error)
 
 
-    def update(self, autorId, whereSection):
+    def update(self, whereSection):
         """
         изменить данные в таблицу "tabName"  атрибуты класса, 
         вернуть максимальный ИД, если requestParamName не нудЁвый. 
@@ -191,7 +189,6 @@ class Model: #Connector:
             sqlStr = "UPDATE "+ self._tabName +" SET " + strSet + " WHERE " + whereSection
             logging.info(' update:: sqlStr = ' + sqlStr)
             lCurs.execute(sqlStr)
-            self.saverevision(autorId, 'U')
 
 #             self.commit()
         except psycopg2.Error as error:
@@ -307,6 +304,7 @@ class Model: #Connector:
         преобразовать словарь (допустим, кортеж данных из селекта) в объект  
         """ 
         oList = []
+        if len(dictSou) == 0: return oList
         for row in dictSou:
 #             logging.info(' dict2obj:: row = ' + str(row))
 #             logging.info(' dict2obj:: type(row) = ' + str(type(row)))
@@ -357,26 +355,27 @@ class Model: #Connector:
 #   actual_flag revision_data_type NOT NULL,
 #   revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 #   revision_author_id int NOT NULL references authors(author_id),
-
+ 
         try:
             _loDb = self.cursor()
             _loDb.begin()
-    
+     
             # Все ревизии ЭТОЙ записи - устарели!!!! - проабдейтим список ревизий
             sqlStr = "UPDATE revisions_" + self._tabName + "SET revision_actual_flag = 'O' WHERE " +\
                      mainPrimaryObj.primaryName + " = "  + mainPrimaryObj.primaryValue
+            logging.info(' saveRevision:: sqlStr = ' + sqlStr)
             _loDb.execute(sqlStr)
-
+ 
             # Теперь можно записать новые данные  в ревизии.    
             paramsObj.strListAttrNames += ', revision_actual_flag, revision_author_id,  operation_flag, revisions_sha_hash '
             paramsObj.strListAttrValues += ", 'A', " +  str(autorId) + ", '" + operationFlag + "',  '" + revisions_sha_hash + "' "
-    
+     
             sqlStr = "INSERT INTO revisions_" + self._tabName +" ( " + paramsObj.strListAttrNames + ") VALUES " +\
                     "( " + paramsObj.strListAttrValues + " ) " + \
                     " ON CONFLICT (revisions_sha_hash) DO UPDATE SET revision_actual_flag = 'A'; "
-            logging.info(' insert:: sqlStr = ' + sqlStr)
+            logging.info(' saveRevision:: sqlStr = ' + sqlStr)
             _loDb.execute(sqlStr)
-
+ 
             _loDb.commit()
         except psycopg2.Error as error:
             logging.error(' update exception:: ' + str (error) )
