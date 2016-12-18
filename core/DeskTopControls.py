@@ -95,7 +95,7 @@ class PersonalDeskTop(BaseHandler):
 #             articles = yield executor.submit( artControl.getListArticles )
     
             author = self.get_current_user()
-            logging.info( 'AdminHomeHandler:: author ' + str(author))
+            logging.info( 'PersonalDeskTop:: author ' + str(author))
     
 #             self.render("personal_dt.html", page_name= 'Рабочий стол ' + " пользователь??? " , tplCategory=config.options.tpl_categofy_id )
             self.render("personal_dt.html", page_name= 'Рабочий стол ' + author.author_name, link='personal_desk_top')
@@ -103,7 +103,7 @@ class PersonalDeskTop(BaseHandler):
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
+            self.render('error.html', error=error, page_name= 'Рабочий стол ', link='personal_desk_top')
 
 
 class GroupDeskTop(BaseHandler):

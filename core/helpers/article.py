@@ -26,7 +26,7 @@ from core.models.author import Author
 from core.models.article import Article
 from core.models.file import File
 
-from .. import WikiException 
+from core.WikiException     import *
 
 
 class HelperArticle():
@@ -62,8 +62,8 @@ class HelperArticle():
 #             logging.info( 'getArticleById:: article = ' + str(article))
 #             logging.info( 'getArticleById:: fileList = ' + str(fileList))
             return (article, fileList)
-        except err.WikiException as e:   
-#             err.WikiException( ARTICLE_NOT_FOUND )
+        except WikiException as e:   
+#             WikiException( ARTICLE_NOT_FOUND )
             logging.info( 'getArticleById::Have ERROR!!!  ' + str(e))
             if not article: raise tornado.web.HTTPError(404)
             else: return (article, [])
@@ -102,8 +102,8 @@ class HelperArticle():
                 fileList = fileModel.getFilesListForArticle( articleId, config.options.to_out_path)
                 return (article, fileList)
 #             except Exception as e:   
-            except err.WikiException as e:   
-#             err.WikiException( ARTICLE_NOT_FOUND )
+            except WikiException as e:   
+#             WikiException( ARTICLE_NOT_FOUND )
                 logging.info( 'getArticleByIdRevId:: e = ' + str(e))
                 return (self.artModel, [])
 
@@ -123,8 +123,8 @@ class HelperArticle():
             fileList =  fileModel.getFilesListForArticle( article.article_id, 
                                                         config.options.to_out_path)
             return (article, fileList)
-        except err.WikiException as e:   
-#             err.WikiException( ARTICLE_NOT_FOUND )
+        except WikiException as e:   
+#             WikiException( ARTICLE_NOT_FOUND )
             logging.info( 'getArticleByName:: e = ' + str(e))
             return (self.artModel, [])
 

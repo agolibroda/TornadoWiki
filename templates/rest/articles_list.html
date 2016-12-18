@@ -2,6 +2,8 @@
 
 <div class="article">
  
+   {% if len(articles) > 0 %}
+ 
 	 <table class="table table-hover">
 	     <thead>
 	     <tr>
@@ -25,6 +27,11 @@
 			 </tr>
 			
   {% end %}
+ 
+  {% else %} 
+  	{{ _("Аrticles yet") }}  &nbsp;&nbsp;&nbsp;&nbsp; <a href="/compose"><i class="fa fa-edit fa-fw"></i><span class="menu-title">Написать статью</span></a>
+  {% end %}
+ 
                                     
 	     </tbody>
 	 </table>

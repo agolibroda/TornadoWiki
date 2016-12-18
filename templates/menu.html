@@ -6,14 +6,13 @@
             	<img src="/static/images/logo_161108.jpg" alt="" class="img-responsive"/>
             </div>
             <div id='differen_menu'>
-            а, понял, похоже, эту менюшку надо вот так, "как есть" грузить аяксом...
                 <ul id="side-menu" class="nav">
                     
                      <div class="clearfix"></div>
  
 {% if current_user %}
 
-                    <li><a href="compose"><i class="fa fa-edit fa-fw">
+                    <li><a href="/compose"><i class="fa fa-edit fa-fw">
                         <div class="icon-bg bg-orange"></div>
                     </i><span class="menu-title">Написать статью</span></a></li>
 
@@ -28,7 +27,7 @@
  {% end %}
 
                     <li {% if link == 'personal_desk_top'  %} class="active"  {% end %}>
-                    	<a href="/perconal_desk_top"><i class="fa fa-th-list fa-fw">
+                    	<a href="/personal_desk_top"><i class="fa fa-th-list fa-fw">
                         <div class="icon-bg bg-blue"></div>
                     </i><span class="menu-title">Мой рабочий стол</span></a>
                     </li>

@@ -1,0 +1,7 @@
+<!-- templates_list.html -->
+<label for="inputSubject" class="control-label">{{label}}</label>
+<select name="{{itemName}}" id="{{itemName}}" class="form-control">
+	 {% for entry in dataList %}
+	<option {% if entry.article_id == selected %} selected="selected" {% end %} value="{{entry.article_id}}">{{entry.article_title}}</option>
+	 {% end %}
+</select>

@@ -48,38 +48,67 @@ class RestMinHandler(BaseHandler):
     """
 
     @gen.coroutine
-    def get(self, commandName, curentParameter):
+    def get(self, commandName, curentParameter, label=''):
 
         logging.info('BaseHandler:: commandName '+ str(commandName))
         logging.info('BaseHandler:: curentParameter '+ str(curentParameter))
         
         
-        if commandName == 'getArticleCategoryList':
-
-            if int(curentParameter) == 0:
-                curentParameter = config.options.info_page_categofy_id
-            
-            articles = [Article(0, 'Выберите значение ')]
-            artHelper = HelperArticle()
-            articles += yield executor.submit( artHelper.getListArticles, config.options.list_categofy_id)
-            logging.info('RestMinHandler:: commandName:: getArticleCategoryList '+ str(articles))
-            # получить список данных
-            
-            self.render("rest/ctegory_list.html", dataList=articles,  itemName="category_article_id", selected=int(curentParameter))
+#         if commandName == 'getArticleCategoryList':
+# 
+#             if int(curentParameter) == 0:
+#                 curentParameter = config.options.info_page_categofy_id
+#             
+#             articles = [Article(0, 'Выберите значение ')]
+#             artHelper = HelperArticle()
+#             articles += yield executor.submit( artHelper.getListArticles, config.options.list_categofy_id)
+#             logging.info('RestMinHandler:: commandName:: getArticleCategoryList '+ str(articles))
+#             # получить список данных
+#             
+#             self.render("rest/ctegory_list.html", dataList=articles,  itemName="category_article_id", selected=int(curentParameter))
 
 
         if commandName == 'getArticleTemplateList':
+            
+            label=self.get_argument('label')
+            selector=self.get_argument('selector')
+            
+            logging.info('RestMinHandler:: curentParameter::'+ str(curentParameter))
+            logging.info('RestMinHandler:: label '+ str(label))
 
             if int(curentParameter) == 0:
                 curentParameter = config.options.main_info_template
-
-            articles = [Article(0, 'Выберите значение ')]
+                articles = [Article(0, 'Выберите значение ')]
+            else:
+                articles = []
+            
             artHelper = HelperArticle()
-            articles += yield executor.submit( artHelper.getListArticles, config.options.tpl_categofy_id)
+            articles += yield executor.submit(artHelper.getListArticles, config.options.tpl_categofy_id)
             logging.info('RestMinHandler:: commandName:: getArticleTemplateList '+ str(articles))
             # получить список данных
 
-            self.render("rest/ctegory_list.html", dataList=articles, itemName="template_id", selected=int(curentParameter))
+            self.render("rest/templates_list.html", dataList=articles, itemName=selector, selected=int(curentParameter), label=label)
+
+        if commandName == 'getArticleCategoryList':
+            
+            label=self.get_argument('label')
+            selector=self.get_argument('selector')
+            
+            logging.info('RestMinHandler:: curentParameter::'+ str(curentParameter))
+            logging.info('RestMinHandler:: label '+ str(label))
+
+            if int(curentParameter) == 0:
+                curentParameter = config.options.main_info_template
+                articles = [Article(0, 'Выберите значение ')]
+            else:
+                articles = []
+            
+            artHelper = HelperArticle()
+            articles += yield executor.submit(artHelper.getListArticles, config.options.list_categofy_id)
+            logging.info('RestMinHandler:: commandName:: getArticleTemplateList '+ str(articles))
+            # получить список данных
+
+            self.render("rest/templates_list.html", dataList=articles, itemName=selector, selected=int(curentParameter), label=label)
 
 
         if commandName == 'getPersonalArticlesList': 
@@ -89,14 +118,16 @@ class RestMinHandler(BaseHandler):
                 
                 artHelper = HelperArticle()
                 articles = yield executor.submit( artHelper.getListArticlesByAutorId, curentAuthor.author_id )
-                if not articles:
-                    self.redirect("/compose")
-                    return
+#                 if not articles:
+#                     self.redirect("/compose")
+#                     return
                 self.render("rest/articles_list.html", articles=articles)
             except Exception as e:
                 logging.info( 'Load:: Exception as et = ' + str(e))
                 error = Error ('500', 'что - то пошло не так :-( ')
                 self.render('table_error.html', error=error)
+
+
 
 
 

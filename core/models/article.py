@@ -33,6 +33,8 @@ from .. import WikiException
 # from . import Template
 from core.models.template   import Template
 
+from core.WikiException     import *
+
 
 from ..constants.data_base import * 
 
@@ -64,14 +66,14 @@ class Article(Model):
     - автор 
     - дата создания
     
-    - категория статьи (category_article_id)
-        информационная    inf
+    - категория статьи (article_category_id)
+        информационная    inf - тут ИД статьи из списка!!!!
         термин            trm
         навигационная     nvg
         шабон             tpl
-    - шабон статьи (template)
+    - шабон статьи (article_template_id)
         по ИД шаблона выбирается шаблон, который оформляет текущий текст статьи  
-    - права доступа (permissions)
+    - права доступа (article_permissions)
         публичкая (свободный доступ)    pbl
         групповая (права на статью есть только у группы) grp
         персональная (исключительно авторская)    sol (solo)
@@ -107,8 +109,9 @@ class Article(Model):
         self.article_title = title # эти параметры прилетают из формы редактирования
         self.article_annotation = '' # Это аннотация статьи!!!!!
         self.article_sourse = '' # эти параметры прилетают из формы редактирования
-        self.category_article_id = config.options.info_page_categofy_id # категория страницы (служебные?) 'inf','trm','nvg','tpl'
-        self.template = config.options.main_info_template
+        self.article_category_id = config.options.info_page_categofy_id # категория страницы (служебные?) 'inf','trm','nvg','tpl'
+        self.article_template_id = config.options.main_info_template
+        self.article_permissions = 'pbl'
 #         self.article_link = '' 
 
         
@@ -142,6 +145,8 @@ class Article(Model):
        
 #         self.start_transaction()
 # любая запись - это ревизия!
+ну вот, я и добрался - тут надо все убрать, и все переделать!!!!
+
         revisionControl = self.RevisionLoc()
         titleControl = self.Title()
         annotationControl = self.Annotation()
@@ -209,7 +214,7 @@ class Article(Model):
                     newTitle = False
 
 #             if not newText and not newAnnotation and not newTitle:
-#                 raise err.WikiException(LINK_OR_ARTICLE_NOT_UNIQ)
+#                 raise WikiException(LINK_OR_ARTICLE_NOT_UNIQ)
                     
         logging.info( 'after Testing: self.article_id = ' + str(self.article_id) + '; newText = ' + str(newText) + '; newTitle = ' + str (newTitle) + '; newAnnotation = ' + str (newAnnotation) )
 
@@ -227,7 +232,7 @@ class Article(Model):
         htmlTextOut = self.article_sourse
         self.article_sourse = base64.b64encode(tornado.escape.utf8(htmlTextOut)).decode(encoding='UTF-8') 
         self.article_title = titleControl.title_text
-        self.article_annotation = annotationControl.annotation_text                                   
+        self.article_annotation = annotationControl.annotation_text  
         
 #         
 # вот тут по - идее, надо начать трансакцию... 
@@ -291,13 +296,13 @@ class Article(Model):
                 self.commit()
         
 # вот после всего надо сохранить шаблон в шаблоновую директорию... 
-                logging.info( 'save:: save self.category_article_id = ' + str(self.category_article_id))
-                logging.info( 'save:: save 2 self.category_article_id = ' + str(int(self.category_article_id)))
+                logging.info( 'save:: save self.article_category_id = ' + str(self.article_category_id))
+                logging.info( 'save:: save 2 self.article_category_id = ' + str(int(self.article_category_id)))
                 logging.info( 'save:: save config.options.tpl_categofy_id = ' + str(config.options.tpl_categofy_id))
                 logging.info( 'save:: save 2 config.options.tpl_categofy_id = ' + str(int(config.options.tpl_categofy_id)))
                 logging.info( 'save:: save self.article_id = ' + str(self.article_id))
                 
-                if int(self.category_article_id) == int(config.options.tpl_categofy_id):
+                if int(self.article_category_id) == int(config.options.tpl_categofy_id):
                     logging.info( 'save:: save Template! = ' )
                      
                     wrkTpl = Template()
@@ -349,7 +354,7 @@ class Article(Model):
     
          getRez = self.select(
                                 'articles.article_id, articles.article_title, ' + 
-                                'articles.article_annotation,  articles.article_source, articles.category_article_id, articles.author_id, articles.template ',
+                                'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, articles.article_template_id ',
                                 ' revisions_articles lfind ',
                                     {
                                 'whereStr': " articles.article_id = lfind.article_id " +
@@ -358,7 +363,7 @@ class Article(Model):
                                 )
     
          if len(getRez) == 0:
-            raise err.WikiException( ARTICLE_NOT_FOUND )
+            raise WikiException( ARTICLE_NOT_FOUND )
          elif len(getRez) == 1:   
     #             logging.info( 'getRez = ' + str(getRez[0]))
              outArt = getRez[0]
@@ -383,7 +388,7 @@ class Article(Model):
     
          getRez = self.select(
                                 'articles.article_id, articles.article_title, '+
-                                'articles.article_annotation,  articles.article_source, articles.category_article_id, articles.author_id, articles.template',
+                                'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, articles.article_template_id',
                                 '',
                                     {
                                 'whereStr': ' articles.article_id = ' + str(articleId)  ,
@@ -391,7 +396,7 @@ class Article(Model):
                                 )
     
          if len(getRez) == 0:
-            raise err.WikiException( ARTICLE_NOT_FOUND )
+            raise WikiException( ARTICLE_NOT_FOUND )
          elif len(getRez) == 1:   
 #              logging.info( ' getById getRez = ' + str(getRez[0]))
              outArt = getRez[0]
@@ -419,24 +424,23 @@ class Article(Model):
     
          categoryStr = '';
          if categoryId > 0 :
-             categoryStr = ' AND articles.category_article_id = ' + str(categoryId)
+             categoryStr = ' articles.article_category_id = ' + str(categoryId)
              
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
                                 'articles.article_id, articles.article_title, ' +
-                                'articles.article_annotation, articles.category_article_id, articles.author_id, articles.template ',
+                                'articles.article_annotation, articles.article_category_id, articles.author_id, articles.article_template_id ',
                                 '',
                                     {
-                                'whereStr': ' articles.article_id = revisions.article_id '  +
-                                         categoryStr, # строка набор условий для выбора строк
-                                'orderStr': ' articles.article_id ', # строка порядок строк
+                                'whereStr': categoryStr, # строка набор условий для выбора строк
+                                'orderStr': ' articles.article_title ', # строка порядок строк
     #                                'orderStr': 'FROM_BASE64( articles.article_title )', # строка порядок строк
                                  }
                                 )
     
          logging.info( 'list:: getRez = ' + str(getRez))
          if len(getRez) == 0:
-#             raise err.WikiException( ARTICLE_NOT_FOUND )
+#             raise WikiException( ARTICLE_NOT_FOUND )
             return []
          
          for oneObj in getRez:
@@ -465,7 +469,7 @@ class Article(Model):
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
                                 'articles.article_id, articles.article_title, ' +
-                                'articles.article_annotation, articles.category_article_id, articles.author_id, articles.template ',
+                                'articles.article_annotation, articles.article_category_id, articles.author_id, articles.article_template_id ',
                                 '',
                                     {
                                 'whereStr': autorIdStr, # строка набор условий для выбора строк
@@ -476,7 +480,7 @@ class Article(Model):
     
          logging.info( 'list:: getRez = ' + str(getRez))
          if len(getRez) == 0:
-#             raise err.WikiException( ARTICLE_NOT_FOUND )
+#             raise WikiException( ARTICLE_NOT_FOUND )
             return []
          
          for oneObj in getRez:
@@ -540,7 +544,7 @@ class Article(Model):
         getRez = self.select(
                                'texts.article_id, revisions.revision_id, texts.text_html, annotations.annotation_text, titles.title_text, ' +
                                ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date,  revisions.author_id, revisions.revision_actual_flag, ' +
-                               'articles.category_article_id, articles.template, articles.author_id ' ,
+                               'articles.article_category_id, articles.article_template_id, articles.author_id ' ,
                                'titles, revisions, annotations, articles',
                                    {
                                'whereStr': "  texts.text_sha_hash =  revisions.text_sha_hash" +
@@ -553,7 +557,7 @@ class Article(Model):
                                )
 
         if len(getRez) == 0:
-            raise err.WikiException( ARTICLE_NOT_FOUND )
+            raise WikiException( ARTICLE_NOT_FOUND )
         elif len(getRez) == 1:   
 #             logging.info( 'getRez = ' + str(getRez[0]))
             outArt = getRez[0]
@@ -618,7 +622,7 @@ class Article(Model):
                                    )
     
             if len(getRez) == 0:
-                raise err.WikiException( ARTICLE_NOT_FOUND )
+                raise WikiException( ARTICLE_NOT_FOUND )
             
             for oneObj in getRez:
     #             logging.info( 'list:: Before oneArt = ' + str(oneObj))

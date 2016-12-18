@@ -17,12 +17,12 @@ DROP TABLE IF EXISTS authors;
 CREATE TABLE IF NOT EXISTS authors (
   author_id int unique not null DEFAULT nextval('authors_author_id_seq') primary key,
   author_create timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  author_login varchar(50) NOT NULL,
+  author_login varchar(50) unique NOT NULL,
+  author_email varchar(254) unique DEFAULT NULL,
   author_name varchar(254) DEFAULT NULL,
   author_surname varchar(50) DEFAULT NULL,
   author_pass varchar(70) DEFAULT NULL,
   author_phon varchar(50) DEFAULT NULL,
-  author_email varchar(254) DEFAULT NULL,
   author_role author_type NOT NULL DEFAULT 'volunteer'
 );
 
@@ -92,9 +92,9 @@ CREATE TABLE IF NOT EXISTS articles (
   article_title text NOT NULL,
   article_annotation text,
   article_source text NOT NULL,
-  category_article_id int NOT NULL,
-  template int DEFAULT NULL,
-  permissions permission_type  NOT NULL DEFAULT 'pbl'
+  article_category_id int NOT NULL,
+  article_template_id int DEFAULT NULL,
+  article_permissions permission_type  NOT NULL DEFAULT 'pbl'
   
 );
 
@@ -102,9 +102,9 @@ ALTER SEQUENCE articles_article_id_seq OWNED BY articles.article_id;
 
 CREATE INDEX articles_article_id_idx ON articles (article_id);
 CREATE INDEX articles_author_id_idx ON articles (author_id);
-CREATE INDEX articles_category_article_id ON articles (category_article_id);
-CREATE INDEX articles_template_id ON articles (template);
-CREATE INDEX articles_permissions_id ON articles (permissions);
+CREATE INDEX articles_article_category_id ON articles (article_category_id);
+CREATE INDEX articles_article_template_id_id ON articles (article_template_id);
+CREATE INDEX articles_permissions_id ON articles (article_permissions);
 
 
 DROP TABLE IF EXISTS revisions_articles;
@@ -114,9 +114,9 @@ CREATE TABLE IF NOT EXISTS revisions_articles (
   article_title text NOT NULL,
   article_annotation text,
   article_source text NOT NULL,
-  category_article_id int NOT NULL,
-  template int DEFAULT NULL,
-  permissions permission_type  NOT NULL DEFAULT 'pbl',
+  article_category_id int NOT NULL,
+  article_template_id int DEFAULT NULL,
+  article_permissions permission_type  NOT NULL DEFAULT 'pbl',
   
   revisions_sha_hash character varying(66) NOT NULL  primary key,
   revision_actual_flag revision_actual_type NOT NULL,
@@ -129,9 +129,9 @@ CREATE TABLE IF NOT EXISTS revisions_articles (
 
 CREATE INDEX revision_articles_article_id_idx ON revisions_articles (article_id);
 CREATE INDEX revision_articles_author_id_idx ON revisions_articles (author_id);
-CREATE INDEX revision_articles_category_article_id ON revisions_articles (category_article_id);
-CREATE INDEX revision_articles_template_id ON revisions_articles (template);
-CREATE INDEX revision_articles_permissions_id ON revisions_articles (permissions);
+CREATE INDEX revision_articles_article_category_id ON revisions_articles (article_category_id);
+CREATE INDEX revision_articles_article_template_id_id ON revisions_articles (article_template_id);
+CREATE INDEX revision_articles_permissions_id ON revisions_articles (article_permissions);
 
 CREATE INDEX revision_articles_operation_flag_idx ON revisions_articles (operation_flag);
 CREATE INDEX revision_articles_revision_date_idx ON revisions_articles (revision_date);
@@ -252,7 +252,7 @@ INSERT INTO  revisions_authors (author_id, author_create, author_login, author_n
 ALTER SEQUENCE authors_author_id_seq OWNED BY authors.author_id;
 
 
-INSERT INTO  articles (article_id, author_id, article_title, article_annotation, article_source, category_article_id, template, permissions) VALUES 
+INSERT INTO  articles (article_id, author_id, article_title, article_annotation, article_source, article_category_id, article_template_id, article_permissions) VALUES 
 (1,	1, '0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk=',	'0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk=',	'PHA+0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk8L3A+',	0,	'0',	'pbl'),
 (2,	1, '0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuA==',	'0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuA==',	'PHA+0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuDwvcD4=',	1,	'0',	'pbl'),
 (3,	1, '0KjQsNCx0LvQvtC90Ys=',	'0KjQsNCx0LvQvtC90Ys=',	'PHA+0KjQsNCx0LvQvtC90Ys8L3A+',	1,	'0',	'pbl'),

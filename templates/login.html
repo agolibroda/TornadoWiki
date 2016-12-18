@@ -3,10 +3,6 @@
 {% extends "base.html" %}
 
 {% block body %}
-{% if error %}
-<span style="color: red">Error: {{ error }}</span><p>
-{% end %}
-
 
 <div class="panel panel-yellow">
  <div class="panel-heading">
@@ -14,6 +10,9 @@
  <div class="panel-body pan">
      <form action="/auth/login" method="POST" class="form-horizontal">
      <div class="form-body pal">
+		{% if error %}
+		<span style="color: red">{{_("Error")}}: {{ error }}</span><p>
+		{% end %}
          <div class="form-group">
              <label for="inputName" class="col-md-3 control-label">
                  {{_("login/e-mai")}}l</label>
@@ -29,7 +28,7 @@
              <div class="col-md-9">
                  <div class="input-icon right">
                      <i class="fa fa-lock"></i>
-                     <input id="password" name="password" placeholder="password"  class="form-control" type="text"></div>
+                     <input id="password" name="password" placeholder="password"  class="form-control" type="password"></div>
                  <span class="help-block mbn"><a href="#"><small>{{_("Forgot password?")}} </small> </a></span>
              </div>
          </div>
@@ -47,8 +46,8 @@
         <div class="form-actions pal">
             <div class="form-group mbn">
                 <div class="col-md-offset-3 col-md-6">
-                    <a href="/auth/create" class="btn btn-primary">{{_("Register")}}</a>&nbsp;&nbsp;
-                    <button type="submit" class="btn btn-primary">{{_("Login")}}</button>
+                    <button type="submit" class="btn btn-primary">{{_("Login")}}</button>&nbsp;&nbsp;&nbsp;
+                    <a href="/auth/create" class="btn btn-primary">{{_("Register")}}</a>
                 </div>
             </div>
         </div>

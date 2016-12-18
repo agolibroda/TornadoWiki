@@ -18,6 +18,10 @@ import config
 # import pymysql
 import bcrypt
 
+import hashlib
+import base64
+from datetime import datetime
+
 import tornado.options
 import tornado.escape
 
@@ -35,6 +39,7 @@ class Author(Model):
         Model.__init__(self, 'authors')   
 
         self.author_id = 0
+#         self.author_create = datetime.now()
         self.author_login = ''
         self.author_name  = '' 
         self.author_surname = ''
@@ -52,16 +57,20 @@ class Author(Model):
             bbsalt =  config.options.salt.encode()
             self.author_pass = bcrypt.hashpw( tornado.escape.utf8(self.author_pass),  bbsalt ).decode('utf-8') 
         if self.author_id == 0:
+            self.author_create = datetime.now()
             self.author_id = self.insert('author_id')
             operationFlag = 'I'
         else:
+            self.author_create =  datetime.fromtimestamp(int(self.author_create))
+            logging.info(' save:: before Update = ' + str(self))
             self.update('author_id = ' + str(self.author_id))
             operationFlag = 'U'
             
-        mainPrimaryObj = {primaryName: 'author_id', primaryValue: self.author_id }
+        mainPrimaryObj = {'primaryName': 'author_id', 'primaryValue': self.author_id }
         revisions_sha_hash =  hashlib.sha256(
                     tornado.escape.utf8(self.author_login + self.author_name + self.author_surname + self.author_role +self.author_phon + self.author_email  )
                                             ).hexdigest() 
+        logging.info(' save:: mainPrimaryObj = ' + str(mainPrimaryObj))
         self.saveRevision(self.author_id, operationFlag, mainPrimaryObj, revisions_sha_hash)
         return True
         
@@ -106,7 +115,7 @@ class Author(Model):
         загрузить ОДНО значение - по ИД пользователя
         """
         resList = self.select(
-                    'author_id,  author_login, author_name,  author_surname, author_role, author_phon, author_email, EXTRACT(EPOCH FROM author_create) AS author_create ', # строка - чего хотим получить из селекта
+                    'author_id,  author_login, author_name,  author_surname, author_role, author_phon, author_email, floor(EXTRACT(EPOCH FROM author_create)) AS author_create ', # строка - чего хотим получить из селекта
                     '', #'authors',  # строка - список таблиц 
                     {
                      'whereStr': " author_id = " + str(authorId)
@@ -128,7 +137,7 @@ class Author(Model):
 
     def list(self):
         cur = self.db().cursor()
-        selectStr = 'author_id,  author_login, author_name,author_surname, author_role, author_phon, author_email, EXTRACT(EPOCH FROM author_create) AS author_create'
+        selectStr = 'author_id,  author_login, author_name,author_surname, author_role, author_phon, author_email, floor(EXTRACT(EPOCH FROM author_create)) AS author_create'
         fromStr = '' #'authors'
         anyParams = {
                     'orderStr': ' author_id', # строка порядок строк

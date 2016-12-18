@@ -37,7 +37,9 @@ from _ast import Try
 #############
 import config
 # from .. import err
-from .. import WikiException 
+# from .. import WikiException 
+from core.WikiException import *
+
 
 def singleton(cls):
     instances = {}
@@ -172,7 +174,7 @@ class Model: #Connector:
             logging.error (' insert exception:: ' + str (error) )
             logging.error(' insert exception:: sqlStr = ' + sqlStr )
             lCurs.rollback()
-            raise err.WikiException(error)
+            raise WikiException(error)
 
 
     def update(self, whereSection):
@@ -195,7 +197,7 @@ class Model: #Connector:
             logging.error(' update exception:: ' + str (error) )
             logging.error(' update exception:: sqlStr = ' + sqlStr )
             lCurs.rollback()
-            raise err.WikiException(error)
+            raise WikiException(error)
 
     def select(self, 
                selectStr, # строка - чего хотим получить из селекта
@@ -264,8 +266,8 @@ class Model: #Connector:
 
         except psycopg2.Error as error:
             logging.error(' select exception:: sqlStr = ' + sqlStr )
-            _loDb.rollback()
-            raise err.WikiException(error)
+            self.rollback()
+            raise WikiException(error)
 
 
     def splitAttributes(self):
@@ -343,7 +345,7 @@ class Model: #Connector:
         - попытаться добавить ревизию (с флагом "А") 
         - если не получилось, то на ревизии с тем, актуальным ХЕШЕМ поставить фла "А"
         
-        mainPrimaryObj = {primaryName: 'article_id', primaryValue: 123 }
+        mainPrimaryObj = {'primaryName': 'article_id', 'primaryValue': 123 }
          
         INSERT INTO distributors (did, dname)
         VALUES (5, 'Gizmo Transglobal')
@@ -358,11 +360,12 @@ class Model: #Connector:
  
         try:
             _loDb = self.cursor()
-            _loDb.begin()
+#             _loDb.begin()
+            self.begin()
      
             # Все ревизии ЭТОЙ записи - устарели!!!! - проабдейтим список ревизий
-            sqlStr = "UPDATE revisions_" + self._tabName + "SET revision_actual_flag = 'O' WHERE " +\
-                     mainPrimaryObj.primaryName + " = "  + mainPrimaryObj.primaryValue
+            sqlStr = "UPDATE revisions_" + self._tabName + " SET revision_actual_flag = 'O' WHERE " +\
+                     mainPrimaryObj['primaryName'] + " = "  + str(mainPrimaryObj['primaryValue'])
             logging.info(' saveRevision:: sqlStr = ' + sqlStr)
             _loDb.execute(sqlStr)
  
@@ -376,12 +379,14 @@ class Model: #Connector:
             logging.info(' saveRevision:: sqlStr = ' + sqlStr)
             _loDb.execute(sqlStr)
  
-            _loDb.commit()
+#             _loDb.commit()
+            self.commit()
         except psycopg2.Error as error:
-            logging.error(' update exception:: ' + str (error) )
-            logging.error(' update exception:: sqlStr = ' + sqlStr )
-            _loDb.rollback()
-            raise err.WikiException(error)
+            logging.error(' saveRevision exception:: ' + str (error) )
+            logging.error(' saveRevision exception:: sqlStr = ' + sqlStr )
+#             _loDb.rollback()
+            self.rollback()
+            raise WikiException(error)
 
 
 

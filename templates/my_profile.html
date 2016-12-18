@@ -74,6 +74,10 @@
                                     <li class="active"><a href="#tab-edit" data-toggle="tab">{{_("Edit Profile")}}</a></li>
                                 </ul>
                                 <div id="generalTabContent" class="tab-content">
+		{% if error %}
+		<span style="color: red">{{_("Error")}}: {{ error }}</span><p>
+		{% end %}
+                                
                                     <div id="tab-edit" class="tab-pane fade in active">
                                         <form action="#" class="form-horizontal"><h3>{{_("Account Setting")}}</h3>
 
@@ -81,7 +85,7 @@
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input name="author_email" value="{{autor.author_email}}" type="email" placeholder="email@yourcompany.com" class="form-control"/></div>
+                                                        <div class="col-xs-9"><input name="email" value="{{autor.author_email}}" type="email" placeholder="email@yourcompany.com" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -89,7 +93,7 @@
 
                                                 <div class="col-sm-9 controls">
                                                         <div class="col-xs-9"> 
-                                                    <div class="row"> <input name="author_login" value="{{autor.author_login}}" type="text" placeholder="login" class="form-control"/></div>
+                                                    <div class="row"> <input name="login" value="{{autor.author_login}}" type="text" placeholder="login" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -97,7 +101,7 @@
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-4"><input name="author_pass" type="password" placeholder="password" class="form-control"/></div>
+                                                        <div class="col-xs-4"><input name="pass" type="password" placeholder="password" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -105,7 +109,7 @@
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-4"><input name="author_pass_conf" type="password" placeholder="password" class="form-control"/></div>
+                                                        <div class="col-xs-4"><input name="pass_conf" type="password" placeholder="password" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -118,7 +122,7 @@
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input name="author_name" value="{{autor.author_name}}"  type="text" placeholder="first name" class="form-control"/></div>
+                                                        <div class="col-xs-9"><input name="name" value="{{autor.author_name}}"  type="text" placeholder="first name" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -126,7 +130,7 @@
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input type="text"name="author_surname" value="{{autor.author_surname}}"  placeholder="last name" class="form-control"/></div>
+                                                        <div class="col-xs-9"><input type="text"name="surname" value="{{autor.author_surname}}"  placeholder="last name" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -135,8 +139,8 @@
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
                                                         <div class="col-xs-9">
-                                                            <div class="radio"><label class="radio-inline"><input type="radio" value="0" name="author_gender" checked="checked"/>&nbsp;
-                                                                {{_("Male")}}</label><label class="radio-inline"><input type="radio" value="1" name="author_gender"/>&nbsp;
+                                                            <div class="radio"><label class="radio-inline"><input type="radio" value="0" name="gender" checked="checked"/>&nbsp;
+                                                                {{_("Male")}}</label><label class="radio-inline"><input type="radio" value="1" name="gender"/>&nbsp;
                                                                 {{_("Female")}}</label></div>
                                                         </div>
                                                     </div>
@@ -146,7 +150,7 @@
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-4"><input id="datepicker-normal" name="author_birthday" value="{{autor.author_surname}}" type="text" class="form-control"/></div>
+                                                        <div class="col-xs-4"><input id="datepicker-normal" name="birthday" value="{{autor.author_surname}}" type="text" class="form-control"/></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -166,7 +170,7 @@
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="mobile phone" class="form-control" name="author_phon" value="{{autor.author_phon}}" /></div>
+                                                        <div class="col-xs-9"><input type="text" placeholder="mobile phone" class="form-control" name="phon" value="{{autor.author_phon}}" /></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -174,7 +178,7 @@
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="website" class="form-control" name="author_name" value="{{autor.author_login}}"/></div>
+                                                        <div class="col-xs-9"><input type="text" placeholder="website" class="form-control" name="name" value="{{autor.author_login}}"/></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -182,7 +186,7 @@
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="facebook" class="form-control" name="author_name" value="{{autor.author_login}}"/></div>
+                                                        <div class="col-xs-9"><input type="text" placeholder="facebook" class="form-control" name="name" value="{{autor.author_login}}"/></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -190,7 +194,7 @@
 
                                                 <div class="col-sm-9 controls">
                                                     <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="twitter" class="form-control" name="author_name" value="{{autor.author_login}}"/></div>
+                                                        <div class="col-xs-9"><input type="text" placeholder="twitter" class="form-control" name="name" value="{{autor.author_login}}"/></div>
                                                     </div>
                                                 </div>
                                             </div>

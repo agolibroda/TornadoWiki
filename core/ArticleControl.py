@@ -73,13 +73,13 @@ class HomeHandler(BaseHandler):
             logging.info( 'HomeHandler get article = ' + str(article))
     
     #         templateName = "admin/article.html"
-            templateName = os.path.join(config.options.tmpTplPath, str(article.template) + config.options.tplExtension)
+            templateName = os.path.join(config.options.tmpTplPath, str(article.article_template_id) + config.options.tplExtension)
             logging.info( 'HomeHandler get templateName = ' + str(templateName))
-            self.render(templateName, article=article, fileList=fileList)
+            self.render(templateName, article=article, fileList=fileList, link='/compose', page_name='Редактирование')
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
+            self.render('error.html', error=error, link='/compose', page_name='Редактирование')
 
 
 
@@ -97,11 +97,11 @@ class ArticleListHandler(BaseHandler):
             if not articles:
                 self.redirect("/compose")
                 return
-            self.render("articles.html", articles=articles)
+            self.render("articles.html", articles=articles, link='/compose', page_name='Редактирование')
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
+            self.render('error.html', error=error, link='/compose', page_name='Редактирование')
 
 # что - то здеся не то - 
 # что - то тут надо поправить 
@@ -123,11 +123,11 @@ class ArticleListHandler(BaseHandler):
 #             artHelper = HelperArticle()
 #             articles = yield executor.submit( artHelper.getListArticlesCategory, categoryId)
 #     
-#             self.render(config.options.adminTplPath+"articles.html", articles=articles)
+#             self.render(config.options.adminTplPath+"articles.html", articles=articles, link='/compose', page_name='Редактирование')
 #         except Exception as e:
 #             logging.info( 'Save:: Exception as et = ' + str(e))
 #             error = Error ('500', 'что - то пошло не так :-( ')
-#             self.render('error.html', error=error)
+#             self.render('error.html', error=error, link='/compose', page_name='Редактирование')
 
 
 
@@ -152,16 +152,16 @@ class ArticleHandler(BaseHandler):
             if article.article_id == 0 : 
                 self.redirect("/compose/" + articleName ) 
     
-            templateName = os.path.join(config.options.tmpTplPath, str(article.template) + config.options.tplExtension)
+            templateName = os.path.join(config.options.tmpTplPath, str(article.article_template_id) + config.options.tplExtension)
     
             logging.info( 'ArticleHandler get templateName = ' + str(templateName))
             logging.info( 'ArticleHandler:: article = ' + str(article))
     
-            self.render(templateName, article=article, fileList=fileList)
+            self.render(templateName, article=article, fileList=fileList, link='/compose', page_name='Редактирование')
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
+            self.render('error.html', error=error, link='/compose', page_name='Редактирование')
 
 
 class MyArticletHandler(BaseHandler):
@@ -169,6 +169,10 @@ class MyArticletHandler(BaseHandler):
 
 
 class ComposeHandler(BaseHandler):
+    """
+    Редактирование статей 
+    
+    """
     @tornado.web.authenticated
     @gen.coroutine
     def get(self, articleName = ''):
@@ -181,21 +185,28 @@ class ComposeHandler(BaseHandler):
             artHelper.setArticleCategiry (config.options.info_page_categofy_id) 
             logging.info( 'ComposeHandler:: 1 artHelper.getModel() = ' + str(artHelper.getModel()))
             
+            pageName='Редактирование статьи'
+            
             if articleId and revId:
                 (article, fileList) = yield executor.submit( artHelper.getArticleByIdRevId, articleId, revId ) 
                 artHelper.setModel(article)
             elif articleName != '':
                 artHelper.setArticleTitle (articleName)
+                pageName='Редактирование ' + articleName
+                
+            if hasattr(article, 'article_title')  and article.article_title != '':
+                pageName= 'Редактирование ' + article.article_title
     #         else:
     #             pass    
              
             logging.info( 'ComposeHandler:: 2 artHelper.getModel() = ' + str(artHelper.getModel()))
     #             logging.info( 'ComposeHandler:: get article = ' + str(article))
-            self.render("compose.html", article=artHelper.getModel(),  fileList=fileList)
+            self.render("compose.html", article=artHelper.getModel(),  fileList=fileList, link='/compose', page_name=pageName)
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
+            self.render('error.html', error=error, link='/compose', page_name='редактирование статьи')
+
 
 
     @tornado.web.authenticated
@@ -213,13 +224,17 @@ class ComposeHandler(BaseHandler):
             if not curentAuthor.author_id: return None
     
     
-            artModel.article_id = int(self.get_argument("id", 0))
-            artModel.article_title = self.get_argument("article_title")
-            artModel.article_annotation = self.get_argument("article_annotation") # article_annotation
-            artModel.article_html = self.get_argument("article_html") # article_html
-            artModel.category_article_id = int(self.get_argument("category_article_id", 0))
+            artModel.article_id = self.get_argument("id", 0)
+            if artModel.article_id == 0:
+                artModel.author_id = curentAuthor.author_id
+            artModel.article_title = self.get_argument("title")
+            artModel.article_annotation = self.get_argument("annotation")
+            artModel.article_sourse = self.get_argument("sourse")
+            artModel.article_category_id = self.get_argument("category_id", 0)
+            artModel.article_template_id = int(self.get_argument("template_id", 0))
+            artModel.article_permissions = self.get_argument("permissions", 'pbl')                                
             
-    #         logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
+            logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
             
             article_link =  artModel.article_title.lower().replace(' ','_')
             templateDir = self.get_template_path()
@@ -238,83 +253,88 @@ class ComposeHandler(BaseHandler):
     #             self.redirect("/compose" ) 
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
-            error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
+#             error = Error ('500', 'что - то пошло не так :-( ')
+#             self.render('error.html', error=error, link='/compose', page_name='')
+            pageName = 'Редактирование ' + article.article_title
+            fileList = []
+            self.render("compose.html", article=artModel,  fileList=fileList, link='/compose', page_name=pageName)
 
 
 #############################################
 # тут похоже, надо передумать, и сделать из ЭТОГО текста основняк....abs(x) 
 
 
-
-class AdminComposeHandler(BaseHandler):
-    """
-    редактирование статьи с правами админа 
-    - расширенное количество типов (м.б.)
-    - может возможностоь менять "category_article_id" фактически - 
-        "тип статьи" 
-        - шаблон 
-        - статья категория
-        - инфрмационная статья 
-    """
-    @tornado.web.authenticated
-    @gen.coroutine
-    def get(self):
-        try:
-            articleId = self.get_argument("aid", None)
-            revId = self.get_argument("rid", None)
-            logging.info( 'AdminComposeHandler:: self.get_argument("ned", 0) = ' + str(self.get_argument("ned", 0)))
-            isNotEdit = self.get_argument("ned", 0)
-            logging.info( 'AdminComposeHandler:: isNotEdit = ' + str(isNotEdit))
-            article = Article()
-            fileList = []
-    
-            if articleId and revId:
-                artHelper = HelperArticle()
-                (article, fileList) = yield executor.submit( artHelper.getArticleByIdRevId, articleId, revId ) 
-                logging.info( 'AdminComposeHandler:: get article = ' + str(article))
-            article.tpl_categofy_id = config.options.info_page_categofy_id 
-            self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList, isCkEditMake=isNotEdit)
-        except Exception as e:
-            logging.info( 'Save:: Exception as et = ' + str(e))
-            error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
-
-    @tornado.web.authenticated
-    @gen.coroutine
-    def post(self):
-        try:
-            artModel = Article()
-    
-            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-    #         logging.info( 'AdminComposeHandler:: post rezult = ' + str(rezult))
-    #         curentAuthor = rezult.result()
-            
-            if not curentAuthor.author_id: return False
-    
-            artModel.article_id = self.get_argument("id", 0)
-            artModel.article_title = self.get_argument("article_title")
-            artModel.article_annotation = self.get_argument("article_annotation")
-            artModel.article_html = self.get_argument("article_html")
-            artModel.category_article_id = self.get_argument("category_article_id", 0)
-            artModel.template = int(self.get_argument("template_id", 0))
-            logging.info( 'AdminComposeHandler:: Before Save! artModel = ' + str(artModel))
-    
-            article_link =  artModel.article_title.lower().replace(' ','_')
-            
-            templateDir = self.get_template_path()
-            
-            rez = yield executor.submit( artModel.save, curentAuthor.author_id, templateDir )
-            logging.info( 'AdminComposeHandler:: rez = ' + str(rez))
-            
-            redirectLink = "/"+config.options.adminTplPath + 'article/' + str(rez.article_id) # article_link
-            logging.info( 'AdminComposeHandler:: redirectLink = ' + str(redirectLink))
-            self.redirect( redirectLink )
-    
-        except Exception as e:
-            logging.info( 'Save:: Exception as et = ' + str(e))
-            error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
+# class AdminComposeHandler(BaseHandler):
+#     """
+#     редактирование статьи с правами админа 
+#     - расширенное количество типов (м.б.)
+#     - может возможностоь менять "article_category_id" фактически - 
+#         "тип статьи" 
+#         - шаблон 
+#         - статья категория
+#         - инфрмационная статья 
+#     """
+#     @tornado.web.authenticated
+#     @gen.coroutine
+#     def get(self):
+#         try:
+#             articleId = self.get_argument("aid", None)
+#             revId = self.get_argument("rid", None)
+#             logging.info( 'AdminComposeHandler:: self.get_argument("ned", 0) = ' + str(self.get_argument("ned", 0)))
+#             isNotEdit = self.get_argument("ned", 0)
+#             logging.info( 'AdminComposeHandler:: isNotEdit = ' + str(isNotEdit))
+#             article = Article()
+#             fileList = []
+#     
+#             if articleId and revId:
+#                 artHelper = HelperArticle()
+#                 (article, fileList) = yield executor.submit( artHelper.getArticleByIdRevId, articleId, revId ) 
+#                 logging.info( 'AdminComposeHandler:: get article = ' + str(article))
+#             article.tpl_categofy_id = config.options.info_page_categofy_id 
+#             self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList, isCkEditMake=isNotEdit, link='/compose', page_name='Редактирование')
+#         except Exception as e:
+#             logging.info( 'Save:: Exception as et = ' + str(e))
+#             error = Error ('500', 'что - то пошло не так :-( ')
+#             self.render('error.html', error=error, link='/compose', page_name='Редактирование')
+# 
+#     @tornado.web.authenticated
+#     @gen.coroutine
+#     def post(self):
+#         try:
+#             artModel = Article()
+#     
+#             curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+#     #         logging.info( 'AdminComposeHandler:: post rezult = ' + str(rezult))
+#     #         curentAuthor = rezult.result()
+#             
+#             if not curentAuthor.author_id: return False
+#     
+#             artModel.article_id = self.get_argument("id", 0)
+#             artModel.article_title = self.get_argument("title")
+#             artModel.article_annotation = self.get_argument("annotation")
+#             artModel.article_sourse = self.get_argument("sourse")
+#             artModel.article_category_id = self.get_argument("category_id", 0)
+#             artModel.article_template_id = int(self.get_argument("template_id", 0))
+#             artModel.article_permissions = self.get_argument("permissions", 'pbl')                                
+# 
+#             logging.info( 'AdminComposeHandler:: Before Save! artModel = ' + str(artModel))
+#     
+#             article_link =  artModel.article_title.lower().replace(' ','_')
+#             
+#             templateDir = self.get_template_path()
+#             
+#             rez = yield executor.submit( artModel.save, curentAuthor.author_id, templateDir )
+#             logging.info( 'AdminComposeHandler:: rez = ' + str(rez))
+#             
+# #             redirectLink = "/article/' + str(rez.article_id) # article_link
+#             redirectLink = "/article/' + article_link
+#             logging.info( 'AdminComposeHandler:: redirectLink = ' + str(redirectLink))
+#             self.redirect( redirectLink )
+#     
+#         except Exception as e:
+#             logging.info( 'Save:: Exception as et = ' + str(e))
+#             error = Error ('500', 'что - то пошло не так :-( ')
+#             self.render('error.html', error=error, link='/compose', page_name='Редактирование')
 
 
 #############################################
@@ -332,11 +352,11 @@ class RevisionsHandler(BaseHandler):
             if not articles:
                 self.redirect("/compose")
                 return
-            self.render("revisions.html", articles=articles)
+            self.render("revisions.html", articles=articles, link='/compose', page_name='Редактирование')
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
+            self.render('error.html', error=error, link='/compose', page_name='Редактирование')
    
    
 
@@ -354,11 +374,11 @@ class RevisionViewHandler(BaseHandler):
             fileControl = File()
     
             logging.info( 'RevisionViewHandler:: revision = ' + str(revision))
-            self.render("revision.html", revision=revision)
+            self.render("revision.html", revision=revision, link='/compose', page_name='Редактирование')
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
+            self.render('error.html', error=error, link='/compose', page_name='Редактирование')
 
 
 
@@ -382,7 +402,7 @@ class UploadHandler(BaseHandler):
 #         article_id = self.get_argument("id", 0)
         logging.info( 'UploadHandler:: get article_id =  ' + str(article_id) )
         self.article_id = article_id
-        self.render("upload.html", error=None, article_id = article_id)
+        self.render("upload.html", error=None, article_id = article_id, link='/compose', page_name='Редактирование')
     
     
     @gen.coroutine
@@ -417,7 +437,7 @@ class UploadHandler(BaseHandler):
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
+            self.render('error.html', error=error, link='/compose', page_name='Редактирование')
 
 
 class FeedHandler(BaseHandler):
@@ -433,11 +453,11 @@ class FeedHandler(BaseHandler):
             artHelper = HelperArticle()
             articles = yield executor.submit( artHelper.getListArticles )
             self.set_header("Content-Type", "application/atom+xml")
-            self.render("feed.xml", articles=articles)
+            self.render("feed.xml", articles=articles, link='/compose', page_name='Редактирование')
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error)
+            self.render('error.html', error=error, link='/compose', page_name='Редактирование')
 
 
 
@@ -446,20 +466,20 @@ class FeedHandler(BaseHandler):
 class ArticleModule(tornado.web.UIModule):
     def render(self, article, fileList):
 #         logging.info( 'ArticleModule:: fileList = ' + str(fileList))
-        return self.render_string("modules/article.html", article=article, fileList=fileList)
+        return self.render_string("modules/article.html", article=article, fileList=fileList, link='/compose', page_name='Редактирование')
  
  
 class FilesListModule(tornado.web.UIModule):
     def render(self, fileList):
         logging.info( 'FilesList:: fileList = ' + str(fileList))
-        return self.render_string("modules/files_list.html", fileList=fileList)
+        return self.render_string("modules/files_list.html", fileList=fileList, link='/compose', page_name='Редактирование')
  
 class RevisionModule(tornado.web.UIModule):
     def render(self, revision):
-        return self.render_string("modules/revision.html", revision=revision)
+        return self.render_string("modules/revision.html", revision=revision, link='/compose', page_name='Редактирование')
  
  
  
 class SimpleArticleModule(tornado.web.UIModule):
     def render(self, article):
-        return self.render_string("modules/simple_article.html", article=article)
+        return self.render_string("modules/simple_article.html", article=article, link='/compose', page_name='Редактирование')
