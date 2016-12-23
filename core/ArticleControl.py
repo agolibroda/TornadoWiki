@@ -51,6 +51,9 @@ executor = concurrent.futures.ThreadPoolExecutor(2)
 
 class HomeHandler(BaseHandler):
     """
+    Загрузка ГЛАВНОЙ сраницы сайта!!!!!
+    ИД страницы указано в КОНФИГУРАЦИИ!!!
+    
     вот именно тут наверое, надо загружать нужную нам страницу по ее ИД
     - с получением ее ИД щаблона, и грузить и шаблон тоже. 
     - причем, шаблон со всяческими там проверками - есть или нет, и, если есть, тогда 
@@ -143,10 +146,18 @@ class ArticleHandler(BaseHandler):
     """
     @gen.coroutine
     def get(self, articleName):
+        logging.info( 'ArticleHandler get articleName = ' + str(articleName))
 
         try:
             artHelper = HelperArticle()
-            (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleName )
+            
+            articleLink = articleName.strip().strip(" \t\n")
+            articleLink =  articleLink.lower().replace(' ','_')
+            articleLink =  articleLink.replace('__','_')
+
+            logging.info( 'ArticleHandler get articleLink = ' + str(articleLink))
+            
+            (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleLink )
        
        # а вот тут я должен получить и распарсить шаблон - как - текст в статьях (особой категории!!!!)
             if article.article_id == 0 : 
@@ -215,21 +226,20 @@ class ComposeHandler(BaseHandler):
         try:
             logging.info( 'ComposeHandler:: post articleName = ' + str(articleName))
     
-            artModel = Article()
-    
             curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
     #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
     #         curentAuthor = rezult.result()
             
             if not curentAuthor.author_id: return None
     
+            artModel = Article()
     
             artModel.article_id = self.get_argument("id", 0)
             if artModel.article_id == 0:
                 artModel.author_id = curentAuthor.author_id
             artModel.article_title = self.get_argument("title")
             artModel.article_annotation = self.get_argument("annotation")
-            artModel.article_sourse = self.get_argument("sourse")
+            artModel.article_source = self.get_argument("sourse")
             artModel.article_category_id = self.get_argument("category_id", 0)
             artModel.article_template_id = int(self.get_argument("template_id", 0))
             artModel.article_permissions = self.get_argument("permissions", 'pbl')                                
@@ -255,7 +265,7 @@ class ComposeHandler(BaseHandler):
             logging.info( 'Save:: Exception as et = ' + str(e))
 #             error = Error ('500', 'что - то пошло не так :-( ')
 #             self.render('error.html', error=error, link='/compose', page_name='')
-            pageName = 'Редактирование ' + article.article_title
+            pageName = 'Редактирование ' + artModel.article_title
             fileList = []
             self.render("compose.html", article=artModel,  fileList=fileList, link='/compose', page_name=pageName)
 
@@ -312,7 +322,7 @@ class ComposeHandler(BaseHandler):
 #             artModel.article_id = self.get_argument("id", 0)
 #             artModel.article_title = self.get_argument("title")
 #             artModel.article_annotation = self.get_argument("annotation")
-#             artModel.article_sourse = self.get_argument("sourse")
+#             artModel.article_source = self.get_argument("sourse")
 #             artModel.article_category_id = self.get_argument("category_id", 0)
 #             artModel.article_template_id = int(self.get_argument("template_id", 0))
 #             artModel.article_permissions = self.get_argument("permissions", 'pbl')                                

@@ -89,7 +89,8 @@ DROP TABLE IF EXISTS articles;
 CREATE TABLE IF NOT EXISTS articles (
   article_id int unique not null DEFAULT nextval('articles_article_id_seq') primary key,
   author_id int NOT NULL references authors(author_id),
-  article_title text NOT NULL,
+  article_title character varying(254) NOT NULL,
+  article_link character varying(254) unique NOT NULL,
   article_annotation text,
   article_source text NOT NULL,
   article_category_id int NOT NULL,
@@ -102,6 +103,7 @@ ALTER SEQUENCE articles_article_id_seq OWNED BY articles.article_id;
 
 CREATE INDEX articles_article_id_idx ON articles (article_id);
 CREATE INDEX articles_author_id_idx ON articles (author_id);
+CREATE INDEX articles_article_link_idx ON articles (article_link);
 CREATE INDEX articles_article_category_id ON articles (article_category_id);
 CREATE INDEX articles_article_template_id_id ON articles (article_template_id);
 CREATE INDEX articles_permissions_id ON articles (article_permissions);
@@ -111,7 +113,8 @@ DROP TABLE IF EXISTS revisions_articles;
 CREATE TABLE IF NOT EXISTS revisions_articles (
   article_id int not null  references articles(article_id),
   author_id int NOT NULL references authors(author_id),
-  article_title text NOT NULL,
+  article_title character varying(254) NOT NULL,
+  article_link character varying(254) NOT NULL,
   article_annotation text,
   article_source text NOT NULL,
   article_category_id int NOT NULL,
@@ -129,6 +132,7 @@ CREATE TABLE IF NOT EXISTS revisions_articles (
 
 CREATE INDEX revision_articles_article_id_idx ON revisions_articles (article_id);
 CREATE INDEX revision_articles_author_id_idx ON revisions_articles (author_id);
+CREATE INDEX revision_articles_article_link_idx ON revisions_articles (article_link);
 CREATE INDEX revision_articles_article_category_id ON revisions_articles (article_category_id);
 CREATE INDEX revision_articles_article_template_id_id ON revisions_articles (article_template_id);
 CREATE INDEX revision_articles_permissions_id ON revisions_articles (article_permissions);
@@ -252,13 +256,13 @@ INSERT INTO  revisions_authors (author_id, author_create, author_login, author_n
 ALTER SEQUENCE authors_author_id_seq OWNED BY authors.author_id;
 
 
-INSERT INTO  articles (article_id, author_id, article_title, article_annotation, article_source, article_category_id, article_template_id, article_permissions) VALUES 
-(1,	1, '0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk=',	'0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk=',	'PHA+0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk8L3A+',	0,	'0',	'pbl'),
-(2,	1, '0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuA==',	'0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuA==',	'PHA+0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuDwvcD4=',	1,	'0',	'pbl'),
-(3,	1, '0KjQsNCx0LvQvtC90Ys=',	'0KjQsNCx0LvQvtC90Ys=',	'PHA+0KjQsNCx0LvQvtC90Ys8L3A+',	1,	'0',	'pbl'),
-(4,	1, '0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90LDRjyDRgdGC0LDRgtGM0Y8=',	'0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90LDRjyDRgdGC0LDRgtGM0Y8=',	'PHA+0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90LDRjyDRgdGC0LDRgtGM0Y88L3A+',	1,	'0',	'pbl'),
-(5,	1, '0JPQu9Cw0LLQvdCw0Y8g0YHRgtCw0YLRjNGPINGB0LDQudGC0LA=',	'0JPQu9Cw0LLQvdCw0Y8g0YHRgtCw0YLRjNGPINGB0LDQudGC0LA=',	'PHA+0JPQu9Cw0LLQvdCw0Y8g0YHRgtCw0YLRjNGPINGB0LDQudGC0LA8L3A+',	4,	'6',	'pbl'),
-(6,	1, '0J7RgdC90L7QstC90L7QuSDRiNCw0LHQu9C+0L0g0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90L7QuSDRgdGC0YDQsNC90LjRhtGL',	'0J7RgdC90L7QstC90L7QuSDRiNCw0LHQu9C+0L0g0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90L7QuSDRgtGA0LDQvdC40YbRiw==',	'PCFET0NUWVBFIGh0bWw+DQo8aHRtbD4NCjxoZWFkPg0KPG1ldGEgY2hhcnNldD0iVVRGLTgiPg0KPHRpdGxlPlRvcm5hZG8gV2lraSBBZG1pbiBsYXllcjwvdGl0bGU+DQo8bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Ii9zdGF0aWMvd2lraS5jc3MiIHR5cGU9InRleHQvY3NzIj4NCjxsaW5rIHJlbD0iYWx0ZXJuYXRlIiBocmVmPSIvZmVlZCIgdHlwZT0iYXBwbGljYXRpb24vYXRvbSt4bWwiIA0KdGl0bGU9Int7YXJ0aWNsZS5hcnRpY2xlX3RpdGxlfX0iPg0KDQo8L2hlYWQ+DQo8Ym9keT4NCjxkaXYgaWQ9ImJvZHkiPg0KPGRpdiBpZD0iaGVhZGVyIj4NCjxkaXYgc3R5bGU9ImZsb2F0OnJpZ2h0Ij4NCg0KPGEgaHJlZj0iL2F1dGgvbG9naW4iPlNpZ24gaW48L2E+IHRvIGNvbXBvc2UvZWRpdA0KDQo8L2Rpdj4NCjxoMT48YSBocmVmPSIvIj7QndCwINCT0LvQsNCy0L3Rg9GOPC9hPjwvaDE+DQo8L2Rpdj4NCjwhLS0gdXNlciBJUzogTm9uZSAtLT4NCjxkaXYgaWQ9ImNvbnRlbnQiPg0KDQo8IS0tIG1vZHVsZXMgMTM3ICBhcnRpY2xlLmh0bWwgLS0+DQo8ZGl2IGNsYXNzPSJhcnRpY2xlIj4NCjxoMT48YSBocmVmPSJ7e2FydGljbGUuYXJ0aWNsZV9pZH19Ij57e2FydGljbGUuYXJ0aWNsZV90aXRsZX19PC9hPjwvaDE+DQo8ZGl2IGNsYXNzPSJib2R5Ij57e2FydGljbGUuYXJ0aWNsZV9hbm5vdGF0aW9ufX08L2Rpdj4NCjxkaXYgY2xhc3M9ImJvZHkiPg0KeyUgcmF3IGFydGljbGUuYXJ0aWNsZV9odG1sICV9DQo8YnI+DQo8IS0tIG1vZHVsZXMvZmlsZXNfbGlzdC5odG1sIC0tPg0Ke3tmaWxlTGlzdH19DQo8IS0tIC8gbW9kdWxlcy9maWxlc19saXN0Lmh0bWwgLS0+DQo8L2Rpdj4NCjxkaXYgY2xhc3M9ImFkbWluIj4NCls8YSBocmVmPSJ7e2FydGljbGUuYXJ0aWNsZV9pZH19Ij5FZGl0IHRoaXMgd2lraTwvYT5dDQpbPGEgaHJlZj0ie3thcnRpY2xlLmFydGljbGVfaWR9fSI+VmlldyBhbGwgcmV2aXNpb25zPC9hPl0NCjwvZGl2Pg0KPC9kaXY+DQoNCjwvZGl2Pg0KPC9kaXY+DQoNCjwvYm9keT4NCjwvaHRtbD4=',	3,	0,	'pbl');
+INSERT INTO  articles (article_id, author_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions) VALUES 
+(1,	1, '0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk=', '0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk=',	'0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk=',	'PHA+0KHQv9C40YHQvtC6INCa0LDRgtC10LPQvtGA0LjQuSDRgdGC0LDRgtC10Lk8L3A+',	0,	'0',	'pbl'),
+(2,	1, '0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuA==', '0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuA==',	'0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuA==',	'PHA+0KHQu9GD0LbQtdCx0L3Ri9C1INGB0YLQsNGC0YzQuDwvcD4=',	1,	'0',	'pbl'),
+(3,	1, '0KjQsNCx0LvQvtC90Ys=', '0KjQsNCx0LvQvtC90Ys=',	'0KjQsNCx0LvQvtC90Ys=',	'PHA+0KjQsNCx0LvQvtC90Ys8L3A+',	1,	'0',	'pbl'),
+(4,	1, '0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90LDRjyDRgdGC0LDRgtGM0Y8=', '0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90LDRjyDRgdGC0LDRgtGM0Y8=',	'0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90LDRjyDRgdGC0LDRgtGM0Y8=',	'PHA+0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90LDRjyDRgdGC0LDRgtGM0Y88L3A+',	1,	'0',	'pbl'),
+(5,	1, '0JPQu9Cw0LLQvdCw0Y8g0YHRgtCw0YLRjNGPINGB0LDQudGC0LA=', '0JPQu9Cw0LLQvdCw0Y8g0YHRgtCw0YLRjNGPINGB0LDQudGC0LA=',	'0JPQu9Cw0LLQvdCw0Y8g0YHRgtCw0YLRjNGPINGB0LDQudGC0LA=',	'PHA+0JPQu9Cw0LLQvdCw0Y8g0YHRgtCw0YLRjNGPINGB0LDQudGC0LA8L3A+',	4,	'6',	'pbl'),
+(6,	1, '0J7RgdC90L7QstC90L7QuSDRiNCw0LHQu9C+0L0g0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90L7QuSDRgdGC0YDQsNC90LjRhtGL',	'0J7RgdC90L7QstC90L7QuSDRiNCw0LHQu9C+0L0g0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90L7QuSDRgdGC0YDQsNC90LjRhtGL',	'0J7RgdC90L7QstC90L7QuSDRiNCw0LHQu9C+0L0g0JjQvdGE0L7RgNC80LDRhtC40L7QvdC90L7QuSDRgtGA0LDQvdC40YbRiw==',	'PCFET0NUWVBFIGh0bWw+DQo8aHRtbD4NCjxoZWFkPg0KPG1ldGEgY2hhcnNldD0iVVRGLTgiPg0KPHRpdGxlPlRvcm5hZG8gV2lraSBBZG1pbiBsYXllcjwvdGl0bGU+DQo8bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Ii9zdGF0aWMvd2lraS5jc3MiIHR5cGU9InRleHQvY3NzIj4NCjxsaW5rIHJlbD0iYWx0ZXJuYXRlIiBocmVmPSIvZmVlZCIgdHlwZT0iYXBwbGljYXRpb24vYXRvbSt4bWwiIA0KdGl0bGU9Int7YXJ0aWNsZS5hcnRpY2xlX3RpdGxlfX0iPg0KDQo8L2hlYWQ+DQo8Ym9keT4NCjxkaXYgaWQ9ImJvZHkiPg0KPGRpdiBpZD0iaGVhZGVyIj4NCjxkaXYgc3R5bGU9ImZsb2F0OnJpZ2h0Ij4NCg0KPGEgaHJlZj0iL2F1dGgvbG9naW4iPlNpZ24gaW48L2E+IHRvIGNvbXBvc2UvZWRpdA0KDQo8L2Rpdj4NCjxoMT48YSBocmVmPSIvIj7QndCwINCT0LvQsNCy0L3Rg9GOPC9hPjwvaDE+DQo8L2Rpdj4NCjwhLS0gdXNlciBJUzogTm9uZSAtLT4NCjxkaXYgaWQ9ImNvbnRlbnQiPg0KDQo8IS0tIG1vZHVsZXMgMTM3ICBhcnRpY2xlLmh0bWwgLS0+DQo8ZGl2IGNsYXNzPSJhcnRpY2xlIj4NCjxoMT48YSBocmVmPSJ7e2FydGljbGUuYXJ0aWNsZV9pZH19Ij57e2FydGljbGUuYXJ0aWNsZV90aXRsZX19PC9hPjwvaDE+DQo8ZGl2IGNsYXNzPSJib2R5Ij57e2FydGljbGUuYXJ0aWNsZV9hbm5vdGF0aW9ufX08L2Rpdj4NCjxkaXYgY2xhc3M9ImJvZHkiPg0KeyUgcmF3IGFydGljbGUuYXJ0aWNsZV9odG1sICV9DQo8YnI+DQo8IS0tIG1vZHVsZXMvZmlsZXNfbGlzdC5odG1sIC0tPg0Ke3tmaWxlTGlzdH19DQo8IS0tIC8gbW9kdWxlcy9maWxlc19saXN0Lmh0bWwgLS0+DQo8L2Rpdj4NCjxkaXYgY2xhc3M9ImFkbWluIj4NCls8YSBocmVmPSJ7e2FydGljbGUuYXJ0aWNsZV9pZH19Ij5FZGl0IHRoaXMgd2lraTwvYT5dDQpbPGEgaHJlZj0ie3thcnRpY2xlLmFydGljbGVfaWR9fSI+VmlldyBhbGwgcmV2aXNpb25zPC9hPl0NCjwvZGl2Pg0KPC9kaXY+DQoNCjwvZGl2Pg0KPC9kaXY+DQoNCjwvYm9keT4NCjwvaHRtbD4=',	3,	0,	'pbl');
 --SELECT setval('articles_article_id_seq', (SELECT MAX(article_id) FROM articles) );
 SELECT setval('articles_article_id_seq', COALESCE((SELECT MAX(article_id)+1 FROM articles), 1), false);
 --ALTER SEQUENCE articles_article_id_seq START (SELECT MAX(article_id)+1 FROM articles) ;

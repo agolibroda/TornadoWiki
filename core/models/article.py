@@ -108,7 +108,7 @@ class Article(Model):
         self.author_id = 0;
         self.article_title = title # эти параметры прилетают из формы редактирования
         self.article_annotation = '' # Это аннотация статьи!!!!!
-        self.article_sourse = '' # эти параметры прилетают из формы редактирования
+        self.article_source = '' # эти параметры прилетают из формы редактирования
         self.article_category_id = config.options.info_page_categofy_id # категория страницы (служебные?) 'inf','trm','nvg','tpl'
         self.article_template_id = config.options.main_info_template
         self.article_permissions = 'pbl'
@@ -140,100 +140,38 @@ class Article(Model):
 #         artModel.article_id = self.get_argument("id", 0)
 #         artModel.article_title = self.get_argument("article_title")
 #         artModel.article_annotation = self.get_argument("article_annotation")
-#         artModel.article_sourse = self.get_argument("article_sourse")
+#         artModel.article_source = self.get_argument("article_source")
 
+
+        self.author_id = author_id
        
-#         self.start_transaction()
-# любая запись - это ревизия!
-ну вот, я и добрался - тут надо все убрать, и все переделать!!!!
+#         self.article_id = self.get_argument("id", 0)
+#         self.article_category_id = self.get_argument("category_id", 0)
+#         self.article_template_id = self.get_argument("template_id", 0)
+#         self.article_permissions = self.get_argument("permissions", '')
+#         
+#         article_title = self.get_argument("title", '')
+#         article_annotation = self.get_argument("annotation", '')
+#         article_source = self.get_argument("sourse", '')
 
-        revisionControl = self.RevisionLoc()
-        titleControl = self.Title()
-        annotationControl = self.Annotation()
-        textControl = self.Text()       
+        article_title = self.article_title.strip().strip(" \t\n")
+        article_link = article_title.lower().replace(' ','_')
+        article_link = article_link.replace('__','_')
 
-        revisionControl.author_id = author_id
-
-        titleControl.title_text = self.article_title.strip().strip(" \t\n")
-#         del(self.article_title)
-        titleText = titleControl.title_text.lower().replace(' ','_')
-        titleControl.title_sha_hash = hashlib.sha256(
-                                            tornado.escape.utf8(titleText)
-                                            ).hexdigest()  #.decode(encoding='UTF-8')
-        titleControl.title_text = base64.b64encode(tornado.escape.utf8(titleControl.title_text)).decode(encoding='UTF-8')
-
-        annotationControl.annotation_sha_hash = hashlib.sha256(
-                                               tornado.escape.utf8(self.article_annotation)
-                                               ).hexdigest()   #.decode(encoding='UTF-8')
-        annotationControl.annotation_text = base64.b64encode(tornado.escape.utf8(self.article_annotation)).decode(encoding='UTF-8')    
-#         del(self.article_annotation)
-
-#         wrkHtml = self.article_sourse
-#         logging.info( 'wrkHtml = ' + repr(wrkHtml))
-# вот ту, перед укладкой на хранение, надо будет очищать исходник от вставок... 
-        textControl.text_html = base64.b64encode(
+        article_link = base64.b64encode(tornado.escape.utf8(article_link)).decode(encoding='UTF-8')
+        article_annotation = base64.b64encode(tornado.escape.utf8(self.article_annotation)).decode(encoding='UTF-8')    
+        article_source = base64.b64encode(
                                     zlib.compress(
-                                        tornado.escape.utf8(self.article_sourse)
+                                        tornado.escape.utf8(self.article_source)
                                                 )
                                                     ).decode(encoding='UTF-8')
         
-        textControl.text_sha_hash = hashlib.sha256(
-                                               tornado.escape.utf8(self.article_sourse)
-                                               ).hexdigest()   #.decode(encoding='UTF-8')
-                                               
 
-#         logging.info( 'Article ::: save titleText  = ' + str(titleText))
-#         logging.info( 'Article ::: save titleControl.title_text  = ' + str(titleControl.title_text))
-#         logging.info( 'Article ::: save annotationControl.annotation_text  = ' + str(annotationControl.annotation_text))
- 
-        
-# получили ХЭШИ с новых данных.                                            
-# надо узнать,являются ли наши данные реально новыми        
-        isUniqueRez = self.IsUniqueRevision(
-                                            titleControl.title_sha_hash, 
-                                            annotationControl.annotation_sha_hash, 
-                                            textControl.text_sha_hash)
+        self.article_title = article_title
+        self.article_link = article_link
+        self.article_annotation = article_annotation  
+        self.article_source = base64.b64encode(tornado.escape.utf8(article_source)).decode(encoding='UTF-8') 
 
-#         logging.info( 'SAVE::!!! isUniqueRez = ')
-#         for oneRez in isUniqueRez:
-#             logging.info( str(oneRez) )
-
-        newText = True
-        newAnnotation = True
-        newTitle = True
-        
-        if len(isUniqueRez) > 0:
-            for oneRez in isUniqueRez:
-#                 logging.info( oneRez )
-#                 if oneRez.article_id == self.article_id:
-                if (oneRez.text_sha_hash == textControl.text_sha_hash):
-                    newText = False
-                if (oneRez.annotation_sha_hash == annotationControl.annotation_sha_hash):
-                    newAnnotation = False
-                if (oneRez.title_sha_hash == titleControl.title_sha_hash) :
-                    newTitle = False
-
-#             if not newText and not newAnnotation and not newTitle:
-#                 raise WikiException(LINK_OR_ARTICLE_NOT_UNIQ)
-                    
-        logging.info( 'after Testing: self.article_id = ' + str(self.article_id) + '; newText = ' + str(newText) + '; newTitle = ' + str (newTitle) + '; newAnnotation = ' + str (newAnnotation) )
-
-        revisionControl.title_sha_hash = titleControl.title_sha_hash
-        revisionControl.annotation_sha_hash = annotationControl.annotation_sha_hash
-        revisionControl.text_sha_hash = textControl.text_sha_hash
-
-        
-# вот тут нужна конверация!!!! и всякая иная обработка!!!!
-#         htmlTextOut = wrkHtml
-        # rtf2xml - то библиотека для переработки.
-#         htmlTextOut = markdown.markdown(wrkHtml)
-#  надо подготовить текст к публикации (возможно проанализаровать - есть ли в тексте какие - то данные, КОТОРЫЕ СТОИТ ОТДЛЬНО ОБРАБОТАТЬ.)
-# Внешних шаблонов нагородить...         
-        htmlTextOut = self.article_sourse
-        self.article_sourse = base64.b64encode(tornado.escape.utf8(htmlTextOut)).decode(encoding='UTF-8') 
-        self.article_title = titleControl.title_text
-        self.article_annotation = annotationControl.annotation_text  
-        
 #         
 # вот тут по - идее, надо начать трансакцию... 
 # - почитать про трансакции в постгрисе. 
@@ -253,77 +191,42 @@ class Article(Model):
         
             if int(self.article_id) == 0:
                 self.article_id = self.insert('article_id')
-                self.author_id = author_id
+                operationFlag = 'I'
                         
-                titleControl.article_id = self.article_id
-                annotationControl.article_id = self.article_id
-                textControl.article_id = self.article_id
             else:
                 self.update('article_id = ' + str (self.article_id))
-                
-            if newText or newTitle or newAnnotation:
-                revisionUpd = self.RevisionLoc()
-                del(revisionUpd.revision_id) 
-                del(revisionUpd.article_id) 
-                del(revisionUpd.author_id) 
-    #             del(revisionUpd.revision_date) 
-                del(revisionUpd.title_sha_hash) 
-                del(revisionUpd.annotation_sha_hash) 
-                del(revisionUpd.text_sha_hash) 
+                operationFlag = 'U'
     
-                revisionUpd.revision_actual_flag = 'N'
-                revisionUpd.update('article_id = ' + str (self.article_id))
-                revisionControl.article_id =  self.article_id
-                revisionControl.revision_actual_flag = 'A'
-                revisionId = revisionControl.insert('revision_id')
-                
-                logging.info( 'after revisionControl.insert::: revisionId = ' + str(revisionId)  )
-                logging.info( 'after revisionControl.insert::: self.article_id = ' + str(self.article_id) + '; newText = ' + str(newText) + '; newTitle = ' + str (newTitle) + '; newAnnotation = ' + str (newAnnotation) )
-                
-                if newText:
-                    logging.info( 'SAVE!!!!!:: newText = ' + str(newText))
-                    textControl.article_id = self.article_id
-                    textControl.insert()
-                     
-                if newTitle:
-                    titleControl.article_id = self.article_id
-                    titleControl.insert()
-                
-                if newAnnotation:
-                    annotationControl.article_id = self.article_id
-                    annotationControl.insert()
-    
-                self.commit()
+            self.commit()
         
 # вот после всего надо сохранить шаблон в шаблоновую директорию... 
-                logging.info( 'save:: save self.article_category_id = ' + str(self.article_category_id))
-                logging.info( 'save:: save 2 self.article_category_id = ' + str(int(self.article_category_id)))
-                logging.info( 'save:: save config.options.tpl_categofy_id = ' + str(config.options.tpl_categofy_id))
-                logging.info( 'save:: save 2 config.options.tpl_categofy_id = ' + str(int(config.options.tpl_categofy_id)))
-                logging.info( 'save:: save self.article_id = ' + str(self.article_id))
+            logging.info( 'save:: save self.article_category_id = ' + str(self.article_category_id))
+            logging.info( 'save:: save 2 self.article_category_id = ' + str(int(self.article_category_id)))
+            logging.info( 'save:: save config.options.tpl_categofy_id = ' + str(config.options.tpl_categofy_id))
+            logging.info( 'save:: save 2 config.options.tpl_categofy_id = ' + str(int(config.options.tpl_categofy_id)))
+            logging.info( 'save:: save self.article_id = ' + str(self.article_id))
                 
-                if int(self.article_category_id) == int(config.options.tpl_categofy_id):
-                    logging.info( 'save:: save Template! = ' )
-                     
-                    wrkTpl = Template()
-                    wrkTpl.save(self.article_id, htmlTextOut, templateDir)
-
-# где - то после сохранения данных, должна быть сохранена и ревизия, причем, в единой трансакции!!!!
-#   -- вот, такое изменение уже есть, и нефок его заново запихивать!
-#   revisions_sha_hash character varying(66) NOT NULL,
-# тут для каждого применения надо придумать КАК задавать уникльный ХЕШ.   
-# кстати про трансакцию - походу не стоит ее делать единой  - ну и что, что ЭТА (старая трансакция)  стала "боевой" - может, 
-# именно так и правильно? ) то есть, при восстановлении актуального текста после вандализма.... 
-
+            if int(self.article_category_id) == int(config.options.tpl_categofy_id):
+                logging.info( 'save:: save Template! = ' )
+                 
+                wrkTpl = Template()
+                wrkTpl.save(self.article_id, htmlTextOut, templateDir)
+            
+            
                 
-                self.saveRevision( userId, operationFlag, revisions_sha_hash)
+            revisions_sha_hash = hashlib.sha256(
+                               tornado.escape.utf8(article_title + article_annotation + article_source)
+                               ).hexdigest()   #.decode(encoding='UTF-8')
+
+            mainPrimaryObj = {'primaryName': 'article_id', 'primaryValue': self.article_id }
+            self.saveRevision(self.author_id, operationFlag, mainPrimaryObj, revisions_sha_hash)
 
 
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             self.rollback()
              
-        self.article_link = titleText.lower().replace(' ','_') 
+        self.article_link = titleLink 
         logging.info( 'save:: save self.article_link! = ' + self.article_link )
                 
         return self 
@@ -336,7 +239,7 @@ class Article(Model):
 # процедура - сохранить трансакцию!!!!!
 
 
-    def get(self, articleTitle):
+    def get(self, articleLink):
          """
          получить статью по названию (одну) - функция для пердставления данных (!!!) 
          получить ОЛЬКО опубликованный текст  (активную статью) - для редактирования получаем статью иным образом! 
@@ -346,19 +249,21 @@ class Article(Model):
          имя ищем по ХЕШУ в таблице "titles"
          
          """
-         logging.info( 'Article ::: get articleTitle  = ' + str(articleTitle))
+         logging.info( 'Article ::: get articleLink  = ' + str(articleLink))
     
-         articleTitle = hashlib.sha256(
-                                     tornado.escape.utf8(articleTitle)
-                                     ).hexdigest()  #.decode(encoding='UTF-8')
-    
+         article_link = base64.b64encode(tornado.escape.utf8(articleLink)).decode(encoding='UTF-8')
+
+#          articleLink = hashlib.sha256(
+#                                      tornado.escape.utf8(articleLink)
+#                                      ).hexdigest()  #.decode(encoding='UTF-8')
+#     
          getRez = self.select(
                                 'articles.article_id, articles.article_title, ' + 
                                 'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, articles.article_template_id ',
                                 ' revisions_articles lfind ',
                                     {
                                 'whereStr': " articles.article_id = lfind.article_id " +
-                                             " AND lfind.title_sha_hash = '" + articleTitle  + "' " , # строка набор условий для выбора строк
+                                             " AND lfind.article_link = '" + article_link  + "' " , # строка набор условий для выбора строк
                                  }
                                 )
     
@@ -368,12 +273,14 @@ class Article(Model):
     #             logging.info( 'getRez = ' + str(getRez[0]))
              outArt = getRez[0]
              outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
+             outArt.article_link = article_link
              outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
-             outArt.article_sourse =  base64.b64decode(outArt.article_sourse).decode(encoding='UTF-8')
-    #             logging.info( 'outArt.article_sourse = ' + str(outArt.article_sourse))
+             outArt.article_source =  base64.b64decode(outArt.article_source).decode(encoding='UTF-8')
+    #             logging.info( 'outArt.article_source = ' + str(outArt.article_source))
     
              articleTitle = outArt.article_title.strip().strip(" \t\n")
-             outArt.article_link =  articleTitle.lower().replace(' ','_')
+#              articleTitle =  articleTitle.lower().replace(' ','_')
+#              outArt.article_link =  articleTitle.lower().replace('__','_')
              
              return outArt
 
@@ -387,8 +294,9 @@ class Article(Model):
          logging.info( 'Article ::: getById articleId  = ' + str(articleId))
     
          getRez = self.select(
-                                'articles.article_id, articles.article_title, '+
-                                'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, articles.article_template_id',
+                                'articles.article_id, articles.article_title, articles.article_link, '+
+                                'articles.article_annotation,  articles.article_source, articles.article_category_id, '+ 
+                                'articles.author_id, articles.article_template_id',
                                 '',
                                     {
                                 'whereStr': ' articles.article_id = ' + str(articleId)  ,
@@ -401,12 +309,13 @@ class Article(Model):
 #              logging.info( ' getById getRez = ' + str(getRez[0]))
              outArt = getRez[0]
              outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
+             outArt.article_link = base64.b64decode(outArt.article_link).decode(encoding='UTF-8')
              outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
-             outArt.article_sourse =  base64.b64decode(outArt.article_sourse).decode(encoding='UTF-8')
-    #             logging.info( 'outArt.article_sourse = ' + str(outArt.article_sourse))
+             outArt.article_source =  base64.b64decode(outArt.article_source).decode(encoding='UTF-8')
+    #             logging.info( 'outArt.article_source = ' + str(outArt.article_source))
     
-             articleTitle = outArt.article_title.strip().strip(" \t\n")
-             outArt.article_link =  articleTitle.lower().replace(' ','_')
+#              articleTitle = outArt.article_title.strip().strip(" \t\n")
+#              outArt.article_link =  articleTitle.lower().replace(' ','_')
              
 #              logging.info( ' getById outArt = ' + str(outArt))
              return outArt
@@ -428,7 +337,7 @@ class Article(Model):
              
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
-                                'articles.article_id, articles.article_title, ' +
+                                'articles.article_id, articles.article_title, articles.article_link, ' +
                                 'articles.article_annotation, articles.article_category_id, articles.author_id, articles.article_template_id ',
                                 '',
                                     {
@@ -445,8 +354,9 @@ class Article(Model):
          
          for oneObj in getRez:
              oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
-             articleTitle = oneObj.article_title.strip().strip(" \t\n")
-             oneObj.article_link  =  articleTitle.lower().replace(' ','_')
+             oneObj.article_link = base64.b64decode(oneObj.article_link).decode(encoding='UTF-8')
+#              articleTitle = oneObj.article_title.strip().strip(" \t\n")
+#              oneObj.article_link  =  articleTitle.lower().replace(' ','_')
              oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
 #              logging.info( 'list:: After oneArt = ' + str(oneObj))
     
@@ -468,7 +378,7 @@ class Article(Model):
              
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
-                                'articles.article_id, articles.article_title, ' +
+                                'articles.article_id, articles.article_title, articles.article_link, ' +
                                 'articles.article_annotation, articles.article_category_id, articles.author_id, articles.article_template_id ',
                                 '',
                                     {
@@ -485,8 +395,9 @@ class Article(Model):
          
          for oneObj in getRez:
              oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
-             articleTitle = oneObj.article_title.strip().strip(" \t\n")
-             oneObj.article_link  =  articleTitle.lower().replace(' ','_')
+             oneObj.article_link = base64.b64decode(oneObj.article_link).decode(encoding='UTF-8')
+#              articleTitle = oneObj.article_title.strip().strip(" \t\n")
+#              oneObj.article_link  =  articleTitle.lower().replace(' ','_')
              oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
 #              logging.info( 'list:: After oneArt = ' + str(oneObj))
     
@@ -545,7 +456,7 @@ class Article(Model):
                                'texts.article_id, revisions.revision_id, texts.text_html, annotations.annotation_text, titles.title_text, ' +
                                ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date,  revisions.author_id, revisions.revision_actual_flag, ' +
                                'articles.article_category_id, articles.article_template_id, articles.author_id ' ,
-                               'titles, revisions, annotations, articles',
+                               'revisions_articles, articles',
                                    {
                                'whereStr': "  texts.text_sha_hash =  revisions.text_sha_hash" +
                                             " AND titles.title_sha_hash = revisions.title_sha_hash " +
@@ -564,8 +475,8 @@ class Article(Model):
             outArt.article_title = base64.b64decode(outArt.title_text).decode(encoding='UTF-8')
             outArt.article_annotation = base64.b64decode(outArt.annotation_text).decode(encoding='UTF-8')
             decodeText =  base64.b64decode(outArt.text_html)
-            outArt.article_sourse = zlib.decompress(decodeText).decode('UTF-8')    
-#             logging.info( 'outArt.article_sourse = ' + str(outArt.article_sourse))
+            outArt.article_source = zlib.decompress(decodeText).decode('UTF-8')    
+#             logging.info( 'outArt.article_source = ' + str(outArt.article_source))
 
             articleTitle = outArt.article_title.strip().strip(" \t\n")
             outArt.article_link =  articleTitle.lower().replace(' ','_')
@@ -630,7 +541,7 @@ class Article(Model):
                 oneObj.article_title = base64.b64decode(oneObj.title_text).decode(encoding='UTF-8')
                 articleTitle = oneObj.article_title.strip().strip(" \t\n")
                 oneObj.article_link =  articleTitle.lower().replace(' ','_')
-#                 oneObj.article_sourse =  base64.b64decode(oneObj.article_sourse).decode(encoding='UTF-8')
+#                 oneObj.article_source =  base64.b64decode(oneObj.article_source).decode(encoding='UTF-8')
 
 #         logging.info( 'article:: revisionsList:::  str(len(getRez)) = ' + str(len(getRez)))
 #         logging.info( 'article:: revisionsList:::  getRez = ' + str(getRez))

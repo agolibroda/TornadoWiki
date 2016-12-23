@@ -22,7 +22,7 @@
 
                    <div class="form-group">
                        <label for="inputText" class="control-label">{{ _("Article Text") }}</label>
-                       <textarea name="sourse" id="sourse" rows="20" class="form-control">{{ article.article_sourse if article else "" }}</textarea>
+                       <textarea name="sourse" id="sourse" rows="20" class="form-control">{{ article.article_source if article else "" }}</textarea>
 			            <script>
 				            CKEDITOR.replace( 'sourse' );
 				        </script>
@@ -95,7 +95,7 @@
 //    $(function() {
 //    $("input[name=article_title]").select();
 //      $("form.compose").submit(function() {
-//          var required = ["article_title", "article_sourse"];
+//          var required = ["article_title", "article_source"];
 //          var form = $(this).get(0);
 //          for (var i = 0; i < required.length; i++) {
 //              if (!form[required[i]].value) {
