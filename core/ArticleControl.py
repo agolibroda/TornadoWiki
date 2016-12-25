@@ -170,7 +170,7 @@ class ArticleHandler(BaseHandler):
     
             self.render(templateName, article=article, fileList=fileList, link='/compose', page_name='Редактирование')
         except Exception as e:
-            logging.info( 'Save:: Exception as et = ' + str(e))
+            logging.info( 'ArticleHandler Get:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
             self.render('error.html', error=error, link='/compose', page_name='Редактирование')
 
@@ -187,9 +187,18 @@ class ComposeHandler(BaseHandler):
     @tornado.web.authenticated
     @gen.coroutine
     def get(self, articleName = ''):
+        """
+        едактирование статьи 
+        приходит НАЗВАНИЕ (articleName) 
+        надо найти статью по ее назвнию, 
+        после этого надо загрузить статью для редактирования
+        если статьи нет, тогда можно загрузить в тайтл название, по которому искали...
+        а если этого "articleName" нет, зито есть  self.get_argument("hash", None) - вот тогда
+        можно искать серди ревизий нужную, и ее загружать - и название и аннотацию и текст.!!!!
+        
+        """
         try:
-            articleId = self.get_argument("aid", None)
-            revId = self.get_argument("rid", None)
+            hash = self.get_argument("hash", None)
             article = None
             fileList = []
             artHelper = HelperArticle()
@@ -198,9 +207,21 @@ class ComposeHandler(BaseHandler):
             
             pageName='Редактирование статьи'
             
-            if articleId and revId:
-                (article, fileList) = yield executor.submit( artHelper.getArticleByIdRevId, articleId, revId ) 
-                artHelper.setModel(article)
+            if articleName != '' and not hash:
+                
+                articleLink = articleName.strip().strip(" \t\n")
+                articleLink =  articleLink.lower().replace(' ','_')
+                articleLink =  articleLink.replace('__','_')
+    
+                logging.info( 'ComposeHandler get articleLink = ' + str(articleLink))
+                
+                (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleLink )
+                
+            elif articleName == '' and hash != '':
+                """
+                Выберем статью по ее ХЕШУ - это, скорее всего, будет одна из старых версий.... 
+                """
+                (article, fileList) = yield executor.submit( artHelper.getArticleHash, hash )
             elif articleName != '':
                 artHelper.setArticleTitle (articleName)
                 pageName='Редактирование ' + articleName
