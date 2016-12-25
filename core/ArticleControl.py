@@ -231,9 +231,8 @@ class ComposeHandler(BaseHandler):
     #         else:
     #             pass    
              
-            logging.info( 'ComposeHandler:: 2 artHelper.getModel() = ' + str(artHelper.getModel()))
-    #             logging.info( 'ComposeHandler:: get article = ' + str(article))
-            self.render("compose.html", article=artHelper.getModel(),  fileList=fileList, link='/compose', page_name=pageName)
+            logging.info( 'ComposeHandler:: get article = ' + str(article))
+            self.render("compose.html", article=article,  fileList=fileList, link='/compose', page_name=pageName)
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
