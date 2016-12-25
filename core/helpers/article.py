@@ -119,6 +119,24 @@ class HelperArticle():
         try:
             articleLink = articleName.strip().strip(" \t\n")
             article = self.artModel.get( articleLink )
+            fileList =  fileModel.getFilesListForArticle( article.article_id, 
+                                                        config.options.to_out_path)
+            return (article, fileList)
+        except WikiException as e:   
+#             WikiException( ARTICLE_NOT_FOUND )
+            logging.info( 'getArticleByName:: e = ' + str(e))
+            return (self.artModel, [])
+
+
+    def getArticleHash(self, articleHash):
+        """
+        получить статью по ее названию (не линка, а название!!!!! )
+        хотя, по - идее, надо поредакитровать и сначала превратить навание в линку...
+        
+        """
+        fileModel = File()
+        try:
+            article = self.artModel.getByUsingHash( getArticleHash )
             logging.info( 'ArticleHandler:: article.article_id = ' + str(article.article_id))
             fileList =  fileModel.getFilesListForArticle( article.article_id, 
                                                         config.options.to_out_path)

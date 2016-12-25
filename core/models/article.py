@@ -158,6 +158,7 @@ class Article(Model):
         article_link = article_title.lower().replace(' ','_')
         article_link = article_link.replace('__','_')
 
+        article_title = base64.b64encode(tornado.escape.utf8(article_title)).decode(encoding='UTF-8')
         article_link = base64.b64encode(tornado.escape.utf8(article_link)).decode(encoding='UTF-8')
         article_annotation = base64.b64encode(tornado.escape.utf8(self.article_annotation)).decode(encoding='UTF-8')    
         article_source = base64.b64encode(
@@ -170,7 +171,8 @@ class Article(Model):
         self.article_title = article_title
         self.article_link = article_link
         self.article_annotation = article_annotation  
-        self.article_source = base64.b64encode(tornado.escape.utf8(article_source)).decode(encoding='UTF-8') 
+        self.article_source = article_source
+#         base64.b64encode(tornado.escape.utf8(article_source)).decode(encoding='UTF-8') 
 
 #         
 # вот тут по - идее, надо начать трансакцию... 
@@ -258,7 +260,7 @@ class Article(Model):
 #                                      ).hexdigest()  #.decode(encoding='UTF-8')
 #     
          getRez = self.select(
-                                'articles.article_id, articles.article_title, ' + 
+                                'articles.article_id, articles.article_title, articles.article_link, ' + 
                                 'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, articles.article_template_id ',
                                 ' revisions_articles lfind ',
                                     {
@@ -270,19 +272,22 @@ class Article(Model):
          if len(getRez) == 0:
             raise WikiException( ARTICLE_NOT_FOUND )
          elif len(getRez) == 1:   
-    #             logging.info( 'getRez = ' + str(getRez[0]))
-             outArt = getRez[0]
-             outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
-             outArt.article_link = article_link
-             outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
-             outArt.article_source =  base64.b64decode(outArt.article_source).decode(encoding='UTF-8')
-    #             logging.info( 'outArt.article_source = ' + str(outArt.article_source))
-    
-             articleTitle = outArt.article_title.strip().strip(" \t\n")
-#              articleTitle =  articleTitle.lower().replace(' ','_')
-#              outArt.article_link =  articleTitle.lower().replace('__','_')
-             
-             return outArt
+            outArt = getRez[0]
+            outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
+            outArt.article_link = base64.b64decode(outArt.article_link).decode(encoding='UTF-8')
+            outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
+            decodeText =  base64.b64decode(outArt.article_source) #.decode(encoding='UTF-8')
+            outArt.article_source = zlib.decompress(decodeText)  #.decode('UTF-8')    
+
+            logging.info( 'get outArt = ' + str(outArt))
+
+#        textControl.text_html = base64.b64encode(
+#                                     zlib.compress(
+#                                         tornado.escape.utf8(self.article_html)
+#                                                 )
+#                                                     ).decode(encoding='UTF-8')
+#      
+            return outArt
 
 
     def getById(self, articleId):
@@ -300,6 +305,44 @@ class Article(Model):
                                 '',
                                     {
                                 'whereStr': ' articles.article_id = ' + str(articleId)  ,
+                                 }
+                                )
+    
+         if len(getRez) == 0:
+            raise WikiException( ARTICLE_NOT_FOUND )
+         elif len(getRez) == 1:   
+#              logging.info( ' getById getRez = ' + str(getRez[0]))
+             outArt = getRez[0]
+             outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
+             outArt.article_link = base64.b64decode(outArt.article_link).decode(encoding='UTF-8')
+             outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
+             outArt.article_source =  base64.b64decode(outArt.article_source).decode(encoding='UTF-8')
+    #             logging.info( 'outArt.article_source = ' + str(outArt.article_source))
+    
+#              articleTitle = outArt.article_title.strip().strip(" \t\n")
+#              outArt.article_link =  articleTitle.lower().replace(' ','_')
+             
+#              logging.info( ' getById outArt = ' + str(outArt))
+             return outArt
+
+
+
+    def getByUsingHash(self, hash):
+         """
+         получить статью (ВЕРСИЮ) по hash (одну) 
+         а вот что показать? 
+         ну, походу, все, из ТОЙ версии, которую заказал пользователь!!! 
+    
+         """
+         logging.info( 'Article ::: getById articleId  = ' + str(articleId))
+    
+         getRez = self.select(
+                                'articles.article_id, articles.article_title, articles.article_link, '+
+                                'articles.article_annotation,  articles.article_source, articles.article_category_id, '+ 
+                                'articles.author_id, articles.article_template_id',
+                                '',
+                                    {
+                                'whereStr': ' articles.article_id = ' + str(hash)  ,
                                  }
                                 )
     
@@ -453,7 +496,7 @@ class Article(Model):
         """
 
         getRez = self.select(
-                               'texts.article_id, revisions.revision_id, texts.text_html, annotations.annotation_text, titles.title_text, ' +
+                               'texts.article_id, revisions.revision_id, texts.article_source, annotations.annotation_text, titles.title_text, ' +
                                ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date,  revisions.author_id, revisions.revision_actual_flag, ' +
                                'articles.article_category_id, articles.article_template_id, articles.author_id ' ,
                                'revisions_articles, articles',
@@ -474,7 +517,7 @@ class Article(Model):
             outArt = getRez[0]
             outArt.article_title = base64.b64decode(outArt.title_text).decode(encoding='UTF-8')
             outArt.article_annotation = base64.b64decode(outArt.annotation_text).decode(encoding='UTF-8')
-            decodeText =  base64.b64decode(outArt.text_html)
+            decodeText =  base64.b64decode(outArt.article_source)
             outArt.article_source = zlib.decompress(decodeText).decode('UTF-8')    
 #             logging.info( 'outArt.article_source = ' + str(outArt.article_source))
 
