@@ -282,7 +282,7 @@ class ComposeHandler(BaseHandler):
     #             тоько КАК  - если эксепшин тут не работает... :-( )
     #             self.redirect("/compose" ) 
         except Exception as e:
-            logging.info( 'Save:: Exception as et = ' + str(e))
+            logging.info( 'ComposeHandler POST!!! (Save):: Exception as et = ' + str(e))
 #             error = Error ('500', 'что - то пошло не так :-( ')
 #             self.render('error.html', error=error, link='/compose', page_name='')
             pageName = 'Редактирование ' + artModel.article_title

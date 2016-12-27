@@ -228,7 +228,6 @@ class Article(Model):
             logging.info( 'Save:: Exception as et = ' + str(e))
             self.rollback()
              
-        self.article_link = titleLink 
         logging.info( 'save:: save self.article_link! = ' + self.article_link )
                 
         return self 
@@ -260,7 +259,7 @@ class Article(Model):
 #                                      ).hexdigest()  #.decode(encoding='UTF-8')
 #     
          getRez = self.select(
-                                'articles.article_id, articles.article_title, articles.article_link, ' + 
+                                ' DISTINCT articles.article_id, articles.article_title, articles.article_link, ' + 
                                 'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, articles.article_template_id ',
                                 ' revisions_articles lfind ',
                                     {
