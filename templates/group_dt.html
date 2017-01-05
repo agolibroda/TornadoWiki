@@ -1,0 +1,167 @@
+<!-- group_dt.html -->
+
+{% extends "base.html" %}
+
+{% block body %}
+
+
+ <!--BEGIN CONTENT-->
+  <div class="page-content">
+      <div id="tab-general">
+
+		<div class="col-lg-12">
+          <ul class="nav nav-tabs">
+              <li class="{% if group.group_id > 0 %} active {% end %}"><a href="#tab-view" data-toggle="tab">View Group</a></li>
+              <li class="{% if group.group_id == 0 %} active {% end %}"><a href="#tab-edit" data-toggle="tab">Edit Group</a></li>
+          </ul>
+          <div id="generalTabContent" class="tab-content">
+          
+          <div id="tab-view" class="tab-pane fade">
+              <div class="row">
+ 					{{ _("Group Name") }}: {{ group.group_title if group else "" }}
+               </div>
+              <div class="row">
+ 					{{ _("Group Annotation") }}: {{ group.group_annotation if group else "" }}
+               </div>
+          </div>
+      
+      
+          <div id="tab-edit" class="tab-pane fade active in">
+
+              
+           <div class="panel-body pan">
+				<form action="{{ request.path }}" method="post">
+               <div class="form-body pal">
+                   <div class="form-group">
+                       <label for="inputName" class="control-label">{{ _("Group Name") }}</label>
+                       <div class="input-icon right">
+                           <i class="fa fa-font"></i>
+                           <input class="form-control" name="title" type="text" placeholder=" {{ _("Group Name") }}" value="{{ group.group_title if group else "" }}"/>
+                           </div>
+                   </div>
+                   
+                   <div class="form-group">
+                       <label for="inputMessage" class="control-label">{{ _("Group Annotation") }}</label>
+                           <textarea name="annotation" rows="3" class="form-control">{{ group.group_annotation if group else "" }}</textarea>
+                   </div>
+
+				<div class="row">
+				
+				    <div class="col-md-4">
+				        <div class="form-group">
+				                       <label for="inputSubject" class="control-label">{{ _("Visibility Rules") }}</label>
+				            <select class="form-control" name="status">
+				                <option {% if group.group_status == 'pbl' %} selected="selected" {% end %} value="pbl"> {{_("Public")}}</option>
+				                <option {% if group.group_status == 'sol' %} selected="selected" {% end %} value="shut"> {{_("Solo")}}</option>
+				            </select></div>
+				    </div>
+				</div>
+               </div>
+               <div class="form-actions text-right pal">
+                   <button type="submit" class="btn btn-primary">{{ _('Save changes') }}</button>
+                   &nbsp;<a href="/personal_desk_top" class="btn btn-primary">{{ _("Cancel") }}</a>
+               </div>
+
+    {% if group.group_id > 0 %}
+      &nbsp;<a href="/upload/{{ group.group_id  if group else 0 }}">{{ _("Upload") }}</a>
+    {% end %}
+      <input type="hidden" name="id" value="{{ group.group_id }}"/>
+    {% module xsrf_form_html() %}
+               </form>
+           </div>
+         </div>
+      </div>
+</div>
+
+
+    	<div class="col-lg-12">
+              <div class="row">
+          <div class="panel panel-yellow">
+			<div class="panel-heading">{{ _("List group wikis") }} &nbsp;&nbsp;&nbsp; 
+              <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose">{{ _("Create new wiki") }}</a></span>
+			</div>
+              <div class="panel-body" id='groups_list_table'>
+получить список сатей, из одной групы ( либ, да? ) 
+                  <table class="table table-hover">
+					  <thead>
+					  <tr>
+					      <th><img src="/static/images/loading31.gif" alt="" class="img-responsive"/></th>
+					  </tr>
+					  </thead>
+                  </table>
+              </div>
+          </div>
+          
+          
+          <div class="panel panel-red">
+              <div class="panel-heading">{{ _("List group members") }}</div>
+              <div class="panel-body">
+                  <table class="table table-hover table-bordered">
+                      <thead>
+                      <tr>
+                          <th>#</th>
+                          <th>Column</th>
+                          <th>Column</th>
+                          <th>Column</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr class="active">
+                          <td>1</td>
+                          <td>active</td>
+                          <td>active</td>
+                          <td>active</td>
+                      </tr>
+                      <tr class="success">
+                          <td>2</td>
+                          <td>success</td>
+                          <td>success</td>
+                          <td>success</td>
+                      </tr>
+                      <tr class="warning">
+                          <td>3</td>
+                          <td>warning</td>
+                          <td>warning</td>
+                          <td>warning</td>
+                      </tr>
+                      <tr class="danger">
+                          <td>4</td>
+                          <td>danger</td>
+                          <td>danger</td>
+                          <td>danger</td>
+                      </tr>
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+  </div>
+              
+              
+  </div>
+              
+          </div>
+      </div>
+  </div>
+  <!--END CONTENT-->
+
+{% end %}
+
+
+{% block bottom %}
+
+<script type="text/javascript" src="{{ static_url("js/jquery-3.1.0.min.js") }}"></script>
+
+<script>
+     // Load data asynchronously.
+         
+	$(document).ready(function(){
+	      $.ajax({url: "/rest/getPersonalGroupsList/0", success: function(result){
+	          $("#groups_list_table").html(result);
+	      }});
+	});
+     
+</script>
+
+{% end %}
+
+<!-- / group_dt.html -->

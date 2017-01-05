@@ -55,12 +55,13 @@ class BaseHandler(tornado.web.RequestHandler):
         try:
             author_id = int(self.get_secure_cookie("wiki_author"))
             logging.info('BaseHandler:: get_current_user:: author_id '+ str(author_id))
-            if not author_id: return None
+            if not author_id or author_id == 0: return None
             author = author.get(author_id)
 #         logging.info('BaseHandler:: get_current_user:: author '+ str(author))
 
-        except:
-            pass
+        except Exception as e:
+            logging.info('BaseHandler:: get_current_user:: Have Error!!! '+ str(e))
+            return None
 #             author_id = 0
 
         return author

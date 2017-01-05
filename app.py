@@ -58,7 +58,7 @@ class Application(tornado.web.Application):
 
             (r"/personal_desk_top", PersonalDeskTop), # (DeskTopControls) персональный рабочий стол пользователя - 
             (r"/group_desk_top", GroupDeskTop), # (DeskTopControls) рабочий стол участника группы
-            (r"/group_adm_desk_top", GroupAdmDeskTop), # (DeskTopControls) РС Админа Группы
+            (r"/group_desk_top/([0-9]+)", GroupDeskTop), # (DeskTopControls) рабочий стол участника группы
             (r"/sys_adm_desk_top", SysAdmDeskTop), # (DeskTopControls) РС Админа СИСТЕМЫ 
 
             (r"/rest/([^/]+)/([0-9]+)",  RestMinHandler), # (RestControl.py) все, что вызывается из клиента AJAX... 

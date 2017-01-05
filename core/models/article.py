@@ -216,12 +216,10 @@ class Article(Model):
             
             
                 
-            revisions_sha_hash = hashlib.sha256(
-                               tornado.escape.utf8(article_title + article_annotation + article_source)
-                               ).hexdigest()   #.decode(encoding='UTF-8')
+            revisions_sha_hash_sou = article_title + article_annotation + article_source
 
             mainPrimaryObj = {'primaryName': 'article_id', 'primaryValue': self.article_id }
-            self.saveRevision(self.author_id, operationFlag, mainPrimaryObj, revisions_sha_hash)
+            self.saveRevision(self.author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
 
 
         except Exception as e:

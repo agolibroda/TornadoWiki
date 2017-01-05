@@ -14,27 +14,30 @@
 
                     <li><a href="/compose"><i class="fa fa-edit fa-fw">
                         <div class="icon-bg bg-orange"></div>
-                    </i><span class="menu-title">Написать статью</span></a></li>
+                    </i><span class="menu-title">{{ _("Create new wiki") }}</span></a></li>
 
 {% if current_user.author_role == "admin"  %}
 
                     <li {% if link == 'admin_desk_top'  %} class="active"  {% end %}><a href="/admin_desk_top">
                     	<i class="fa fa-th-list fa-fw">
                         <div class="icon-bg bg-blue"></div>
-                    </i><span class="menu-title">Администратор Системы </span></a>
+                    </i><span class="menu-title">{{ _("System Admin Desk Top") }} </span></a>
                     </li>
 
  {% end %}
 
                     <li {% if link == 'personal_desk_top'  %} class="active"  {% end %}>
-                    	<a href="/personal_desk_top"><i class="fa fa-th-list fa-fw">
+                    	<a href="/personal_desk_top"><i class="fa fa-briefcase fa-fw">
                         <div class="icon-bg bg-blue"></div>
-                    </i><span class="menu-title">Мой рабочий стол</span></a>
+                    </i><span class="menu-title">{{ _("Personal Desk Top") }}</span></a>
                     </li>
                     
+                    <li><a href="/group_desk_top"><i class="fa fa-folder-open fa-fw">
+                        <div class="icon-bg bg-orange"></div>
+                    </i><span class="menu-title">{{ _("New Group") }}</span></a></li>
                     
                     
-                    <li><a href="/perconal_desk_top"><i class="fa fa-th-list fa-fw">
+                    <li><a href="/perconal_desk_top"><i class="fa fa-folder fa-fw">
                         <div class="icon-bg bg-blue"></div>
                     </i><span class="menu-title">Длинный список моих групп</span></a>
                     </li>

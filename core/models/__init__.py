@@ -11,6 +11,11 @@
 from __future__ import print_function
 
 
+import hashlib
+import base64
+from datetime import datetime
+
+
 import logging
 import json
 
@@ -337,7 +342,7 @@ class Model: #Connector:
 # - получить оду ревизию...
 # - узнать является ли набор данных уникальным (не похожим на текущее значение данных - значит, у нас возможны циклы!!!!!)
 
-    def saveRevision(self, autorId, operationFlag, mainPrimaryObj, revisions_sha_hash):
+    def saveRevision(self, autorId, operationFlag, mainPrimaryObj, revisions_sha_hash_source):
         """
         сохранение ревизии для данных.
         при сохранении ревизии стоит (наверное) делать так:
@@ -368,10 +373,16 @@ class Model: #Connector:
                      mainPrimaryObj['primaryName'] + " = "  + str(mainPrimaryObj['primaryValue'])
             logging.info(' saveRevision:: sqlStr = ' + sqlStr)
             _loDb.execute(sqlStr)
+            
+            revision_date = datetime.now() 
+            revisions_sha_hash =  hashlib.sha256(
+                        tornado.escape.utf8(revisions_sha_hash_source + str(revision_date) )
+                                                ).hexdigest() 
+
  
             # Теперь можно записать новые данные  в ревизии.    
-            paramsObj.strListAttrNames += ', revision_actual_flag, revision_author_id,  operation_flag, revisions_sha_hash '
-            paramsObj.strListAttrValues += ", 'A', " +  str(autorId) + ", '" + operationFlag + "',  '" + revisions_sha_hash + "' "
+            paramsObj.strListAttrNames += ', revision_actual_flag, revision_author_id,  operation_flag, revisions_sha_hash, revision_date '
+            paramsObj.strListAttrValues += ", 'A', " +  str(autorId) + ", '" + operationFlag + "',  '" + revisions_sha_hash + "', '" + str(revision_date) + "' "
      
             sqlStr = "INSERT INTO revisions_" + self._tabName +" ( " + paramsObj.strListAttrNames + ") VALUES " +\
                     "( " + paramsObj.strListAttrValues + " ) " + \

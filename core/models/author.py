@@ -67,11 +67,9 @@ class Author(Model):
             operationFlag = 'U'
             
         mainPrimaryObj = {'primaryName': 'author_id', 'primaryValue': self.author_id }
-        revisions_sha_hash =  hashlib.sha256(
-                    tornado.escape.utf8(self.author_login + self.author_name + self.author_surname + self.author_role +self.author_phon + self.author_email  )
-                                            ).hexdigest() 
+        revisions_sha_hash_sou =  self.author_login + self.author_name + self.author_surname + self.author_role +self.author_phon + self.author_email  
         logging.info(' save:: mainPrimaryObj = ' + str(mainPrimaryObj))
-        self.saveRevision(self.author_id, operationFlag, mainPrimaryObj, revisions_sha_hash)
+        self.saveRevision(self.author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
         return True
         
         
