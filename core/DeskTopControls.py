@@ -44,9 +44,11 @@ import config
 
 import core.models
 
-from core.models.author       import Author
+from core.models.author     import Author
 from core.models.article    import Article
 from core.models.file       import File
+
+from core.models.group      import Gpoup
 
 from core.helpers.article import HelperArticle 
 
@@ -94,7 +96,7 @@ class PersonalDeskTop(BaseHandler):
 #             artControl = ControlArticle()
 #             articles = yield executor.submit( artControl.getListArticles )
     
-            author = self.get_current_user()
+            author = self.get_current_user() # current_user
             logging.info( 'PersonalDeskTop:: author ' + str(author))
     
 #             self.render("personal_dt.html", page_name= 'Рабочий стол ' + " пользователь??? " , tplCategory=config.options.tpl_categofy_id )
@@ -113,7 +115,7 @@ class GroupDeskTop(BaseHandler):
     """
     @tornado.web.authenticated
     @gen.coroutine
-    def get(self):
+    def get(self, group_id=0):
         """
         и шаблон должен быть что - то типа "АдминДома" -) 
         и набирать его... 
@@ -127,12 +129,46 @@ class GroupDeskTop(BaseHandler):
 #             artControl = ControlArticle()
 #             articles = yield executor.submit( artControl.getListArticles )
 #     
+            group = Gpoup()
+            groupName = ''    
     
-            self.render(config.options.adminTplPath+"admin_home.html", articles=articles, tplCategory=config.options.tpl_categofy_id )
+#             if group_id==0:
+#                 groupName = ''
+                
+    
+            self.render("group_dt.html", group=group, page_name= groupName, link='group_dt')
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
             self.render('error.html', error=error)
+
+
+    @tornado.web.authenticated
+    @gen.coroutine
+    def post(self, group_id=0):
+        try:
+            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+            if not curentAuthor.author_id: return None
+    
+            groupModel = Gpoup()
+    
+            groupModel.group_id = int(self.get_argument("id", 0))
+            groupModel.group_title = self.get_argument("title")
+            groupModel.group_annotation = self.get_argument("annotation")
+            groupModel.group_status = self.get_argument("status", 'pbl')                                
+            
+            logging.info( 'GroupDeskTop:: Before Save! groupModel = ' + str(groupModel))
+            
+            rez = yield executor.submit( groupModel.save, curentAuthor.author_id )
+    #         logging.info( 'GroupDeskTop:: AFTER Save! groupModel = ' + str(groupModel))
+            
+            self.redirect("/group_desk_top/" + str(groupModel.group_id))
+        except Exception as e:
+            logging.info( 'GroupDeskTop POST!!! (Save):: Exception as et = ' + str(e))
+#             error = Error ('500', 'что - то пошло не так :-( ')
+#             self.render('error.html', error=error, link='/compose', page_name='')
+            pageName = 'Редактирование ' + groupModel.group_title
+            self.render("group_dt.html", group=group, page_name= pageName, link='group_dt')
 
 
 
