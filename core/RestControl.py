@@ -53,6 +53,8 @@ class RestMinHandler(BaseHandler):
         logging.info('BaseHandler:: commandName '+ str(commandName))
         logging.info('BaseHandler:: curentParameter '+ str(curentParameter))
         
+        curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+        
         
 #         if commandName == 'getArticleCategoryList':
 # 
@@ -128,6 +130,27 @@ class RestMinHandler(BaseHandler):
                 self.render('table_error.html', error=error)
 
 
+        # получить список всех статей, размещнных в группе
+        if commandName == 'getGroupArticleList': 
+            if not curentAuthor.author_id: return None
+            logging.info( 'getGroupArticleList:: get curentAuthor = ' + str(curentAuthor))
+            logging.info('getGroupArticleList:: curentParameter '+ str(curentParameter))
+
+        # получить список всех участников  группы
+        if commandName == 'getGroupMembersleList': 
+            if not curentAuthor.author_id: return None
+            logging.info( 'getGroupMembersleList:: get curentAuthor = ' + str(curentAuthor))
+            logging.info('getGroupMembersleList:: curentParameter '+ str(curentParameter))
 
 
+        # получить список всех групп, в которых мемберит конкретный ползователь (А-М - важно :-) )
+        if commandName == 'getPersonalGroupList': 
+            if not curentAuthor.author_id: return None
+            logging.info( 'getPersonalGroupList:: get curentAuthor = ' + str(curentAuthor))
+
+            self.render("rest/personal_group_list.html" ) #, articles=articles)
+
+
+#             membersGroupList = yield executor.submit( groupModel.get, curentAuthor.author_id )
+#             groupModel = Gpoup()
 

@@ -118,11 +118,11 @@ class Gpoup(Model):
         загрузить ОДНО значение - по ИД группы
         """
         resList = self.select(
-                    'group_id,  group_title, group_annotation,  group_status, floor(EXTRACT(EPOCH FROM group_create_date)) AS group_create_date ' + 
+                    'group_id,  group_title, group_annotation,  group_status, floor(EXTRACT(EPOCH FROM group_create_date)) AS group_create_date, ' + 
                     ' author_name, author_surname ' , # строка - чего хотим получить из селекта
                     ' authors ', #'authors',  # строка - список таблиц 
                     {
-                     'whereStr': " groups.author_id = authors.author_id AND  groups.author_id = " + str(group_id)
+                     'whereStr': " groups.author_id = authors.author_id AND  groups.group_id = " + str(group_id)
                      } #  все остальные секции селекта
                     )
 #         logging.info('Author:: get:: resList = ')

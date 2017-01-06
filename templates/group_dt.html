@@ -149,13 +149,13 @@
 
 {% block bottom %}
 
-<script type="text/javascript" src="{{ static_url("js/jquery-3.1.0.min.js") }}"></script>
 
 <script>
      // Load data asynchronously.
+    // value="{{ '/rest/getPersonalGroupsList/'+str(group.group_id) if group else '/rest/getPersonalGroupsList' }}"/>
          
 	$(document).ready(function(){
-	      $.ajax({url: "/rest/getPersonalGroupsList/0", success: function(result){
+	      $.ajax({url: "/rest/getGroupArticleList/0", success: function(result){
 	          $("#groups_list_table").html(result);
 	      }});
 	});

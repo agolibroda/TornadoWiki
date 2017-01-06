@@ -7,7 +7,6 @@
             </div>
             <div id='differen_menu'>
                 <ul id="side-menu" class="nav">
-                    
                      <div class="clearfix"></div>
  
 {% if current_user %}
@@ -34,14 +33,13 @@
                     
                     <li><a href="/group_desk_top"><i class="fa fa-folder-open fa-fw">
                         <div class="icon-bg bg-orange"></div>
-                    </i><span class="menu-title">{{ _("New Group") }}</span></a></li>
-                    
-                    
-                    <li><a href="/perconal_desk_top"><i class="fa fa-folder fa-fw">
-                        <div class="icon-bg bg-blue"></div>
-                    </i><span class="menu-title">Длинный список моих групп</span></a>
+                    </i><span class="menu-title">{{ _("New Group") }}</span></a>
                     </li>
-
+                </ul>
+                <ul id="persolal_goup_list" class="nav">
+                     
+                    <li><img src="/static/images/loading31.gif" alt="" class="img-responsive"/>
+                    </li>
                           
                 </ul>
                 </div>
@@ -51,5 +49,21 @@
  {% end %}
             </div>
         </nav>
+ 
+ 
+ 
+ 
+ <script>
+     // Load data asynchronously.
+    // value="{{ '/rest/getPersonalGroupsList/'+str(group.group_id) if group else '/rest/getPersonalGroupsList' }}"/>
+         
+	$(document).ready(function(){
+	      $.ajax({url: "/rest/getPersonalGroupList/0", success: function(result){
+	          $("#persolal_goup_list").html(result);
+	      }});
+	});
+     
+</script>
+ 
  
 <!-- / menu.html -->

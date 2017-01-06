@@ -125,20 +125,25 @@ class GroupDeskTop(BaseHandler):
 
         """
         try:
-#             logging.info( 'AdminHomeHandler:: get ')
-#             artControl = ControlArticle()
-#             articles = yield executor.submit( artControl.getListArticles )
-#     
-            group = Gpoup()
-            groupName = ''    
+            logging.info( 'GroupDeskTop:: get group_id = ' + str(group_id))
+
+            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+            if not curentAuthor.author_id: return None
+            
+            groupModel = Gpoup()
     
-#             if group_id==0:
-#                 groupName = ''
-                
+
+            if group_id==0:
+                groupName = ''
+                groupData = groupModel
+            else:
+                groupData = yield executor.submit( groupModel.get, group_id )
+                logging.info( 'GroupDeskTop:: get groupData = ' + str(groupData))
+                groupName = groupData.group_title    
     
-            self.render("group_dt.html", group=group, page_name= groupName, link='group_dt')
+            self.render("group_dt.html", group=groupData, page_name= groupName, link='group_dt')
         except Exception as e:
-            logging.info( 'Save:: Exception as et = ' + str(e))
+            logging.info( 'GroupDeskTop Get:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
             self.render('error.html', error=error)
 
@@ -147,6 +152,7 @@ class GroupDeskTop(BaseHandler):
     @gen.coroutine
     def post(self, group_id=0):
         try:
+            logging.info( 'GroupDeskTop:: post group_id = ' + str(group_id))
             curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
             if not curentAuthor.author_id: return None
     
