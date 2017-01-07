@@ -36,11 +36,13 @@
                     </i><span class="menu-title">{{ _("New Group") }}</span></a>
                     </li>
                 </ul>
-                <ul id="persolal_goup_list" class="nav">
+                {% if current_user %}
+                
+                	<ul id="persolal_goup_list" class="nav">
+                     <div class="clearfix"></div>
                      
-                    <li><img src="/static/images/loading31.gif" alt="" class="img-responsive"/>
-                    </li>
-                          
+                    <li><img src="/static/images/loading31.gif" alt="" class="img-responsive"/></li>
+                {% end %}
                 </ul>
                 </div>
             </div>
@@ -52,10 +54,9 @@
  
  
  
+ {% if current_user %}
  
  <script>
-     // Load data asynchronously.
-    // value="{{ '/rest/getPersonalGroupsList/'+str(group.group_id) if group else '/rest/getPersonalGroupsList' }}"/>
          
 	$(document).ready(function(){
 	      $.ajax({url: "/rest/getPersonalGroupList/0", success: function(result){
@@ -64,6 +65,8 @@
 	});
      
 </script>
+ 
+ {% end %}
  
  
 <!-- / menu.html -->
