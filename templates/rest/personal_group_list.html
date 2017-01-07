@@ -1,27 +1,16 @@
 <!-- personal_group_list.html -->
 
-         <div class="clearfix"></div>
-         
+<div class="clearfix"></div>
 
-        <li><a href="/perconal_desk_top"><i class="fa fa-folder fa-fw">
+  {% for group in groupList %} 
+
+<!-- class="active"  -->
+        <li><a href="/group_desk_top/{{group.group_id}}"><i class="fa fa-folder fa-fw">
             <div class="icon-bg bg-blue"></div>
-        </i><span class="menu-title">Длинный список моих групп</span></a>
+        </i><span class="menu-title">{{group.group_title}}</span></a>
         </li>
-        <li><a href="/perconal_desk_top"><i class="fa fa-folder fa-fw">
-            <div class="icon-bg bg-blue"></div>
-        </i><span class="menu-title">Длинный список моих групп</span></a>
-        </li>
-        <li><a href="/perconal_desk_top"><i class="fa fa-folder fa-fw">
-            <div class="icon-bg bg-blue"></div>
-        </i><span class="menu-title">Длинный список моих групп</span></a>
-        </li>
-        <li><a href="/perconal_desk_top"><i class="fa fa-folder fa-fw">
-            <div class="icon-bg bg-blue"></div>
-        </i><span class="menu-title">Длинный список моих групп</span></a>
-        </li>
-        <li><a href="/perconal_desk_top"><i class="fa fa-folder fa-fw">
-            <div class="icon-bg bg-blue"></div>
-        </i><span class="menu-title">Длинный список моих групп</span></a>
-        </li>
+
+  {% end %}
+
 
 <!-- personal_group_list.html -->

@@ -103,7 +103,7 @@ class PersonalDeskTop(BaseHandler):
             self.render("personal_dt.html", page_name= 'Рабочий стол ' + author.author_name, link='personal_desk_top')
 
         except Exception as e:
-            logging.info( 'Save:: Exception as et = ' + str(e))
+            logging.info( 'PersonalDeskTop get:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
             self.render('error.html', error=error, page_name= 'Рабочий стол ', link='personal_desk_top')
 

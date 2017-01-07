@@ -166,12 +166,11 @@ class Gpoup(Model):
         
         """
         resList = self.select(
-                    'group_id,  group_title, group_annotation,  group_status, floor(EXTRACT(EPOCH FROM group_create_date)) AS group_create_date, ' + 
-                    ' author_name, author_surname, groups.member_role_type ' , # строка - чего хотим получить из селекта
-                    ' authors, members ', #'authors',  # строка - список таблиц 
+                    ' groups.group_id,  groups.group_title, groups.group_annotation,  groups.group_status, floor(EXTRACT(EPOCH FROM groups.group_create_date)) AS group_create_date, ' + 
+                    ' members.member_role_type ' , # строка - чего хотим получить из селекта
+                    '  members ', #'authors',  # строка - список таблиц 
                     {
-                     'whereStr': " members.author_id = authors.author_id AND  group_id = " + str(author_id) +
-                     " AND members.group_id = groups.group_id "
+                     'whereStr': " members.author_id = groups.author_id AND  groups.author_id = " + str(author_id) 
                      } #  все остальные секции селекта
                     )
 

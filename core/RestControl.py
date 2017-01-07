@@ -32,6 +32,8 @@ from core.models.file import File
 
 from core.helpers.article import HelperArticle 
 
+from core.models.group      import Gpoup
+
 
 from core.BaseHandler import *
 
@@ -132,13 +134,13 @@ class RestMinHandler(BaseHandler):
 
         # получить список всех статей, размещнных в группе
         if commandName == 'getGroupArticleList': 
-            if not curentAuthor.author_id: return None
+#             if not curentAuthor.author_id: return None
             logging.info( 'getGroupArticleList:: get curentAuthor = ' + str(curentAuthor))
             logging.info('getGroupArticleList:: curentParameter '+ str(curentParameter))
 
         # получить список всех участников  группы
         if commandName == 'getGroupMembersleList': 
-            if not curentAuthor.author_id: return None
+#             if not curentAuthor.author_id: return None
             logging.info( 'getGroupMembersleList:: get curentAuthor = ' + str(curentAuthor))
             logging.info('getGroupMembersleList:: curentParameter '+ str(curentParameter))
 
@@ -148,7 +150,11 @@ class RestMinHandler(BaseHandler):
             if not curentAuthor.author_id: return None
             logging.info( 'getPersonalGroupList:: get curentAuthor = ' + str(curentAuthor))
 
-            self.render("rest/personal_group_list.html" ) #, articles=articles)
+            groupModel = Gpoup()
+            
+            groupList = yield executor.submit( groupModel.grouplistForAutor, curentAuthor.author_id )
+
+            self.render("rest/personal_group_list.html", groupList=groupList)
 
 
 #             membersGroupList = yield executor.submit( groupModel.get, curentAuthor.author_id )
