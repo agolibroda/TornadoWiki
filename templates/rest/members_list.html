@@ -1,0 +1,37 @@
+<!-- members_list.html -->
+
+<div class="article">
+ 
+   {% if len(members) > 0 %}
+ 
+	 <table class="table table-hover">
+	     <thead>
+	     <tr>
+	         <th>{{_("First Name")}}</th>
+	         <th>{{_("Last Name")}}</th>
+	         <th> </th>
+	         <th> </th>
+	     </tr>
+	     </thead>
+	     <tbody>
+                                    
+  {% for autor in members %}
+			
+			 <tr>
+			     <td><a href="/profile_view/{{autor.author_id }}">{{autor.author_name}}</a></td>
+			     <td>{{autor.author_surname}}</td>
+			     <td><span class="label label-sm label-success">Approved</span></td>
+			     <td><span class="label label-sm label-success">Approved</span></td>
+			 </tr>
+			
+  {% end %}
+ 
+  {% else %} 
+  	{{ _("Member yet") }}  &nbsp;&nbsp;&nbsp;&nbsp; 
+  {% end %}
+ 
+                                    
+	     </tbody>
+	 </table>
+
+ <!-- / members_list.html -->

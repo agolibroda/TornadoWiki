@@ -61,6 +61,8 @@
     {% end %}
     </div>
       <input type="hidden" name="id" value="{{ article.article_id }}"/>
+      <input type="hidden" name="group_id" value="{{ groupId }}"/>
+      
     {% module xsrf_form_html() %}
 
   {% module FilesList( fileList) %}

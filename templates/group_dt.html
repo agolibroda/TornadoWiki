@@ -78,7 +78,7 @@
               <div class="row">
           <div class="panel panel-yellow">
 			<div class="panel-heading">{{ _("List group wikis") }} &nbsp;&nbsp;&nbsp; 
-              <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose">{{ _("Create new wiki") }}</a></span>
+              <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose?gid={{group.group_id}}">{{ _("Create new wiki") }}</a></span>
 			</div>
               <div class="panel-body" id='groups_list_table'>
 получить список сатей, из одной групы ( либ, да? ) 
@@ -95,43 +95,16 @@
           
           <div class="panel panel-red">
               <div class="panel-heading">{{ _("List group members") }}</div>
-              <div class="panel-body">
-                  <table class="table table-hover table-bordered">
-                      <thead>
-                      <tr>
-                          <th>#</th>
-                          <th>Column</th>
-                          <th>Column</th>
-                          <th>Column</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      <tr class="active">
-                          <td>1</td>
-                          <td>active</td>
-                          <td>active</td>
-                          <td>active</td>
-                      </tr>
-                      <tr class="success">
-                          <td>2</td>
-                          <td>success</td>
-                          <td>success</td>
-                          <td>success</td>
-                      </tr>
-                      <tr class="warning">
-                          <td>3</td>
-                          <td>warning</td>
-                          <td>warning</td>
-                          <td>warning</td>
-                      </tr>
-                      <tr class="danger">
-                          <td>4</td>
-                          <td>danger</td>
-                          <td>danger</td>
-                          <td>danger</td>
-                      </tr>
-                      </tbody>
+              <div class="panel-body" id="list_members">
+
+                  <table class="table table-hover">
+					  <thead>
+					  <tr>
+					      <th><img src="/static/images/loading31.gif" alt="" class="img-responsive"/></th>
+					  </tr>
+					  </thead>
                   </table>
+
               </div>
           </div>
   </div>
@@ -155,8 +128,11 @@
     // value="{{ '/rest/getPersonalGroupsList/'+str(group.group_id) if group else '/rest/getPersonalGroupsList' }}"/>
          
 	$(document).ready(function(){
-	      $.ajax({url: "/rest/getGroupArticleList/0", success: function(result){
+	      $.ajax({url: "/rest/getGroupArticleList/{{group.group_id}}", success: function(result){
 	          $("#groups_list_table").html(result);
+	      }});
+	      $.ajax({url: "/rest/getGroupMembersleList/{{group.group_id}}", success: function(result){
+	          $("#list_members").html(result);
 	      }});
 	});
      

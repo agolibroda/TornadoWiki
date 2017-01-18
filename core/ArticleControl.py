@@ -198,8 +198,18 @@ class ComposeHandler(BaseHandler):
         
         """
         try:
-            hash = self.get_argument("hash", None)
-            article = None
+            hash = self.get_argument("hash", "")
+            groupId = self.get_argument("gid", 0)
+            
+            autor = self.get_current_user()
+            
+            logging.info( 'ComposeHandler: get: autor = ' + str(autor))
+            logging.info( 'ComposeHandler: get: articleName = ' + str(articleName))
+            logging.info( 'ComposeHandler: get: hash = ' + str(hash))
+            logging.info( 'ComposeHandler: get: groupId = ' + str(groupId))
+            
+#             article = None #Article()
+            article = Article()
             fileList = []
             artHelper = HelperArticle()
             artHelper.setArticleCategiry (config.options.info_page_categofy_id) 
@@ -207,7 +217,7 @@ class ComposeHandler(BaseHandler):
             
             pageName='Редактирование статьи'
             
-            if articleName != '' and not hash:
+            if articleName != '' and hash == '':
                 
                 articleLink = articleName.strip().strip(" \t\n")
                 articleLink =  articleLink.lower().replace(' ','_')
@@ -222,9 +232,9 @@ class ComposeHandler(BaseHandler):
                 Выберем статью по ее ХЕШУ - это, скорее всего, будет одна из старых версий.... 
                 """
                 (article, fileList) = yield executor.submit( artHelper.getArticleHash, hash )
-            elif articleName != '':
-                artHelper.setArticleTitle (articleName)
-                pageName='Редактирование ' + articleName
+#             elif articleName != '':
+#                 artHelper.setArticleTitle (articleName)
+#                 pageName='Редактирование ' + articleName
                 
             if hasattr(article, 'article_title')  and article.article_title != '':
                 pageName= 'Редактирование ' + article.article_title
@@ -232,9 +242,9 @@ class ComposeHandler(BaseHandler):
     #             pass    
              
             logging.info( 'ComposeHandler:: get article = ' + str(article))
-            self.render("compose.html", article=article,  fileList=fileList, link='/compose', page_name=pageName)
+            self.render("compose.html", article=article,  fileList=fileList, groupId=groupId, link='/compose', page_name=pageName)
         except Exception as e:
-            logging.info( 'Save:: Exception as et = ' + str(e))
+            logging.info( 'Get:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
             self.render('error.html', error=error, link='/compose', page_name='редактирование статьи')
 
@@ -246,7 +256,9 @@ class ComposeHandler(BaseHandler):
         try:
             logging.info( 'ComposeHandler:: post articleName = ' + str(articleName))
     
-            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+#             curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+            curentAuthor = self.get_current_user()
+
     #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
     #         curentAuthor = rezult.result()
             

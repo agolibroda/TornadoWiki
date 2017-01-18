@@ -52,8 +52,12 @@ class RestMinHandler(BaseHandler):
     @gen.coroutine
     def get(self, commandName, curentParameter, label=''):
 
-        logging.info('BaseHandler:: commandName '+ str(commandName))
-        logging.info('BaseHandler:: curentParameter '+ str(curentParameter))
+        logging.info('RestMinHandler:: commandName '+ str(commandName))
+        logging.info('RestMinHandler:: curentParameter '+ str(curentParameter))
+
+        link=self.get_argument('link', '')
+        logging.info('RestMinHandler:: link = '+ str(link))
+
         
         curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
         
@@ -77,8 +81,10 @@ class RestMinHandler(BaseHandler):
             label=self.get_argument('label')
             selector=self.get_argument('selector')
             
+            
             logging.info('RestMinHandler:: curentParameter::'+ str(curentParameter))
             logging.info('RestMinHandler:: label '+ str(label))
+            logging.info('RestMinHandler:: selector '+ str(selector))
 
             if int(curentParameter) == 0:
                 curentParameter = config.options.main_info_template
@@ -132,17 +138,39 @@ class RestMinHandler(BaseHandler):
                 self.render('table_error.html', error=error)
 
 
+        logging.info( ' 222222  get commandName = ' + str(commandName))
+
         # получить список всех статей, размещнных в группе
         if commandName == 'getGroupArticleList': 
 #             if not curentAuthor.author_id: return None
-            logging.info( 'getGroupArticleList:: get curentAuthor = ' + str(curentAuthor))
-            logging.info('getGroupArticleList:: curentParameter '+ str(curentParameter))
+            try:
+                groupModel = Gpoup()
+                articles = yield executor.submit( groupModel.getGroupArticleList, curentParameter )
+
+                self.render("rest/articles_group_list.html", articles=articles, group=curentParameter )
+            except Exception as e:
+                logging.info( 'getGroupArticleList:: Exception as et = ' + str(e))
+                error = Error ('500', 'что - то пошло не так :-( ')
+                self.render('table_error.html', error=error)
+            
+            
 
         # получить список всех участников  группы
         if commandName == 'getGroupMembersleList': 
 #             if not curentAuthor.author_id: return None
             logging.info( 'getGroupMembersleList:: get curentAuthor = ' + str(curentAuthor))
             logging.info('getGroupMembersleList:: curentParameter '+ str(curentParameter))
+            try:
+                groupModel = Gpoup()
+                members = yield executor.submit( groupModel.getGroupMembersleList, curentParameter )
+
+                logging.info('getGroupMembersleList:: members '+ str(members))
+
+                self.render("rest/members_list.html", members=members)
+            except Exception as e:
+                logging.info( 'getGroupMembersleList:: Exception as et = ' + str(e))
+                error = Error ('500', 'что - то пошло не так :-( ')
+                self.render('rest/rest_error.html', error=error)
 
 
         # получить список всех групп, в которых мемберит конкретный ползователь (А-М - важно :-) )
@@ -154,7 +182,7 @@ class RestMinHandler(BaseHandler):
             
             groupList = yield executor.submit( groupModel.grouplistForAutor, curentAuthor.author_id )
 
-            self.render("rest/personal_group_list.html", groupList=groupList)
+            self.render("rest/personal_group_list.html", groupList=groupList, link=link)
 
 
 #             membersGroupList = yield executor.submit( groupModel.get, curentAuthor.author_id )

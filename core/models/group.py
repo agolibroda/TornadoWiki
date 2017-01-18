@@ -91,6 +91,40 @@ class Gpoup(Model):
             self.saveRevision(author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
 
 
+        def getGroupMembersleList(self, groupId):
+            """
+            Получить список всех соучастников одной группы
+            
+            """
+
+            getRez = self.select(
+                    'authors.author_id,  author_login, author_name,author_surname, author_role, author_phon, author_email, '+
+                        'floor(EXTRACT(EPOCH FROM author_create)) AS author_create ',
+                    'authors',
+                        {
+                    'whereStr': " members.author_id = authors.author_id AND  members.group_id = " + str(groupId) , # строка набор условий для выбора строк
+                    'orderStr': ' author_name, author_surname ', # строка порядок строк
+                                     }
+                                    )
+
+# 'whereStr': " groups.author_id = authors.author_id AND  groups.group_id = " + str(group_id)            
+        
+            logging.info( 'getGroupMembersleList:: getRez = ' + str(getRez))
+            if len(getRez) == 0:
+    #             raise WikiException( ARTICLE_NOT_FOUND )
+               return []
+             
+#             for oneObj in getRez:
+#                 oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
+#                 oneObj.article_link = base64.b64decode(oneObj.article_link).decode(encoding='UTF-8')
+#     #              articleTitle = oneObj.article_title.strip().strip(" \t\n")
+#     #              oneObj.article_link  =  articleTitle.lower().replace(' ','_')
+#                 oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
+#     #              logging.info( 'list:: After oneArt = ' + str(oneObj))
+#         
+            return getRez
+
+
     class Library(Model):
         def __init__(self):        
             Model.__init__(self, 'librarys')   
@@ -111,6 +145,41 @@ class Gpoup(Model):
             revisions_sha_hash_sou =  str(self.group_id) + str(self.author_id) + self.member_role_type 
             logging.info(' save:: mainPrimaryObj = ' + str(mainPrimaryObj))
             self.saveRevision(author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
+
+
+        def getGroupArticleList(self, groupId):
+            """
+            Получить список всех статей одной группы
+            
+            """
+
+            getRez = self.select(
+                    'articles.article_id, articles.article_title, articles.article_link, ' +
+                    'articles.article_annotation, articles.article_category_id, articles.author_id, articles.article_template_id ',
+                    'articles',
+                        {
+                    'whereStr': " librarys.article_id = articles.article_id AND  librarys.group_id = " + str(groupId) , # строка набор условий для выбора строк
+                    'orderStr': ' articles.article_id ', # строка порядок строк
+                                     }
+                                    )
+
+# 'whereStr': " groups.author_id = authors.author_id AND  groups.group_id = " + str(group_id)            
+        
+            logging.info( 'list:: getRez = ' + str(getRez))
+            if len(getRez) == 0:
+    #             raise WikiException( ARTICLE_NOT_FOUND )
+               return []
+             
+            for oneObj in getRez:
+                oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
+                oneObj.article_link = base64.b64decode(oneObj.article_link).decode(encoding='UTF-8')
+    #              articleTitle = oneObj.article_title.strip().strip(" \t\n")
+    #              oneObj.article_link  =  articleTitle.lower().replace(' ','_')
+                oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
+    #              logging.info( 'list:: After oneArt = ' + str(oneObj))
+        
+            return getRez
+    
 
 
     def get(self, group_id):
@@ -176,6 +245,24 @@ class Gpoup(Model):
 
         return resList
     
+    
+    def getGroupArticleList(self, groupId):
+        """
+        Получить список всех статей одной группы
+        
+        """
+        libControl = self.Library ()
+        return libControl.getGroupArticleList( groupId)
+
+
+    def getGroupMembersleList(self, groupId):
+        """
+        Получить список всех Участников одной группы
+        
+        """
+        memberControl = self.Member ()
+        return memberControl.getGroupMembersleList( groupId)
+
     
     def save(self, author_id ):
         """

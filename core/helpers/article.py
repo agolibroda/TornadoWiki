@@ -130,14 +130,14 @@ class HelperArticle():
 
     def getArticleHash(self, articleHash):
         """
-        получить статью по ее названию (не линка, а название!!!!! )
+        получить статью по ее ХЕШУ (не линка, а название!!!!! )
         хотя, по - идее, надо поредакитровать и сначала превратить навание в линку...
         
         """
         fileModel = File()
         try:
-            article = self.artModel.getByUsingHash( getArticleHash )
-            logging.info( 'ArticleHandler:: article.article_id = ' + str(article.article_id))
+            article = self.artModel.getByUsingHash( articleHash )
+            logging.info( ' getArticleHash:: article.article_id = ' + str(article.article_id))
             fileList =  fileModel.getFilesListForArticle( article.article_id, 
                                                         config.options.to_out_path)
             return (article, fileList)

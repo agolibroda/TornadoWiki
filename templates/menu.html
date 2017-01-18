@@ -8,46 +8,37 @@
             <div id='differen_menu'>
                 <ul id="side-menu" class="nav">
                      <div class="clearfix"></div>
- 
 {% if current_user %}
-
-                    <li><a href="/compose"><i class="fa fa-edit fa-fw">
+                    <li {% if link == 'compose'  %} class="active"  {% end %} ><a href="/compose"><i class="fa fa-edit fa-fw">
                         <div class="icon-bg bg-orange"></div>
                     </i><span class="menu-title">{{ _("Create new wiki") }}</span></a></li>
-
 {% if current_user.author_role == "admin"  %}
-
-                    <li {% if link == 'admin_desk_top'  %} class="active"  {% end %}><a href="/admin_desk_top">
+                    <li {% if link == 'admin_desk_top' %} class="active" {% end %}><a href="/admin_desk_top">
                     	<i class="fa fa-th-list fa-fw">
                         <div class="icon-bg bg-blue"></div>
                     </i><span class="menu-title">{{ _("System Admin Desk Top") }} </span></a>
                     </li>
-
  {% end %}
-
                     <li {% if link == 'personal_desk_top'  %} class="active"  {% end %}>
                     	<a href="/personal_desk_top"><i class="fa fa-briefcase fa-fw">
                         <div class="icon-bg bg-blue"></div>
                     </i><span class="menu-title">{{ _("Personal Desk Top") }}</span></a>
                     </li>
-                    
-                    <li><a href="/group_desk_top"><i class="fa fa-folder-open fa-fw">
+                    <li {% if link == 'group_desk_top' %} class="active" {% end %}><a href="/group_desk_top">
+                    {% if link == 'group_desk_top' %}<i class="fa fa-folder-open fa-fw">{% else %}<i class="fa fa-folder fa-fw">{% end %}
                         <div class="icon-bg bg-orange"></div>
                     </i><span class="menu-title">{{ _("New Group") }}</span></a>
                     </li>
                 </ul>
                 {% if current_user %}
-                
                 	<ul id="persolal_goup_list" class="nav">
                      <div class="clearfix"></div>
-                     
                     <li><img src="/static/images/loading31.gif" alt="" class="img-responsive"/></li>
                 {% end %}
                 </ul>
                 </div>
             </div>
         </nav>
-
  {% end %}
             </div>
         </nav>
@@ -59,7 +50,7 @@
  <script>
          
 	$(document).ready(function(){
-	      $.ajax({url: "/rest/getPersonalGroupList/0", success: function(result){
+	      $.ajax({url: "/rest/getPersonalGroupList/0?link={{link}}", success: function(result){
 	          $("#persolal_goup_list").html(result);
 	      }});
 	});

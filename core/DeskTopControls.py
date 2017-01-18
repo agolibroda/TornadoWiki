@@ -139,9 +139,14 @@ class GroupDeskTop(BaseHandler):
             else:
                 groupData = yield executor.submit( groupModel.get, group_id )
                 logging.info( 'GroupDeskTop:: get groupData = ' + str(groupData))
-                groupName = groupData.group_title    
+                groupName = groupData.group_title  
+                
+            if group_id == 0:
+                link = 'group_desk_top'
+            else:
+                link='group_desk_top/' + str(group_id)   
     
-            self.render("group_dt.html", group=groupData, page_name= groupName, link='group_dt')
+            self.render("group_dt.html", group=groupData, page_name= groupName, link=link)
         except Exception as e:
             logging.info( 'GroupDeskTop Get:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
