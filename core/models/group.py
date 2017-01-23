@@ -126,25 +126,27 @@ class Gpoup(Model):
 
 
     class Library(Model):
-        def __init__(self):        
+        
+        def __init__(self, group_id = 0, article_id=0, library_permission_type = 'W' ):        
             Model.__init__(self, 'librarys')   
-            self.group_id = 0
-            self.article_id = 0
-            self.library_permission_type = 'W'
+            self.group_id = group_id
+            self.article_id = article_id
+            self.library_permission_type = library_permission_type
 
         def save(self, author_id):
 
             try:
                 self.insert()
+
+                operationFlag = 'I'
+    
+                mainPrimaryObj = {'primaryName': 'group_id', 'primaryValue': self.group_id }
+                revisions_sha_hash_sou =  str(self.group_id) + str(self.author_id) + self.member_role_type 
+                logging.info(' save:: mainPrimaryObj = ' + str(mainPrimaryObj))
+                self.saveRevision(author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
+
             except Exception as e:
-                logging.info( 'Member Save:: Exception as e = ' + str(e))
-
-            operationFlag = 'I'
-
-            mainPrimaryObj = {'primaryName': 'group_id', 'primaryValue': self.group_id }
-            revisions_sha_hash_sou =  str(self.group_id) + str(self.author_id) + self.member_role_type 
-            logging.info(' save:: mainPrimaryObj = ' + str(mainPrimaryObj))
-            self.saveRevision(author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
+                logging.info( 'Library Save:: Exception as e = ' + str(e))
 
 
         def getGroupArticleList(self, groupId):
@@ -303,5 +305,14 @@ class Gpoup(Model):
         
         return True
 
-    
+
+    def librarySave(self, author_id, group_id = 0, article_id=0, library_permission_type = 'W'):
+        """
+        Добавить статью к группе 
+        
+        """
+        lidModel = self.Library(group_id, article_id, library_permission_type)
+          
+        lidModel.save(author_id)
+
     

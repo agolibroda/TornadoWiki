@@ -65,14 +65,16 @@ class HomeHandler(BaseHandler):
     может и редактор статей сделать частью админовского слоя?
     
     """
+    def __init__ (self):
+        self.artHelper = HelperArticle()
+
 
     @gen.coroutine
     def get(self):
         try:
             articleId = config.options.main_page_id
             
-            artHelper = HelperArticle()
-            (article, fileList) = yield executor.submit( artHelper.getArticleById, articleId)
+            (article, fileList) = yield executor.submit( self.artHelper.getArticleById, articleId)
             logging.info( 'HomeHandler get article = ' + str(article))
     
     #         templateName = "admin/article.html"
@@ -92,11 +94,14 @@ class ArticleListHandler(BaseHandler):
     для показа списка статей
     
     """
+    def __init__ (self):
+        self.artHelper = HelperArticle()
+    
+    
     @gen.coroutine
     def get(self):
         try:
-            artHelper = HelperArticle()
-            articles = yield executor.submit( artHelper.getListArticles, config.options.info_page_categofy_id )
+            articles = yield executor.submit( self.artHelper.getListArticles, config.options.info_page_categofy_id )
             if not articles:
                 self.redirect("/compose")
                 return
@@ -144,12 +149,14 @@ class ArticleHandler(BaseHandler):
     добавление линков на не существующие страницы
     
     """
+    def __init__ (self):
+        self.artHelper = HelperArticle()
+        
     @gen.coroutine
     def get(self, articleName):
         logging.info( 'ArticleHandler get articleName = ' + str(articleName))
 
         try:
-            artHelper = HelperArticle()
             
             articleLink = articleName.strip().strip(" \t\n")
             articleLink =  articleLink.lower().replace(' ','_')
@@ -157,7 +164,7 @@ class ArticleHandler(BaseHandler):
 
             logging.info( 'ArticleHandler get articleLink = ' + str(articleLink))
             
-            (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleLink )
+            (article, fileList) = yield executor.submit( self.artHelper.getArticleByName, articleLink )
        
        # а вот тут я должен получить и распарсить шаблон - как - текст в статьях (особой категории!!!!)
             if article.article_id == 0 : 
@@ -184,6 +191,10 @@ class ComposeHandler(BaseHandler):
     Редактирование статей 
     
     """
+    def __init__ (self):
+        self.artHelper = HelperArticle()
+    
+    
     @tornado.web.authenticated
     @gen.coroutine
     def get(self, articleName = ''):
@@ -201,7 +212,7 @@ class ComposeHandler(BaseHandler):
             hash = self.get_argument("hash", "")
             groupId = self.get_argument("gid", 0)
             
-            autor = self.get_current_user()
+            self.autor = self.get_current_user()
             
             logging.info( 'ComposeHandler: get: autor = ' + str(autor))
             logging.info( 'ComposeHandler: get: articleName = ' + str(articleName))
@@ -211,9 +222,9 @@ class ComposeHandler(BaseHandler):
 #             article = None #Article()
             article = Article()
             fileList = []
-            artHelper = HelperArticle()
-            artHelper.setArticleCategiry (config.options.info_page_categofy_id) 
-            logging.info( 'ComposeHandler:: 1 artHelper.getModel() = ' + str(artHelper.getModel()))
+            self.artHelper = HelperArticle()
+            self.artHelper.setArticleCategiry (config.options.info_page_categofy_id) 
+            logging.info( 'ComposeHandler:: 1 self.artHelper.getModel() = ' + str(self.artHelper.getModel()))
             
             pageName='Редактирование статьи'
             
@@ -225,15 +236,15 @@ class ComposeHandler(BaseHandler):
     
                 logging.info( 'ComposeHandler get articleLink = ' + str(articleLink))
                 
-                (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleLink )
+                (article, fileList) = yield executor.submit( self.artHelper.getArticleByName, articleLink )
                 
             elif articleName == '' and hash != '':
                 """
                 Выберем статью по ее ХЕШУ - это, скорее всего, будет одна из старых версий.... 
                 """
-                (article, fileList) = yield executor.submit( artHelper.getArticleHash, hash )
+                (article, fileList) = yield executor.submit( self.artHelper.getArticleHash, hash )
 #             elif articleName != '':
-#                 artHelper.setArticleTitle (articleName)
+#                 self.artHelper.setArticleTitle (articleName)
 #                 pageName='Редактирование ' + articleName
                 
             if hasattr(article, 'article_title')  and article.article_title != '':
@@ -256,32 +267,33 @@ class ComposeHandler(BaseHandler):
         try:
             logging.info( 'ComposeHandler:: post articleName = ' + str(articleName))
     
-#             curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-            curentAuthor = self.get_current_user()
-
-    #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
-    #         curentAuthor = rezult.result()
-            
-            if not curentAuthor.author_id: return None
+            if not self.autor.author_id: return None
     
             artModel = Article()
     
             artModel.article_id = self.get_argument("id", 0)
             if artModel.article_id == 0:
-                artModel.author_id = curentAuthor.author_id
+                artModel.author_id = self.autor.author_id
             artModel.article_title = self.get_argument("title")
             artModel.article_annotation = self.get_argument("annotation")
             artModel.article_source = self.get_argument("sourse")
             artModel.article_category_id = self.get_argument("category_id", 0)
             artModel.article_template_id = int(self.get_argument("template_id", 0))
             artModel.article_permissions = self.get_argument("permissions", 'pbl')                                
+            article_pgroipId = self.get_argument("group_id", 0)                                
             
             logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
             
             article_link =  artModel.article_title.lower().replace(' ','_')
             templateDir = self.get_template_path()
+            
     
-            rez = yield executor.submit( artModel.save, curentAuthor.author_id, templateDir )
+#             helperArticle = HelperArticle(artModel)
+#             rez = yield executor.submit( helperArticle.сomposeArticle, self.autor.author_id, templateDir, article_pgroipId )
+    
+    
+#             self.artModel.save( author_id, templateDir, article_pgroipId )
+            rez = yield executor.submit( self.artModel.save, self.autor.author_id, templateDir )
     
     #         logging.info( 'ComposeHandler:: AFTER Save! artModel = ' + str(artModel))
             
@@ -488,12 +500,15 @@ class FeedHandler(BaseHandler):
     - стоит сделать вызов процедуры из хелпера.
     
     """
+    def __init__ (self):
+        self.artHelper = HelperArticle()
+    
+    
     @tornado.web.authenticated
     @gen.coroutine
     def get(self):
         try:
-            artHelper = HelperArticle()
-            articles = yield executor.submit( artHelper.getListArticles )
+            articles = yield executor.submit( self.artHelper.getListArticles )
             self.set_header("Content-Type", "application/atom+xml")
             self.render("feed.xml", articles=articles, link='/compose', page_name='Редактирование')
         except Exception as e:

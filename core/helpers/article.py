@@ -24,6 +24,7 @@ import core.models
 
 from core.models.author import Author
 from core.models.article import Article
+from core.models.group import Gpoup
 from core.models.file import File
 
 from core.WikiException     import *
@@ -34,10 +35,7 @@ class HelperArticle():
     загрузить и сохранить статью
     
     """
-    
-    def __init__(self):
-        self.artModel = Article()
-        
+            
     def setArticleTitle(self, articleName):
         self.artModel.article_title = articleName
         
@@ -147,11 +145,26 @@ class HelperArticle():
             return (self.artModel, [])
 
 
-    def сomposeArticle(self):
-        """
-        сохранить статью
-        
-        """
+#     def setArticle (self, artModel = None):
+#         self.artModel = artModel
+# 
+# 
+#     def сomposeArticle(self, author_id, templateDir, article_pgroipId):
+#         """
+#         сохранить статью
+#         
+#         """
+#         try:
+#             self.artModel.save( author_id, templateDir, article_pgroipId )
+#             #  ну и вот теперь нормально сохранять запись в БИБЛИОТЕКУ!!!!
+#             groupModel = Gpoup()
+#             groupModel.librarySave(author_id, article_pgroipI, self.artModel.article_id, 'W' )
+#             return (self.artModel, [])
+#                
+#         except WikiException as e:   
+# #             WikiException( ARTICLE_NOT_FOUND )
+#             logging.info( 'HelperArticle сomposeArticle:: e = ' + str(e))
+#             return (self.artModel, [])
  
 
         
