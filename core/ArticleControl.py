@@ -66,12 +66,13 @@ class HomeHandler(BaseHandler):
     
     """
 
+
     @gen.coroutine
     def get(self):
         try:
+            artHelper = HelperArticle()
             articleId = config.options.main_page_id
             
-            artHelper = HelperArticle()
             (article, fileList) = yield executor.submit( artHelper.getArticleById, articleId)
             logging.info( 'HomeHandler get article = ' + str(article))
     
@@ -92,6 +93,7 @@ class ArticleListHandler(BaseHandler):
     для показа списка статей
     
     """
+    
     @gen.coroutine
     def get(self):
         try:
@@ -144,13 +146,14 @@ class ArticleHandler(BaseHandler):
     добавление линков на не существующие страницы
     
     """
+
     @gen.coroutine
     def get(self, articleName):
         logging.info( 'ArticleHandler get articleName = ' + str(articleName))
 
         try:
-            artHelper = HelperArticle()
             
+            artHelper = HelperArticle()
             articleLink = articleName.strip().strip(" \t\n")
             articleLink =  articleLink.lower().replace(' ','_')
             articleLink =  articleLink.replace('__','_')
@@ -184,6 +187,7 @@ class ComposeHandler(BaseHandler):
     Редактирование статей 
     
     """
+    
     @tornado.web.authenticated
     @gen.coroutine
     def get(self, articleName = ''):
@@ -201,9 +205,9 @@ class ComposeHandler(BaseHandler):
             hash = self.get_argument("hash", "")
             groupId = self.get_argument("gid", 0)
             
-            autor = self.get_current_user()
+            self.autor = self.get_current_user()
             
-            logging.info( 'ComposeHandler: get: autor = ' + str(autor))
+            logging.info( 'ComposeHandler: get: self.autor = ' + str(self.autor))
             logging.info( 'ComposeHandler: get: articleName = ' + str(articleName))
             logging.info( 'ComposeHandler: get: hash = ' + str(hash))
             logging.info( 'ComposeHandler: get: groupId = ' + str(groupId))
@@ -256,32 +260,29 @@ class ComposeHandler(BaseHandler):
         try:
             logging.info( 'ComposeHandler:: post articleName = ' + str(articleName))
     
-#             curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-            curentAuthor = self.get_current_user()
-
-    #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
-    #         curentAuthor = rezult.result()
-            
-            if not curentAuthor.author_id: return None
+            if not self.autor.author_id: return None
     
             artModel = Article()
     
             artModel.article_id = self.get_argument("id", 0)
             if artModel.article_id == 0:
-                artModel.author_id = curentAuthor.author_id
+                artModel.author_id = self.autor.author_id
             artModel.article_title = self.get_argument("title")
             artModel.article_annotation = self.get_argument("annotation")
             artModel.article_source = self.get_argument("sourse")
             artModel.article_category_id = self.get_argument("category_id", 0)
             artModel.article_template_id = int(self.get_argument("template_id", 0))
             artModel.article_permissions = self.get_argument("permissions", 'pbl')                                
+            article_pgroipId = self.get_argument("group_id", 0)                                
             
             logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
             
             article_link =  artModel.article_title.lower().replace(' ','_')
             templateDir = self.get_template_path()
-    
-            rez = yield executor.submit( artModel.save, curentAuthor.author_id, templateDir )
+            
+            helperArticle = HelperArticle(artModel)
+     
+            rez = yield executor.submit( helperArticle.сomposeArticle, self.autor.author_id, templateDir, article_pgroipId )
     
     #         logging.info( 'ComposeHandler:: AFTER Save! artModel = ' + str(artModel))
             
@@ -488,6 +489,8 @@ class FeedHandler(BaseHandler):
     - стоит сделать вызов процедуры из хелпера.
     
     """
+    
+    
     @tornado.web.authenticated
     @gen.coroutine
     def get(self):
