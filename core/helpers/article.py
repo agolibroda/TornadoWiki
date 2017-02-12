@@ -22,9 +22,10 @@ import config
 
 import core.models
 
-from core.models.author import Author
-from core.models.article import Article
-from core.models.file import File
+from core.models.author     import Author
+from core.models.article    import Article
+from core.models.file       import File
+from core.models.group      import Group
 
 from core.WikiException     import *
 
@@ -71,10 +72,15 @@ class HelperArticle():
     
     def getListArticles(self, categoryId = 0):
     
-        rezult = self.artModel.list (categoryId)
-        if not rezult: rezult = []
-        logging.info( 'getListArticles:: rezult = ' + str(rezult))
-        return  rezult #.result()
+        try:
+            rezult = self.artModel.list (categoryId)
+            if not rezult: rezult = []
+            logging.info( 'getListArticles:: rezult = ' + str(rezult))
+            return  rezult #.result()
+        except Exception as e:
+            logging.info( 'getListArticles:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            return []
 
 
     def getListArticlesByAutorId(self, authorId = 0):
@@ -82,11 +88,17 @@ class HelperArticle():
         получить список статей одного автора
         
         """
-    
-        rezult = self.artModel.listByAutorId (authorId)
-        if not rezult: rezult = []
-#         logging.info( 'getListArticles:: rezult = ' + str(rezult))
-        return  rezult #.result()
+        try:
+            rezult = self.artModel.listByAutorId (authorId)
+            if not rezult: rezult = []
+    #         logging.info( 'getListArticles:: rezult = ' + str(rezult))
+            return  rezult #.result()
+
+        except Exception as e:
+            logging.info( 'getListArticlesByAutorId:: Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            return []
+
 
     def getArticleByIdRevId(self, articleId, revId):
         """
@@ -105,8 +117,10 @@ class HelperArticle():
             except WikiException as e:   
 #             WikiException( ARTICLE_NOT_FOUND )
                 logging.info( 'getArticleByIdRevId:: e = ' + str(e))
-                return (self.artModel, [])
-
+#                 return (self.artModel, [])
+                if not article: raise tornado.web.HTTPError(404)
+                else: return (article, [])
+            
 
         
     def getArticleByName(self, articleName):
@@ -125,7 +139,9 @@ class HelperArticle():
         except WikiException as e:   
 #             WikiException( ARTICLE_NOT_FOUND )
             logging.info( 'getArticleByName:: e = ' + str(e))
-            return (self.artModel, [])
+#             return (self.artModel, [])
+            if not article: raise tornado.web.HTTPError(404)
+            else: return (article, [])
 
 
     def getArticleHash(self, articleHash):
@@ -144,15 +160,32 @@ class HelperArticle():
         except WikiException as e:   
 #             WikiException( ARTICLE_NOT_FOUND )
             logging.info( 'getArticleByName:: e = ' + str(e))
-            return (self.artModel, [])
+#             return (self.artModel, [])
+            if not article: raise tornado.web.HTTPError(404)
+            else: return (article, [])
 
 
-    def сomposeArticle(self):
+    def сomposeArticleSave(self, author_id, templateDir, article_pgroipId):
         """
         сохранить статью
         
         """
- 
+        try:
+            logging.info( 'сomposeArticleSave:: self.artModel = ' + str(self.artModel))
+            article = self.artModel.save(author_id, templateDir)
+            logging.info( 'сomposeArticleSave:: After Save^ article = ' + str(article))
+            
+            if int(article_pgroipId) > 0 :
+                groupModel = Group()
+                logging.info( 'сomposeArticleSave:: author_id = ' + str(author_id))
+                logging.info( 'сomposeArticleSave:: article_pgroipId = ' + str(article_pgroipId))
+                logging.info( 'сomposeArticleSave:: article.article_id = ' + str(article.article_id))
+                groupModel.librarySave(int(author_id), int(article_pgroipId), int(article.article_id), 'W')
+            return True
+        except WikiException as e:   
+#             WikiException( ARTICLE_NOT_FOUND )
+            logging.info( 'сomposeArticleSave:: e = ' + str(e))
+            return False
 
         
 

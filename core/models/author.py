@@ -134,8 +134,9 @@ class Author(Model):
 
 
     def list(self):
-        cur = self.db().cursor()
-        selectStr = 'author_id,  author_login, author_name,author_surname, author_role, author_phon, author_email, floor(EXTRACT(EPOCH FROM author_create)) AS author_create'
+        logging.info('Author:: list:: START!!! >>>> ')
+#         cur = self.db().cursor()
+        selectStr = 'author_id,  author_login, author_name, author_surname, author_role, author_phon, author_email, floor(EXTRACT(EPOCH FROM author_create)) AS author_create'
         fromStr = '' #'authors'
         anyParams = {
                     'orderStr': ' author_id', # строка порядок строк

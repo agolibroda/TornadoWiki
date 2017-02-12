@@ -1,0 +1,39 @@
+<!-- all_group_list.html -->
+
+   {% if len(groupList) > 0 %}
+ 
+	 <table class="table table-hover">
+	     <thead>
+	     <tr>
+	         <th>{{_("Create Date")}}</th>
+	         <th>{{_("Group Name")}}</th>
+	         <th>{{_("Annotation")}}</th>
+	         <th>{{_("Author Name")}}</th>
+	         <th> </th>
+	         <th> </th>
+	     </tr>
+	     </thead>
+	     <tbody>
+            
+  {% for group in groupList %}
+			
+			 <tr>
+			     <td>{{group.group_create_date}}</td>
+			     <td><a href="/group_desk_top/{{group.group_id }}">{{group.group_title}}</a></td>
+			     <td>{{group.group_annotation}}</td>
+			     <td>{{group.author_name}} {{group.author_surname}}</td>
+			     <td><span class="label label-sm label-success">Approved</span></td>
+			     <td><span class="label label-sm label-success">Approved</span></td>
+			 </tr>
+			
+  {% end %}
+ 
+  {% else %} 
+  	{{ _("Group yet") }}  &nbsp;&nbsp;&nbsp;&nbsp; 
+  {% end %}
+ 
+                                    
+	     </tbody>
+	 </table>
+
+ <!-- / all_group_list.html.html -->

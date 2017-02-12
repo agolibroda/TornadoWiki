@@ -34,7 +34,7 @@ from core.models.template   import Template
 from ..constants.data_base import * 
 
 
-class Gpoup(Model):
+class Group(Model):
     """
     модель - для Группы
     внутри будут:
@@ -215,7 +215,7 @@ class Gpoup(Model):
         
         """
         resList = self.select(
-                    'group_id,  group_title, group_annotation,  group_status, floor(EXTRACT(EPOCH FROM group_create_date)) AS group_create_date ' + 
+                    'group_id,  group_title, group_annotation,  group_status, floor(EXTRACT(EPOCH FROM group_create_date)) AS group_create_date, ' + 
                     ' author_name, author_surname ' , # строка - чего хотим получить из селекта
                     ' authors ', #'authors',  # строка - список таблиц 
                     {
@@ -236,17 +236,24 @@ class Gpoup(Model):
         а авторство в группе ... ну, не знаю. :-)
         
         """
-        resList = self.select(
-                    ' groups.group_id,  groups.group_title, groups.group_annotation,  groups.group_status, floor(EXTRACT(EPOCH FROM groups.group_create_date)) AS group_create_date, ' + 
-                    ' members.member_role_type ' , # строка - чего хотим получить из селекта
-                    '  members ', #'authors',  # строка - список таблиц 
-                    {
-                     'whereStr': " members.author_id = groups.author_id AND  groups.author_id = " + str(author_id) 
-                     } #  все остальные секции селекта
-                    )
-
-        return resList
-    
+        try:
+            resList = self.select(
+                        ' groups.group_id,  groups.group_title, groups.group_annotation,  groups.group_status, floor(EXTRACT(EPOCH FROM groups.group_create_date)) AS group_create_date, ' + 
+                        ' members.member_role_type ' , # строка - чего хотим получить из селекта
+                        '  members ', #'authors',  # строка - список таблиц 
+                        {
+                         'whereStr': " members.author_id = groups.author_id AND  groups.author_id = " + str(author_id) 
+                         } #  все остальные секции селекта
+                        )
+#             logging.info( 'grouplistForAutor:: resList =  ' + str(resList))
+            return resList
+        except Exception as e:        
+#         except WikiException as e:   
+#             WikiException( ARTICLE_NOT_FOUND )
+            logging.info( 'grouplistForAutor::Have ERROR!!!  ' + str(e))
+            if not article: raise tornado.web.HTTPError(404)
+            else: return (article, [])
+     
     
     def getGroupArticleList(self, groupId):
         """
@@ -306,14 +313,12 @@ class Gpoup(Model):
         return True
 
 
-    def librarySave(self, author_id, group_id = 0, article_id=0, library_permission_type = 'W'):
+    def librarySave(self, author_id = 0, group_id = 0, article_id=0, library_permission_type = 'W'):
         """
         Добавить статью к группе 
         
         """
-        pass
-#         lidModel = self.Library(group_id, article_id, library_permission_type)
-#          
-#         lidModel.save(author_id)
+        libControl = self.Library (group_id, article_id, library_permission_type)
+        libControl.save(author_id)
 
     

@@ -32,7 +32,7 @@ from core.models.file import File
 
 from core.helpers.article import HelperArticle 
 
-from core.models.group      import Gpoup
+from core.models.group      import Group
 
 
 from core.BaseHandler import *
@@ -59,33 +59,28 @@ class RestMinHandler(BaseHandler):
         logging.info('RestMinHandler:: link = '+ str(link))
 
         
-        curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+        self.curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+        logging.info( 'getPersonalArticlesList:: get self.curentAuthor = ' + str(self.curentAuthor))
         
         
-        if commandName == 'getArticleTemplateList':
-            
-            label=self.get_argument('label')
-            selector=self.get_argument('selector')
-            
-            logging.info('RestMinHandler:: curentParameter::'+ str(curentParameter))
-            logging.info('RestMinHandler:: label '+ str(label))
-            logging.info('RestMinHandler:: selector '+ str(selector))
+        try:
+            if commandName == 'getArticleTemplateList':
+                
+                label=self.get_argument('label')
+                selector=self.get_argument('selector')
+                
+                if int(curentParameter) == 0:
+                    curentParameter = config.options.main_info_template
+                    articles = [Article(0, 'Выберите значение ')]
+                else:
+                    articles = []
+                
+                artHelper = HelperArticle()
+                articles += yield executor.submit(artHelper.getListArticles, config.options.tpl_categofy_id)
+    
+                self.render("rest/templates_list.html", dataList=articles, itemName=selector, selected=int(curentParameter), label=label)
 
-            if int(curentParameter) == 0:
-                curentParameter = config.options.main_info_template
-                articles = [Article(0, 'Выберите значение ')]
-            else:
-                articles = []
-            
-            artHelper = HelperArticle()
-            articles += yield executor.submit(artHelper.getListArticles, config.options.tpl_categofy_id)
-            logging.info('RestMinHandler:: commandName:: getArticleTemplateList '+ str(articles))
-            # получить список данных
-
-            self.render("rest/templates_list.html", dataList=articles, itemName=selector, selected=int(curentParameter), label=label)
-
-        if commandName == 'getArticleCategoryList':
-            try:
+            if commandName == 'getArticleCategoryList':
                 label=self.get_argument('label')
                 selector=self.get_argument('selector')
                 
@@ -100,69 +95,63 @@ class RestMinHandler(BaseHandler):
                 
                 artHelper = HelperArticle()
                 articles += yield executor.submit(artHelper.getListArticles, config.options.list_categofy_id)
-                logging.info('RestMinHandler:: commandName:: getArticleTemplateList '+ str(articles))
-                # получить список данных
     
                 self.render("rest/templates_list.html", dataList=articles, itemName=selector, selected=int(curentParameter), label=label)
-            except Exception as e:
-                logging.info( 'getArticleCategoryList:: Exception as et = ' + str(e))
-                error = Error ('500', 'что - то пошло не так :-( ')
-                self.render('table_error.html', error=error)
 
 
-        if commandName == 'getPersonalArticlesList': 
-            try:
-#                 curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-# #                 curentAuthor = self.get_current_user ()
-                logging.info( 'getPersonalArticlesList:: get curentAuthor = ' + str(curentAuthor))
-                
+            if commandName == 'getPersonalArticlesList': 
                 artHelper = HelperArticle()
-                articles = yield executor.submit( artHelper.getListArticlesByAutorId, curentAuthor.author_id )
+                articles = yield executor.submit( artHelper.getListArticlesByAutorId, self.curentAuthor.author_id )
                 self.render("rest/articles_list.html", articles=articles)
-            except Exception as e:
-                logging.info( 'getPersonalArticlesList:: Exception as et = ' + str(e))
-                error = Error ('500', 'что - то пошло не так :-( ')
-                self.render('table_error.html', error=error)
 
 
-        # получить список всех статей, размещнных в группе
-        if commandName == 'getGroupArticleList': 
-            try:
-                groupModel = Gpoup()
+            # получить список всех статей, размещнных в группе
+            if commandName == 'getGroupArticleList': 
+                groupModel = Group()
                 articles = yield executor.submit( groupModel.getGroupArticleList, curentParameter )
-                self.render("rest/articles_group_list.html", articles=articles, group=curentParameter )
-            except Exception as e:
-                logging.info( 'getGroupArticleList:: Exception as et = ' + str(e))
-                error = Error ('500', 'что - то пошло не так :-( ')
-                self.render('table_error.html', error=error)
+                logging.info( 'getGroupArticleList:: get articles = ' + str(articles))
 
-        # получить список всех участников  группы
-        if commandName == 'getGroupMembersleList': 
-            try:
-                groupModel = Gpoup()
+                self.render("rest/articles_group_list.html", articles=articles, group=curentParameter )
+
+            # получить список всех участников  группы
+            if commandName == 'getGroupMembersleList': 
+                groupModel = Group()
                 members = yield executor.submit( groupModel.getGroupMembersleList, curentParameter )
                 self.render("rest/members_list.html", members=members)
-            except Exception as e:
-                logging.info( 'getGroupMembersleList:: Exception as et = ' + str(e))
-                error = Error ('500', 'что - то пошло не так :-( ')
-                self.render('rest/rest_error.html', error=error)
 
-
-        # получить список всех групп, в которых мемберит конкретный ползователь (А-М - важно :-) )
-        if commandName == 'getPersonalGroupList': 
-            try:
+            # получить список всех групп, в которых мемберит конкретный ползователь (А-М - важно :-) )
+            if commandName == 'getPersonalGroupList': 
 #                 curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-                if not curentAuthor.author_id: return None
-                logging.info( 'getPersonalGroupList:: get curentAuthor = ' + str(curentAuthor))
-                groupModel = Gpoup()
-                groupList = yield executor.submit( groupModel.grouplistForAutor, curentAuthor.author_id )
+                if not self.curentAuthor.author_id: return None
+                groupModel = Group()
+                groupList = yield executor.submit( groupModel.grouplistForAutor, self.curentAuthor.author_id )
                 self.render("rest/personal_group_list.html", groupList=groupList, link=link)
-            except Exception as e:
-                logging.info( 'getPersonalGroupList:: Exception as et = ' + str(e))
-                error = Error ('500', 'что - то пошло не так :-( ')
-                self.render('rest/rest_error.html', error=error)
+
+            #  получить список всех групп, которые есть в системе. и сделать из них табличку.
+            if commandName == 'getAllGroupList': 
+#                 curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+#                 if not self.curentAuthor.author_id: return None
+                groupModel = Group()
+                groupList = yield executor.submit( groupModel.list )
+                self.render("rest/all_group_list.html", groupList=groupList, link=link)
+
+            #  получить список пользователей
+            if commandName == 'getAllAuthorList': 
+                logging.info( 'getAllauthorList:: start!!!! ' )
+                authorModel = Author()
+                authorList = yield executor.submit( authorModel.list )
+                
+                logging.info( 'getAllauthorList:: get authorList = ' + str(authorList))
+                
+                self.render("rest/all_author_list.html", authorList=authorList, link=link)
 
 
-#             membersGroupList = yield executor.submit( groupModel.get, curentAuthor.author_id )
-#             groupModel = Gpoup()
+
+
+
+        except Exception as e:
+            logging.info( 'commandName:: '+ str(commandName)+' Exception as et = ' + str(e))
+            error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('table_error.html', error=error)
+
 

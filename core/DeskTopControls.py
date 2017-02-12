@@ -48,7 +48,7 @@ from core.models.author     import Author
 from core.models.article    import Article
 from core.models.file       import File
 
-from core.models.group      import Gpoup
+from core.models.group      import Group
 
 from core.helpers.article import HelperArticle 
 
@@ -130,7 +130,7 @@ class GroupDeskTop(BaseHandler):
             curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
             if not curentAuthor.author_id: return None
             
-            groupModel = Gpoup()
+            groupModel = Group()
     
 
             if group_id==0:
@@ -161,7 +161,7 @@ class GroupDeskTop(BaseHandler):
             curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
             if not curentAuthor.author_id: return None
     
-            groupModel = Gpoup()
+            groupModel = Group()
     
             groupModel.group_id = int(self.get_argument("id", 0))
             groupModel.group_title = self.get_argument("title")

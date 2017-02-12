@@ -260,7 +260,10 @@ class ComposeHandler(BaseHandler):
         try:
             logging.info( 'ComposeHandler:: post articleName = ' + str(articleName))
     
-            if not self.autor.author_id: return None
+            self.autor = self.get_current_user()
+            logging.info( 'ComposeHandler:: post self.autor = ' + str(self.autor))
+            
+            if not self.autor or not self.autor.author_id: return None
     
             artModel = Article()
     
@@ -280,9 +283,10 @@ class ComposeHandler(BaseHandler):
             article_link =  artModel.article_title.lower().replace(' ','_')
             templateDir = self.get_template_path()
             
-            helperArticle = HelperArticle(artModel)
+            helperArticle = HelperArticle()
+            helperArticle.setModel(artModel)
      
-            rez = yield executor.submit( helperArticle.сomposeArticle, self.autor.author_id, templateDir, article_pgroipId )
+            rez = yield executor.submit( helperArticle.сomposeArticleSave, self.autor.author_id, templateDir, article_pgroipId )
     
     #         logging.info( 'ComposeHandler:: AFTER Save! artModel = ' + str(artModel))
             

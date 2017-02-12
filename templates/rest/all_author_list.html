@@ -1,0 +1,36 @@
+<!-- all_author_list.html -->
+
+   {% if len(authorList) > 0 %}
+ 
+	 <table class="table table-hover">
+	     <thead>
+	     <tr>
+	         <th>{{_("Registrate Date")}}</th>
+	         <th>{{_("Author Name")}}</th>
+	         <th> </th>
+	         <th> </th>
+	     </tr>
+	     </thead>
+	     <tbody>
+            
+  {% for author in authorList %}
+			
+			 <tr>
+			 
+			 	 <td>{{locale.format_date(author.author_create, full_format=True, shorter=True) }}</td>
+			     <td><a href="/group_desk_top/{{author.author_id }}">{{author.author_name}} {{author.author_surname}}</a></td>
+			     <td><span class="label label-sm label-success">Approved</span></td>
+			     <td><span class="label label-sm label-success">Approved</span></td>
+			 </tr>
+			
+  {% end %}
+ 
+  {% else %} 
+  	{{ _("author yet") }}  &nbsp;&nbsp;&nbsp;&nbsp; 
+  {% end %}
+ 
+                                    
+	     </tbody>
+	 </table>
+
+ <!-- / all_author_list.html.html -->
