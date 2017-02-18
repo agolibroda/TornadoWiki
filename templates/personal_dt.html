@@ -2,6 +2,8 @@
 
 {% extends "base.html" %}
 
+{{str(parameters)}}
+
 {% block body %}
 
  <!--BEGIN CONTENT-->
@@ -24,37 +26,25 @@
               <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose">{{ _("Create new wiki") }}</a></span>
               			</div>
               <div class="panel-body" id='articles_list_table'>
-                  <table class="table table-hover">
-					  <thead>
-					  <tr>
-					      <th><img src="/static/images/loading31.gif" alt="" class="img-responsive"/></th>
-					  </tr>
-					  </thead>
-                  </table>
+              
+              {% include "rest/articles_list.html" %} 
+              
               </div>
           </div>
           <div class="panel panel-green">
               <div class="panel-heading">Список Всех групп</div>
               <div class="panel-body" id="all_group_list">
-                  <table class="table table-hover table-bordered">
-                  <thead>
-					  <tr>
-					      <th><img src="/static/images/loading31.gif" alt="" class="img-responsive"/></th>
-					  </tr>
-					  </thead>
-                  </table>
+              
+              {% include "rest/all_group_list.html" %} 
+
               </div>
           </div>
           <div class="panel panel-red">
               <div class="panel-heading">Список Авторов</div>
               <div class="panel-body" id="all_user_list">
-                  <table class="table table-hover table-bordered">
-                      <thead>
-					  <tr>
-					      <th><img src="/static/images/loading31.gif" alt="" class="img-responsive"/></th>
-					  </tr>
-                      </thead>
-                  </table>
+
+              {% include "rest/all_author_list.html" %} 
+
               </div>
           </div>
   </div>
@@ -77,15 +67,12 @@
      // Load data asynchronously.
          
 	$(document).ready(function(){
-	      $.ajax({url: "/rest/getPersonalArticlesList/0", success: function(result){
-	          $("#articles_list_table").html(result);
-	      }});
-	      $.ajax({url: "/rest/getAllGroupList/0", success: function(result){
-	          $("#all_group_list").html(result);
-	      }});
-	      $.ajax({url: "/rest/getAllAuthorList/0", success: function(result){
-	          $("#all_user_list").html(result);
-	      }});
+//	      $.ajax({url: "/rest/getAllGroupList/0", success: function(result){
+//	          $("#all_group_list").html(result);
+//	      }});
+//	      $.ajax({url: "/rest/getAllAuthorList/0", success: function(result){
+//	          $("#all_user_list").html(result);
+//	      }});
 	      
 	});
      

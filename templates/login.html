@@ -1,6 +1,6 @@
 <!-- login.html -->
 
-{% extends "base.html" %}
+ {% extends "base.html" %} 
 
 {% block body %}
 
@@ -10,8 +10,8 @@
  <div class="panel-body pan">
      <form action="/auth/login" method="POST" class="form-horizontal">
      <div class="form-body pal">
-		{% if error %}
-		<span style="color: red">{{_("Error")}}: {{ error }}</span><p>
+		{% if parameters.error %}
+		<span style="color: red">{{_("Error")}}: {{ parameters.error }}</span><p>
 		{% end %}
          <div class="form-group">
              <label for="inputName" class="col-md-3 control-label">

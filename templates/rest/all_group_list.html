@@ -1,8 +1,8 @@
 <!-- all_group_list.html -->
 
-   {% if len(groupList) > 0 %}
+   {% if len(parameters.allGroupsList) > 0 %}
  
-	 <table class="table table-hover">
+	 <table class="table table-hover table-bordered">
 	     <thead>
 	     <tr>
 	         <th>{{_("Create Date")}}</th>
@@ -15,10 +15,10 @@
 	     </thead>
 	     <tbody>
             
-  {% for group in groupList %}
+  {% for group in parameters.allGroupsList %}
 			
 			 <tr>
-			     <td>{{group.group_create_date}}</td>
+			     <td>{{locale.format_date(group.group_create_date, full_format=True, shorter=True) }}</td>
 			     <td><a href="/group_desk_top/{{group.group_id }}">{{group.group_title}}</a></td>
 			     <td>{{group.group_annotation}}</td>
 			     <td>{{group.author_name}} {{group.author_surname}}</td>

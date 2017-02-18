@@ -15,6 +15,9 @@ import concurrent.futures
 import os.path
 import re
 import subprocess
+
+import copy
+
 # import torndb
 import tornado.escape
 from tornado import gen
@@ -86,9 +89,18 @@ class AuthCreateHandler(BaseHandler):
             self.render("create_author.html", link='auth/create', page_name= 'Регистрация нового Автора', error=error)
 
 
-class AuthLoginHandler(BaseHandler):
+class AuthLoginHandler(AuthorsHandler):
     def get(self):
-        self.render("login.html", error=None, link='auth/login',  page_name= 'Страница входа')
+        
+        if self.get_current_user():
+            self.redirect("/personal_desk_top")
+        self.makeTplParametr()
+        self.templateParams.page_name='Страница входа'
+        self.templateParams.link='auth/login'
+        self.templateParams.error=None
+        logging.info( 'PersonalDeskTop:: self.templateParams ' + str(self.templateParams))
+        
+        self.render("login.html", parameters=self.templateParams)
 
     @gen.coroutine
     def post(self):

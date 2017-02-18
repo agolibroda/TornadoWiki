@@ -1,8 +1,8 @@
 <!-- all_author_list.html -->
 
-   {% if len(authorList) > 0 %}
+   {% if len(parameters.allAuthorsList) > 0 %}
  
-	 <table class="table table-hover">
+	 <table class="table table-hover table-bordered">
 	     <thead>
 	     <tr>
 	         <th>{{_("Registrate Date")}}</th>
@@ -13,7 +13,7 @@
 	     </thead>
 	     <tbody>
             
-  {% for author in authorList %}
+  {% for author in parameters.allAuthorsList %}
 			
 			 <tr>
 			 

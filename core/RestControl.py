@@ -99,10 +99,10 @@ class RestMinHandler(BaseHandler):
                 self.render("rest/templates_list.html", dataList=articles, itemName=selector, selected=int(curentParameter), label=label)
 
 
-            if commandName == 'getPersonalArticlesList': 
-                artHelper = HelperArticle()
-                articles = yield executor.submit( artHelper.getListArticlesByAutorId, self.curentAuthor.author_id )
-                self.render("rest/articles_list.html", articles=articles)
+#             if commandName == 'getPersonalArticlesList': 
+#                 artHelper = HelperArticle()
+#                 articles = yield executor.submit( artHelper.getListArticlesByAutorId, self.curentAuthor.author_id )
+#                 self.render("rest/articles_list.html", articles=articles)
 
 
             # получить список всех статей, размещнных в группе
@@ -120,12 +120,12 @@ class RestMinHandler(BaseHandler):
                 self.render("rest/members_list.html", members=members)
 
             # получить список всех групп, в которых мемберит конкретный ползователь (А-М - важно :-) )
-            if commandName == 'getPersonalGroupList': 
-#                 curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-                if not self.curentAuthor.author_id: return None
-                groupModel = Group()
-                groupList = yield executor.submit( groupModel.grouplistForAutor, self.curentAuthor.author_id )
-                self.render("rest/personal_group_list.html", groupList=groupList, link=link)
+#             if commandName == 'getPersonalGroupList': 
+# #                 curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+#                 if not self.curentAuthor.author_id: return None
+#                 groupModel = Group()
+#                 groupList = yield executor.submit( groupModel.grouplistForAutor, self.curentAuthor.author_id )
+#                 self.render("rest/personal_group_list.html", groupList=groupList, link=link)
 
             #  получить список всех групп, которые есть в системе. и сделать из них табличку.
             if commandName == 'getAllGroupList': 

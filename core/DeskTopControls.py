@@ -64,22 +64,11 @@ from core.WikiException import *
 executor = concurrent.futures.ThreadPoolExecutor(2)
 
 
-class PersonalDeskTop(BaseHandler):
+class PersonalDeskTop(AuthorsHandler):
     """
     Персональнвый рабочий стол пользователя.
     
     """
-    
-#     def initialize(self, flag):
-#         logging.info( 'AdminHomeHandler:: __init__:: flag = ' + str(flag))
-#         self.flag = flag
-
-#     def __init__(self, flag):
-#         """
-#         """
-#         logging.info( 'AdminHomeHandler:: __init__:: flag = ' + str(flag))
-         
-         
     @tornado.web.authenticated
     @gen.coroutine
     def get(self):
@@ -92,15 +81,34 @@ class PersonalDeskTop(BaseHandler):
 
         """
         try:
-#             logging.info( 'AdminHomeHandler:: get ')
+            logging.info( 'AdminHomeHandler:: get ')
 #             artControl = ControlArticle()
 #             articles = yield executor.submit( artControl.getListArticles )
     
-            author = self.get_current_user() # current_user
+            author = self.get_current_user() 
             logging.info( 'PersonalDeskTop:: author ' + str(author))
     
 #             self.render("personal_dt.html", page_name= 'Рабочий стол ' + " пользователь??? " , tplCategory=config.options.tpl_categofy_id )
-            self.render("personal_dt.html", page_name= 'Рабочий стол ' + author.author_name, link='personal_desk_top')
+    
+            artHelper = HelperArticle()
+    
+            self.makeTplParametr()
+            self.templateParams.page_name = 'Рабочий стол ' + author.author_name
+            self.templateParams.link='personal_desk_top'
+            self.templateParams.personalArticlesList = yield executor.submit( artHelper.getListArticlesByAutorId, author.author_id )
+            groupModel = Group()
+            self.templateParams.autorGroupList = yield executor.submit( groupModel.grouplistForAutor, author.author_id )
+            artHelper = HelperArticle()
+            articles = yield executor.submit( artHelper.getListArticlesByAutorId, author.author_id )
+            self.templateParams.articlesList = articles
+            groupList = yield executor.submit( groupModel.list )
+            self.templateParams.allGroupsList = groupList
+            authorModel = Author()
+            authorList = yield executor.submit( authorModel.list )
+            self.templateParams.allAuthorsList = authorList
+
+
+            self.render("personal_dt.html", parameters= self.templateParams ) 
 
         except Exception as e:
             logging.info( 'PersonalDeskTop get:: Exception as et = ' + str(e))
@@ -127,7 +135,7 @@ class GroupDeskTop(BaseHandler):
         try:
             logging.info( 'GroupDeskTop:: get group_id = ' + str(group_id))
 
-            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+            curentAuthor = self.get_current_user( )
             if not curentAuthor.author_id: return None
             
             groupModel = Group()

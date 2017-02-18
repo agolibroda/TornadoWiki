@@ -13,7 +13,14 @@ title="{{article.article_title}}">
 <div id="header">
 <div style="float:right">
 
+{% if current_user %}
+
+<a href="/personal_desk_top">Personal Dask Top</a>
+
+{% else %}
+
 <a href="/auth/login">Sign in</a> to compose/edit
+{% end %}
 
 </div>
 <h1><a href="/">На Главную</a></h1>
