@@ -29,7 +29,7 @@ import config
 from . import Model
 from .. import WikiException 
 
-from core.models.template   import Template
+# from core.models.template   import Template
 
 from ..constants.data_base import * 
 
@@ -102,7 +102,7 @@ class Group(Model):
                         'floor(EXTRACT(EPOCH FROM author_create)) AS author_create ',
                     'authors',
                         {
-                    'whereStr': " members.author_id = authors.author_id AND  members.group_id = " + str(groupId) , # строка набор условий для выбора строк
+                    'whereStr': " members.author_id = authors.author_id  AND members.group_id = " + str(groupId) , # строка набор условий для выбора строк
                     'orderStr': ' author_name, author_surname ', # строка порядок строк
                                      }
                                     )
@@ -242,7 +242,7 @@ class Group(Model):
                         ' members.member_role_type ' , # строка - чего хотим получить из селекта
                         '  members ', #'authors',  # строка - список таблиц 
                         {
-                         'whereStr': " members.author_id = groups.author_id AND  groups.author_id = " + str(author_id) 
+                         'whereStr': " members.author_id = groups.author_id AND  members.group_id = groups.group_id AND groups.author_id = " + str(author_id) 
                          } #  все остальные секции селекта
                         )
 #             logging.info( 'grouplistForAutor:: resList =  ' + str(resList))
