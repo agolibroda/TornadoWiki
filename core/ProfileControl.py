@@ -89,7 +89,7 @@ class AuthCreateHandler(BaseHandler):
             self.render("create_author.html", link='auth/create', page_name= 'Регистрация нового Автора', error=error)
 
 
-class AuthLoginHandler(AuthorsHandler):
+class AuthLoginHandler(BaseHandler):
     def get(self):
         
         if self.get_current_user():

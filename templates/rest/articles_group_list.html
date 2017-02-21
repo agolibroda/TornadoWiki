@@ -2,7 +2,7 @@
 
 <div class="article">
  
-   {% if len(articles) > 0 %}
+   {% if len(parameters.groupArticlesList) > 0 %}
  
 	 <table class="table table-hover">
 	     <thead>
@@ -16,7 +16,7 @@
 	     </thead>
 	     <tbody>
                                     
-  {% for article in articles %}
+  {% for article in parameters.groupArticlesList %}
 			
 			 <tr>
 			     <td><a href="/{{ article.article_link }}">{{ article.article_title }}</a></td>

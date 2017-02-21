@@ -35,7 +35,6 @@ from psycopg2.extras import DictCursor
 
 
 
-
 from _ast import Try
 
 
@@ -45,14 +44,10 @@ import config
 # from .. import WikiException 
 from core.WikiException import *
 
+from core.Helpers      import *
 
-def singleton(cls):
-    instances = {}
-    def getinstance():
-        if cls not in instances:
-            instances[cls] = cls()
-        return instances[cls]
-    return getinstance
+
+
 
 # синглетон нужен для того, что бы все потредители ходил в базу через одн курсор, все здорово, 
 # НО, если несколько потербителей пойдут в базу одновременно с разны нитей, получится кавардак :-( )

@@ -11,17 +11,17 @@
 
 		<div class="col-lg-12">
           <ul class="nav nav-tabs">
-              <li class="{% if group.group_id > 0 %} active {% end %}"><a href="#tab-view" data-toggle="tab">View Group</a></li>
-              <li class="{% if group.group_id == 0 %} active {% end %}"><a href="#tab-edit" data-toggle="tab">Edit Group</a></li>
+              <li class="{% if parameters.groupData.group_id > 0 %} active {% end %}"><a href="#tab-view" data-toggle="tab">View Group</a></li>
+              <li class="{% if parameters.groupData.group_id == 0 %} active {% end %}"><a href="#tab-edit" data-toggle="tab">Edit Group</a></li>
           </ul>
           <div id="generalTabContent" class="tab-content">
           
           <div id="tab-view" class="tab-pane fade">
               <div class="row">
- 					{{ _("Group Name") }}: {{ group.group_title if group else "" }}
+ 					{{ _("Group Name") }}: {{ parameters.groupData.group_title if parameters.groupData else "" }}
                </div>
               <div class="row">
- 					{{ _("Group Annotation") }}: {{ group.group_annotation if group else "" }}
+ 					{{ _("Group Annotation") }}: {{ parameters.groupData.group_annotation if parameters.groupData else "" }}
                </div>
           </div>
       
@@ -36,13 +36,13 @@
                        <label for="inputName" class="control-label">{{ _("Group Name") }}</label>
                        <div class="input-icon right">
                            <i class="fa fa-font"></i>
-                           <input class="form-control" name="title" type="text" placeholder=" {{ _("Group Name") }}" value="{{ group.group_title if group else "" }}"/>
+                           <input class="form-control" name="title" type="text" placeholder=" {{ _("Group Name") }}" value="{{ parameters.groupData.group_title if parameters.groupData else "" }}"/>
                            </div>
                    </div>
                    
                    <div class="form-group">
                        <label for="inputMessage" class="control-label">{{ _("Group Annotation") }}</label>
-                           <textarea name="annotation" rows="3" class="form-control">{{ group.group_annotation if group else "" }}</textarea>
+                           <textarea name="annotation" rows="3" class="form-control">{{ parameters.groupData.group_annotation if parameters.groupData else "" }}</textarea>
                    </div>
 
 				<div class="row">
@@ -51,8 +51,8 @@
 				        <div class="form-group">
 				                       <label for="inputSubject" class="control-label">{{ _("Visibility Rules") }}</label>
 				            <select class="form-control" name="status">
-				                <option {% if group.group_status == 'pbl' %} selected="selected" {% end %} value="pbl"> {{_("Public")}}</option>
-				                <option {% if group.group_status == 'sol' %} selected="selected" {% end %} value="shut"> {{_("Solo")}}</option>
+				                <option {% if parameters.groupData.group_status == 'pbl' %} selected="selected" {% end %} value="pbl"> {{_("Public")}}</option>
+				                <option {% if parameters.groupData.group_status == 'sol' %} selected="selected" {% end %} value="shut"> {{_("Solo")}}</option>
 				            </select></div>
 				    </div>
 				</div>
@@ -62,10 +62,10 @@
                    &nbsp;<a href="/personal_desk_top" class="btn btn-primary">{{ _("Cancel") }}</a>
                </div>
 
-    {% if group.group_id > 0 %}
-      &nbsp;<a href="/upload/{{ group.group_id  if group else 0 }}">{{ _("Upload") }}</a>
+    {% if parameters.groupData.group_id > 0 %}
+      &nbsp;<a href="/upload/{{ parameters.groupData.group_id  if parameters.groupData else 0 }}">{{ _("Upload") }}</a>
     {% end %}
-      <input type="hidden" name="id" value="{{ group.group_id }}"/>
+      <input type="hidden" name="id" value="{{ parameters.groupData.group_id }}"/>
     {% module xsrf_form_html() %}
                </form>
            </div>
@@ -73,22 +73,18 @@
       </div>
 </div>
 
+    {% if parameters.groupData.group_id > 0 %}
 
     	<div class="col-lg-12">
               <div class="row">
           <div class="panel panel-yellow">
 			<div class="panel-heading">{{ _("List group wikis") }} &nbsp;&nbsp;&nbsp; 
-              <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose?gid={{group.group_id}}">{{ _("Create new wiki") }}</a></span>
+              <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose?gid={{parameters.groupData.group_id}}">{{ _("Create new wiki") }}</a></span>
 			</div>
               <div class="panel-body" id='groups_list_table'>
-получить список сатей, из одной групы ( либ, да? ) 
-                  <table class="table table-hover">
-					  <thead>
-					  <tr>
-					      <th><img src="/static/images/loading31.gif" alt="" class="img-responsive"/></th>
-					  </tr>
-					  </thead>
-                  </table>
+
+				{% include "rest/articles_list.html" %} 
+
               </div>
           </div>
           
@@ -97,23 +93,18 @@
               <div class="panel-heading">{{ _("List group members") }}</div>
               <div class="panel-body" id="list_members">
 
-                  <table class="table table-hover">
-					  <thead>
-					  <tr>
-					      <th><img src="/static/images/loading31.gif" alt="" class="img-responsive"/></th>
-					  </tr>
-					  </thead>
-                  </table>
+				{% include "rest/members_list.html" %} 
 
               </div>
           </div>
   </div>
          
+  </div>
+    {% end %}           
 <br>              
 <br>              
 <br>              
               
-  </div>
               
           </div>
       </div>
@@ -125,21 +116,6 @@
 
 {% block bottom %}
 
-
-<script>
-     // Load data asynchronously.
-    // value="{{ '/rest/getPersonalGroupsList/'+str(group.group_id) if group else '/rest/getPersonalGroupsList' }}"/>
-         
-	$(document).ready(function(){
-	      $.ajax({url: "/rest/getGroupArticleList/{{group.group_id}}", success: function(result){
-	          $("#groups_list_table").html(result);
-	      }});
-	      $.ajax({url: "/rest/getGroupMembersleList/{{group.group_id}}", success: function(result){
-	          $("#list_members").html(result);
-	      }});
-	});
-     
-</script>
 
 {% end %}
 

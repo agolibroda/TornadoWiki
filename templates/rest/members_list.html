@@ -2,7 +2,7 @@
 
 <div class="article">
  
-   {% if len(members) > 0 %}
+   {% if len(parameters.groupMembersList) > 0 %}
  
 	 <table class="table table-hover">
 	     <thead>
@@ -15,7 +15,7 @@
 	     </thead>
 	     <tbody>
                                     
-  {% for autor in members %}
+  {% for autor in parameters.groupMembersList %}
 			
 			 <tr>
 			     <td><a href="/profile_view/{{autor.author_id }}">{{autor.author_name}}</a></td>

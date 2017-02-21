@@ -2,25 +2,6 @@
 #
 # Copyright 2015 Alec Golibroda
 
-# 
-# 
-# AdminHandler.py
-# 
-#  чем по - идее, имею дело? 
-#  Админ - это просмотр списка 
-#  Впринцепе, Это "тулБокс" - ящик с инструментами СуперАдмина
-
-# надо сюда добавить 
-# список ПОльзователей
-# список Групп 
-
-#  - пользователей
-#  - материалов 
-#  - редактирование пользователей
-#  - работа с правами
-#  
-#  что еще? пока не знаю.
- 
 
 import bcrypt
 import concurrent.futures
@@ -40,10 +21,15 @@ import unicodedata
 import logging
 import json
 
+import pickle
+
 import config
 
-import core.models
+# import core.Helpers
+from core.Helpers           import *
+# from core.Helpers           import SingletonDecorator
 
+import core.models
 from core.models.author     import Author
 from core.models.article    import Article
 from core.models.file       import File
@@ -64,7 +50,11 @@ from core.WikiException import *
 executor = concurrent.futures.ThreadPoolExecutor(2)
 
 
-class PersonalDeskTop(AuthorsHandler):
+
+    
+
+
+class PersonalDeskTop(BaseHandler):
     """
     Персональнвый рабочий стол пользователя.
     
@@ -81,34 +71,34 @@ class PersonalDeskTop(AuthorsHandler):
 
         """
         try:
-            logging.info( 'AdminHomeHandler:: get ')
-#             artControl = ControlArticle()
-#             articles = yield executor.submit( artControl.getListArticles )
-    
             author = self.get_current_user() 
             logging.info( 'PersonalDeskTop:: author ' + str(author))
     
-#             self.render("personal_dt.html", page_name= 'Рабочий стол ' + " пользователь??? " , tplCategory=config.options.tpl_categofy_id )
     
+            tplControl = TemplateParams()
+            tplControl.make(author)
+
+            logging.info( ' PersonalDeskTop:: tplControl = ' + toStr(tplControl))
+            
+            tplControl.page_name = 'Рабочий стол ' + author.author_name
+            tplControl.link='personal_desk_top'
+
             artHelper = HelperArticle()
-    
-            self.makeTplParametr()
-            self.templateParams.page_name = 'Рабочий стол ' + author.author_name
-            self.templateParams.link='personal_desk_top'
-            self.templateParams.personalArticlesList = yield executor.submit( artHelper.getListArticlesByAutorId, author.author_id )
+            tplControl.personalArticlesList = yield executor.submit( artHelper.getListArticlesByAutorId, author.author_id )
             groupModel = Group()
-            self.templateParams.autorGroupList = yield executor.submit( groupModel.grouplistForAutor, author.author_id )
+            tplControl.autorGroupList = yield executor.submit( groupModel.grouplistForAutor, author.author_id )
             artHelper = HelperArticle()
             articles = yield executor.submit( artHelper.getListArticlesByAutorId, author.author_id )
-            self.templateParams.articlesList = articles
+            tplControl.articlesList = articles
             groupList = yield executor.submit( groupModel.list )
-            self.templateParams.allGroupsList = groupList
+            tplControl.allGroupsList = groupList
             authorModel = Author()
             authorList = yield executor.submit( authorModel.list )
-            self.templateParams.allAuthorsList = authorList
+            tplControl.allAuthorsList = authorList
 
+            logging.info( ' PersonalDeskTop:: tplControl = ' + core.Helpers.toStr(tplControl))
 
-            self.render("personal_dt.html", parameters= self.templateParams ) 
+            self.render("personal_dt.html", parameters= tplControl ) 
 
         except Exception as e:
             logging.info( 'PersonalDeskTop get:: Exception as et = ' + str(e))
@@ -135,26 +125,42 @@ class GroupDeskTop(BaseHandler):
         try:
             logging.info( 'GroupDeskTop:: get group_id = ' + str(group_id))
 
-            curentAuthor = self.get_current_user( )
-            if not curentAuthor.author_id: return None
-            
+            author = self.get_current_user() 
+#             logging.info( 'PersonalDeskTop:: author ' + str(author))
+
+            if not author.author_id: return None
+
             groupModel = Group()
     
-
             if group_id==0:
-                groupName = ''
+                groupName = 'Create New Group'
                 groupData = groupModel
             else:
                 groupData = yield executor.submit( groupModel.get, group_id )
-                logging.info( 'GroupDeskTop:: get groupData = ' + str(groupData))
-                groupName = groupData.group_title  
+                groupName = groupData.group_title 
+
+            logging.info( 'GroupDeskTop:: get groupData = ' + str(groupData))
                 
+            tplControl = TemplateParams()
+            logging.info( ' GroupDeskTop:: tplControl = ' + core.Helpers.toStr(tplControl))
+            tplControl.make(author)
+            logging.info( ' GroupDeskTop:: tplControl = ' + core.Helpers.toStr(tplControl))
+            tplControl.page_name = groupName 
+            tplControl.groupData = groupData
+
+            articles = yield executor.submit( groupModel.getGroupArticleList, group_id )
+            tplControl.articlesList = articles 
+            members = yield executor.submit( groupModel.getGroupMembersleList, group_id )
+            tplControl.groupMembersList = members 
+
             if group_id == 0:
-                link = 'group_desk_top'
+                tplControl.link = 'group_desk_top'
             else:
-                link='group_desk_top/' + str(group_id)   
-    
-            self.render("group_dt.html", group=groupData, page_name= groupName, link=link)
+                tplControl.link='group_desk_top/' + str(group_id)   
+
+#             logging.info( ' GroupDeskTop:: tplControl = ' + toStr(tplControl))
+
+            self.render("group_dt.html", parameters= tplControl)
         except Exception as e:
             logging.info( 'GroupDeskTop Get:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
@@ -166,8 +172,8 @@ class GroupDeskTop(BaseHandler):
     def post(self, group_id=0):
         try:
             logging.info( 'GroupDeskTop:: post group_id = ' + str(group_id))
-            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-            if not curentAuthor.author_id: return None
+            author = self.get_current_user() 
+            logging.info( 'PersonalDeskTop:: author ' + str(author))
     
             groupModel = Group()
     
@@ -178,7 +184,7 @@ class GroupDeskTop(BaseHandler):
             
             logging.info( 'GroupDeskTop:: Before Save! groupModel = ' + str(groupModel))
             
-            rez = yield executor.submit( groupModel.save, curentAuthor.author_id )
+            rez = yield executor.submit( groupModel.save, author.author_id )
     #         logging.info( 'GroupDeskTop:: AFTER Save! groupModel = ' + str(groupModel))
             
             self.redirect("/group_desk_top/" + str(groupModel.group_id))

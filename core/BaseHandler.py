@@ -27,12 +27,18 @@ import unicodedata
 import logging
 import json
 
+import pickle
+
 import config
+
+
+from core.Helpers           import *
+
+from core.models.group      import Group
 
 import core.models
 
 from core.models.author     import Author
-from core.models.group      import Group
 
 # from core.models.article import Article
 # from core.models.article import Revision
@@ -47,21 +53,35 @@ from core.models.group      import Group
 executor = concurrent.futures.ThreadPoolExecutor(2)
 
 
-class SingletonDecorator:
-    def __init__(self,klass):
-        self.klass = klass
-        self.instance = None
-    def __call__(self,*args,**kwds):
-        if self.instance == None:
-            self.instance = self.klass(*args,**kwds)
-        return self.instance
+@singleton
+class TemplateParams:
+    """
+     место хранения всех параметров, которые надо передавать в шаблон        
+     
+    """
+#     @gen.coroutine
+    def make (self, author):
+        """
+        для работы с формами, туда надо передать некоорое количество данных. 
+        все эти данные надо собрать в объкт (одиночку) TemplateParams
+        и пользоваться его данными
+          
+        """
+#         logging.info( ' makeTplParametr:: self = ' + str(self))
+#         if not hasattr(self, 'autorGroupList'): 
 
-# class Top: pass
-# _Top = SingletonDecorator(Top)
-# q=_Top()
-# q.val = 'qqqqqqqq'
-# print(q.val)
+        logging.info( ' makeTplParametr:: get autorGroupList NOW! = ')
+        self.author = author
+        groupModel = Group()
+#         self.autorGroupList = yield executor.submit( groupModel.grouplistForAutor, self.author.author_id )
+        self.autorGroupList = groupModel.grouplistForAutor( self.author.author_id )
+         
+        logging.info (' makeTplParametr:: self = ' + toStr( self))
+     
 
+@singleton
+class SingletonAuthor(Author):
+    pass
 
 class BaseHandler(tornado.web.RequestHandler):
 #     @property
@@ -69,23 +89,30 @@ class BaseHandler(tornado.web.RequestHandler):
 #         return self.application.db
 #     x = OnlyOne('sausage')
 
-#     _Author = SingletonDecorator(Author)
-    
+#     @singleton
+#     class __Autor:
+#         def __init__(self):
+#             self.locAuthor = self.__Autor()
+        
+#     @gen.coroutine
     def get_current_user(self):
         """
         Это Стандартный торнадовский функций, про получение данных о пользователе
         
         """
-        self.author = SingletonDecorator(Author)()
+# походу, это какая  - то не правильная версия одиночки!!!!
+# надо проверить - то, что лежит в модеи!!!!
+
+        self.author = SingletonAuthor()
         try:
             author_id = int(self.get_secure_cookie("wiki_author"))
-#             logging.info('BaseHandler:: get_current_user:: author_id '+ str(author_id))
+#             logging.info('BaseHandler:: get_current_user:: get_secure_cookie author_id '+ str(author_id))
             if not author_id or author_id == 0: return None
-#             logging.info('BaseHandler:: get_current_user:: self.author '+ str(self.author))
+#             logging.info('BaseHandler:: get_current_user:: 11 self.author '+ str(self.author))
             if self.author.author_id == 0:
                 self.author = self.author.get(author_id)
 #                 self.author =  yield executor.submit( self.author.get, author_id)
-            logging.info('BaseHandler:: get_current_user:: self.author '+ str(self.author))
+#             logging.info('BaseHandler:: get_current_user:: 22 self.author '+ str(self.author))
 
         except Exception as e:
             logging.info('BaseHandler:: get_current_user:: Have Error!!! '+ str(e))
@@ -100,35 +127,3 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
 
-class AuthorsHandler(BaseHandler):
-    """
-     все тоже самое, что и в "BaseHandler", только 
-     добавлю загрузку списка персональных групп для заполнения меню
-       
-     
-    """
-
-    class TemplateParams:
-        pass
-
-#     @tornado.web.authenticated
-    def __init__(self, application, request, **kwargs):
-        """
-        вот тут и загрузим список групп пользователя.
-          
-        """
-        super(AuthorsHandler, self).__init__(application, request, **kwargs)
-        self.templateParams = SingletonDecorator(self.TemplateParams)()
-        
-    def makeTplParametr (self):
-        """
-        для работы с формами, туда надо передать некоорое количество данных. 
-        все эти данные надо собрать в объкт (одиночку) TemplateParams
-        и пользоваться его данными
-        
-        """
-        
-        if hasattr(self.templateParams, 'autorGroupList'): 
-            groupModel = Group()
-            self.templateParams.autorGroupList = yield executor.submit( groupModel.grouplistForAutor, self.author.author_id )
-        
