@@ -8,6 +8,7 @@
 
 
 import logging
+import traceback
 
 
 # from core.models.group      import Group
@@ -45,13 +46,17 @@ def splitAttributes(objOne):
 
 
 def toStr(objOne): 
-    attribList = splitAttributes(objOne) # dir(objOne) #
-#     logging.info( ' TemplateParams::__str__ attribList = ' + str(attribList))
-    className = str(objOne.__class__)
-    itemsList = map(lambda x, y: ' "' + str(x) + '"' + ': "' + str(y) + '" ', attribList.listAttrNames, attribList.listAttrValues) 
-    objValuesNameList = '\n'+ className + ': { \n\t' + ', \n\t'.join(itemsList) + '\n}'
-    return objValuesNameList
-
+    try:
+        attribList = splitAttributes(objOne) # dir(objOne) #
+    #     logging.info( ' TemplateParams::__str__ attribList = ' + str(attribList))
+        className = str(objOne.__class__)
+        itemsList = map(lambda x, y: ' "' + str(x) + '"' + ': "' + str(y) + '" ', attribList.listAttrNames, attribList.listAttrValues) 
+        objValuesNameList = '\n'+ className + ': { \n\t' + ', \n\t'.join(itemsList) + '\n}'
+        return objValuesNameList
+    except Exception as e:
+#         logging.info( 'Get:: Exception as et = ' + toStr(e))
+#         logging.info( 'Get:: Exception as traceback.format_exc() = ' + toStr(traceback.format_exc()))
+        return str(objOne)
 
 
 def singleton(cls):

@@ -27,6 +27,8 @@ import tornado.web
 import unicodedata
 
 import logging
+import traceback
+
 import json
 
 import config
@@ -178,10 +180,6 @@ class ArticleHandler(BaseHandler):
             self.render('error.html', error=error, link='/compose', page_name='Редактирование')
 
 
-class MyArticletHandler(BaseHandler):
-    pass
-
-
 class ComposeHandler(BaseHandler):
     """
     Редактирование статей 
@@ -207,12 +205,6 @@ class ComposeHandler(BaseHandler):
             
             self.autor = self.get_current_user()
             
-            logging.info( 'ComposeHandler: get: self.autor = ' + str(self.autor))
-            logging.info( 'ComposeHandler: get: articleName = ' + str(articleName))
-            logging.info( 'ComposeHandler: get: hash = ' + str(hash))
-            logging.info( 'ComposeHandler: get: groupId = ' + str(groupId))
-            
-#             article = None #Article()
             article = Article()
             fileList = []
             artHelper = HelperArticle()
@@ -227,7 +219,7 @@ class ComposeHandler(BaseHandler):
                 articleLink =  articleLink.lower().replace(' ','_')
                 articleLink =  articleLink.replace('__','_')
     
-                logging.info( 'ComposeHandler get articleLink = ' + str(articleLink))
+#                 logging.info( 'ComposeHandler get articleLink = ' + str(articleLink))
                 
                 (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleLink )
                 
@@ -245,12 +237,40 @@ class ComposeHandler(BaseHandler):
     #         else:
     #             pass    
              
-            logging.info( 'ComposeHandler:: get article = ' + str(article))
-            self.render("compose.html", article=article,  fileList=fileList, groupId=groupId, link='/compose', page_name=pageName)
+            tplControl = TemplateParams()
+            tplControl.make(self.autor)
+            tplControl.article=article
+            tplControl.fileList=fileList
+            tplControl.groupId=groupId
+            tplControl.link='/compose'
+            
+            tplControl.page_name = pageName 
+
+            logging.info( ' ComposeHandler: GET: 33 tplControl = ' + toStr(tplControl))
+
+
+            categoryList = [Article(0, 'Выберите значение ')]
+
+            artHelper = HelperArticle()
+            categoryList += yield executor.submit(artHelper.getListArticles, config.options.list_categofy_id)
+            tplControl.categoryList = categoryList
+            tplControl.selectedCategoryId = article.article_category_id
+            
+            templatesList = [Article(0, 'Выберите значение ')]
+            templatesList += yield executor.submit(artHelper.getListArticles, config.options.tpl_categofy_id)
+            tplControl.templatesList = templatesList
+            tplControl.templateWrkId = article.article_template_id
+
+            logging.info( ' ComposeHandler: GET: tplControl = ' + toStr(tplControl))
+            self.render("compose.html", parameters= tplControl)
         except Exception as e:
-            logging.info( 'Get:: Exception as et = ' + str(e))
+            logging.info( 'Get:: Exception as et = ' + toStr(e))
+            logging.info( 'Get:: Exception as traceback.format_exc() = ' + toStr(traceback.format_exc()))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error, link='/compose', page_name='редактирование статьи')
+            tplControl.error=error
+            tplControl.link='/compose'
+            tplControl.page_name='редактирование статьи'
+            self.render('error.html', parameters = tplControl )
 
 
 
@@ -302,9 +322,21 @@ class ComposeHandler(BaseHandler):
             logging.info( 'ComposeHandler POST!!! (Save):: Exception as et = ' + str(e))
 #             error = Error ('500', 'что - то пошло не так :-( ')
 #             self.render('error.html', error=error, link='/compose', page_name='')
-            pageName = 'Редактирование ' + artModel.article_title
-            fileList = []
-            self.render("compose.html", article=artModel,  fileList=fileList, link='/compose', page_name=pageName)
+#             pageName = 'Редактирование ' + artModel.article_title
+#             fileList = []
+#             self.render("compose.html", article=artModel,  fileList=fileList, link='/compose', page_name=pageName)
+            artHelper = HelperArticle()
+            categoryList += yield executor.submit(artHelper.getListArticles, config.options.list_categofy_id)
+            tplControl.categoryList = categoryList
+            tplControl.selectedCategoryId = article.article_category_id
+            
+            templatesList = [Article(0, 'Выберите значение ')]
+            templatesList += yield executor.submit(artHelper.getListArticles, config.options.tpl_categofy_id)
+            tplControl.templatesList = templatesList
+            tplControl.templateWrkId = article.article_template_id
+
+            logging.info( ' ComposeHandler: GET: tplControl = ' + toStr(tplControl))
+            self.render("compose.html", parameters= tplControl)
 
 
 #############################################

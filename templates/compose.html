@@ -11,18 +11,18 @@
                        <label for="inputName" class="control-label">{{ _("Article Name") }}</label>
                        <div class="input-icon right">
                            <i class="fa fa-font"></i>
-                           <input class="form-control" name="title" type="text" placeholder=" {{ _("Article Name") }}" value="{{ article.article_title if article else "" }}"/>
+                           <input class="form-control" name="title" type="text" placeholder=" {{ _("Article Name") }}" value="{{ parameters.article.article_title if parameters.article else "" }}"/>
                            </div>
                    </div>
                    
                    <div class="form-group">
                        <label for="inputMessage" class="control-label">{{ _("Article Annotation") }}</label>
-                           <textarea name="annotation" rows="3" class="form-control">{{ article.article_annotation if article else "" }}</textarea>
+                           <textarea name="annotation" rows="3" class="form-control">{{ parameters.article.article_annotation if parameters.article else "" }}</textarea>
                    </div>
 
                    <div class="form-group">
                        <label for="inputText" class="control-label">{{ _("Article Text") }}</label>
-                       <textarea name="sourse" id="sourse" rows="20" class="form-control">{{ article.article_source if article else "" }}</textarea>
+                       <textarea name="sourse" id="sourse" rows="20" class="form-control">{{ parameters.article.article_source if parameters.article else "" }}</textarea>
 			            <script>
 				            CKEDITOR.replace( 'sourse' );
 				        </script>
@@ -34,19 +34,33 @@
         <div class="form-group">
                        <label for="inputSubject" class="control-label">{{ _("Visibility Rules") }}</label>
             <select class="form-control" name="permissions">
-                <option {% if article.article_permissions == 'pbl' %} selected="selected" {% end %} value="pbl"> {{_("Public")}}</option>
-                <option {% if article.article_permissions == 'grp' %} selected="selected" {% end %} value="grp"> {{_("Group")}}</option>
-                <option {% if article.article_permissions == 'sol' %} selected="selected" {% end %} value="sol"> {{_("Solo")}}</option>
+                <option {% if parameters.article.article_permissions == 'pbl' %} selected="selected" {% end %} value="pbl"> {{_("Public")}}</option>
+                <option {% if parameters.article.article_permissions == 'grp' %} selected="selected" {% end %} value="grp"> {{_("Group")}}</option>
+                <option {% if parameters.article.article_permissions == 'sol' %} selected="selected" {% end %} value="sol"> {{_("Solo")}}</option>
             </select></div>
     </div>
     <div class="col-md-4">
         <div class="form-group" id="selector2template">
-        	<img src="/static/images/loading31.gif" alt="" class="img-responsive"/>
+
+			<label for="inputSubject" class="control-label">{{_('Article Category')}}</label>
+			<select name="template_id" id="template_id" class="form-control">
+				 {% for entry in parameters.templatesList %}
+				<option {% if entry.article_id == parameters.templateWrkId %} selected="selected" {% end %} value="{{entry.article_id}}">{{entry.article_title}}</option>
+				 {% end %}
+			</select>
+
        </div>
     </div>
     <div class="col-md-4">
         <div class="form-group"id="selector2category">
-            <img src="/static/images/loading31.gif" alt="" class="img-responsive"/>
+            
+			<label for="inputSubject" class="control-label">{{_('Article Category')}}</label>
+			<select name="category_id" id="category_id" class="form-control">
+				 {% for entry in parameters.categoryList %}
+				<option {% if entry.article_id == parameters.selectedCategoryId %} selected="selected" {% end %} value="{{entry.article_id}}">{{entry.article_title}}</option>
+				 {% end %}
+			</select>
+            
        </div>
     </div>
 </div>
@@ -56,16 +70,16 @@
                    &nbsp;<a href="/personal_desk_top" class="btn btn-primary">{{ _("Cancel") }}</a>
                </div>
 
-    {% if article.article_id > 0 %}
-      &nbsp;<a href="/upload/{{ article.article_id  if article else 0 }}">{{ _("Upload") }}</a>
+    {% if parameters.article.article_id > 0 %}
+      &nbsp;<a href="/upload/{{ parameters.article.article_id  if parameters.article else 0 }}">{{ _("Upload") }}</a>
     {% end %}
     </div>
-      <input type="hidden" name="id" value="{{ article.article_id }}"/>
-      <input type="hidden" name="group_id" value="{{ groupId }}"/>
+      <input type="hidden" name="id" value="{{ parameters.article.article_id }}"/>
+      <input type="hidden" name="group_id" value="{{ parameters.groupId }}"/>
       
     {% module xsrf_form_html() %}
 
-  {% module FilesList( fileList) %}
+  {% module FilesList( parameters.fileList) %}
 
                </form>
            </div>
@@ -75,22 +89,7 @@
 
 
 {% block bottom %}
-  <script type="text/javascript" src="{{ static_url("js/jquery-3.1.0.min.js") }}"></script>
-        <script>
-	        // Load data asynchronously.
-	            
-		$(document).ready(function(){
-	        $.ajax({url: "/rest/getArticleTemplateList/{{article.article_template_id}}?label=Temllates list&selector=template_id", success: function(result){
-	            $("#selector2template").html(result);
-	        }});
-	        $.ajax({url: "/rest/getArticleCategoryList/{{article.article_category_id}}?label=Article Category&selector=category_id", success: function(result){
-	            $("#selector2category").html(result);
-	        }});
-			        
-			});
-	        
-        </script>
-  
+   
   <script type="text/javascript">
   //<![CDATA[
 

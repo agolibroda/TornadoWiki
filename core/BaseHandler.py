@@ -70,13 +70,13 @@ class TemplateParams:
 #         logging.info( ' makeTplParametr:: self = ' + str(self))
 #         if not hasattr(self, 'autorGroupList'): 
 
-        logging.info( ' makeTplParametr:: get autorGroupList NOW! = ')
+#         logging.info( ' makeTplParametr:: get autorGroupList NOW! = ')
         self.author = author
         groupModel = Group()
 #         self.autorGroupList = yield executor.submit( groupModel.grouplistForAutor, self.author.author_id )
         self.autorGroupList = groupModel.grouplistForAutor( self.author.author_id )
          
-        logging.info (' makeTplParametr:: self = ' + toStr( self))
+#         logging.info (' makeTplParametr:: self = ' + toStr( self))
      
 
 @singleton
