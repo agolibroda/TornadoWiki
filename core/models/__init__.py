@@ -17,6 +17,7 @@ from datetime import datetime
 
 
 import logging
+
 import json
 
 from tornado import gen
@@ -42,6 +43,8 @@ from _ast import Try
 import config
 # from .. import err
 # from .. import WikiException 
+
+from core.Helpers      import *
 from core.WikiException import *
 
 from core.Helpers      import *
@@ -362,6 +365,8 @@ class Model: #Connector:
             _loDb = self.cursor()
 #             _loDb.begin()
             self.begin()
+
+            logging.info(' saveRevision::Before Save self = ' + toStr(self))
      
             # Все ревизии ЭТОЙ записи - устарели!!!! - проабдейтим список ревизий
             sqlStr = "UPDATE revisions_" + self._tabName + " SET revision_actual_flag = 'O' WHERE " +\

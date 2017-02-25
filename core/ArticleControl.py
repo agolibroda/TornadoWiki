@@ -246,9 +246,6 @@ class ComposeHandler(BaseHandler):
             
             tplControl.page_name = pageName 
 
-            logging.info( ' ComposeHandler: GET: 33 tplControl = ' + toStr(tplControl))
-
-
             categoryList = [Article(0, 'Выберите значение ')]
 
             artHelper = HelperArticle()
@@ -261,7 +258,7 @@ class ComposeHandler(BaseHandler):
             tplControl.templatesList = templatesList
             tplControl.templateWrkId = article.article_template_id
 
-            logging.info( ' ComposeHandler: GET: tplControl = ' + toStr(tplControl))
+#             logging.info( ' ComposeHandler: GET: tplControl = ' + toStr(tplControl))
             self.render("compose.html", parameters= tplControl)
         except Exception as e:
             logging.info( 'Get:: Exception as et = ' + toStr(e))
@@ -281,7 +278,7 @@ class ComposeHandler(BaseHandler):
             logging.info( 'ComposeHandler:: post articleName = ' + str(articleName))
     
             self.autor = self.get_current_user()
-            logging.info( 'ComposeHandler:: post self.autor = ' + str(self.autor))
+#             logging.info( 'ComposeHandler:: post self.autor = ' + str(self.autor))
             
             if not self.autor or not self.autor.author_id: return None
     
@@ -298,7 +295,7 @@ class ComposeHandler(BaseHandler):
             artModel.article_permissions = self.get_argument("permissions", 'pbl')                                
             article_pgroipId = self.get_argument("group_id", 0)                                
             
-            logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
+#             logging.info( 'ComposeHandler:: Before Save! artModel = ' + str(artModel))
             
             article_link =  artModel.article_title.lower().replace(' ','_')
             templateDir = self.get_template_path()

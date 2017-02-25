@@ -8,6 +8,7 @@
 from __future__ import print_function
 
 import logging
+
 import json
 
 import zlib
@@ -27,6 +28,9 @@ import config
 
 from . import Model
 from .. import WikiException 
+
+
+from core.Helpers      import *
 
 # import core.models.template
 # from .template import Template
@@ -154,6 +158,9 @@ class Article(Model):
 #         article_annotation = self.get_argument("annotation", '')
 #         article_source = self.get_argument("sourse", '')
 
+        if int(self.article_category_id) == int(config.options.tpl_categofy_id):
+            htmlTextOut = self.article_source
+
         article_title = self.article_title.strip().strip(" \t\n")
         article_link = article_title.lower().replace(' ','_')
         article_link = article_link.replace('__','_')
@@ -209,7 +216,7 @@ class Article(Model):
             logging.info( 'save:: save self.article_id = ' + str(self.article_id))
                 
             if int(self.article_category_id) == int(config.options.tpl_categofy_id):
-                logging.info( 'save:: save Template! = ' )
+                logging.info( 'save:: save Template! htmlTextOut = '  + str(htmlTextOut))
                  
                 wrkTpl = Template()
                 wrkTpl.save(self.article_id, htmlTextOut, templateDir)
@@ -258,7 +265,8 @@ class Article(Model):
 #     
          getRez = self.select(
                                 ' DISTINCT articles.article_id, articles.article_title, articles.article_link, ' + 
-                                'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, articles.article_template_id ',
+                                'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, ' + 
+                                ' articles.article_template_id, articles.article_permissions ',
                                 ' revisions_articles lfind ',
                                     {
                                 'whereStr': " articles.article_id = lfind.article_id " +
@@ -298,7 +306,7 @@ class Article(Model):
          getRez = self.select(
                                 'articles.article_id, articles.article_title, articles.article_link, '+
                                 'articles.article_annotation,  articles.article_source, articles.article_category_id, '+ 
-                                'articles.author_id, articles.article_template_id',
+                                'articles.author_id, articles.article_template_id, articles.article_permissions',
                                 '',
                                     {
                                 'whereStr': ' articles.article_id = ' + str(articleId)  ,
@@ -336,7 +344,7 @@ class Article(Model):
          getRez = self.select(
                                 'articles.article_id, articles.article_title, articles.article_link, '+
                                 'articles.article_annotation,  articles.article_source, articles.article_category_id, '+ 
-                                'articles.author_id, articles.article_template_id',
+                                'articles.author_id, articles.article_template_id, articles.article_permissions ',
                                 '',
                                     {
                                 'whereStr': ' articles.article_id = ' + str(hash)  ,
@@ -378,7 +386,8 @@ class Article(Model):
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
                                 'articles.article_id, articles.article_title, articles.article_link, ' +
-                                'articles.article_annotation, articles.article_category_id, articles.author_id, articles.article_template_id ',
+                                'articles.article_annotation, articles.article_category_id, articles.author_id, '+ 
+                                ' articles.article_template_id, articles.article_permissions ',
                                 '',
                                     {
                                 'whereStr': categoryStr, # строка набор условий для выбора строк
@@ -419,7 +428,8 @@ class Article(Model):
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
                                 'articles.article_id, articles.article_title, articles.article_link, ' +
-                                'articles.article_annotation, articles.article_category_id, articles.author_id, articles.article_template_id ',
+                                'articles.article_annotation, articles.article_category_id, articles.author_id, '+
+                                ' articles.article_template_id, articles.article_permissions ',
                                 '',
                                     {
                                 'whereStr': autorIdStr, # строка набор условий для выбора строк
@@ -484,7 +494,7 @@ class Article(Model):
     def getOneRevision ( self, articleId, revisionHash ):
         """
         получить ОДНУ ревизию статьи  
-        у всякой ревизии есть ее уникальный Хуш!       
+        у всякой ревизии есть ее уникальный Хеш!       
         для всякого типа данных известно, как этот Хеш создается, и знаит,
         по такому Хешу мохно поднять любую трансакцию!!!!
         
@@ -495,7 +505,7 @@ class Article(Model):
         getRez = self.select(
                                'texts.article_id, revisions.revision_id, texts.article_source, annotations.annotation_text, titles.title_text, ' +
                                ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date,  revisions.author_id, revisions.revision_actual_flag, ' +
-                               'articles.article_category_id, articles.article_template_id, articles.author_id ' ,
+                               'articles.article_category_id, articles.article_template_id, articles.author_id, articles.article_permissions ' ,
                                'revisions_articles, articles',
                                    {
                                'whereStr': "  texts.text_sha_hash =  revisions.text_sha_hash" +
@@ -559,7 +569,8 @@ class Article(Model):
                                    ' revisions_articles.article_id, revisions_articles.revisions_sha_hash, ' +
                                    ' revisions_articles.article_title, revisions_articles.article_annotation, ' +
                                    ' revisions_articles.author_id, authors.author_name, authors.author_surname ' +
-                                   ' revisions_articles.revision_author_id, rev_author.author_name AS revision_author_name, rev_author.author_surname AS revision_author_surname',
+                                   ' revisions_articles.revision_author_id, rev_author.author_name AS revision_author_name, '+ 
+                                   ' rev_author.author_surname AS revision_author_surname, revisions_articles.article_permissions',
                                    
                                    ' revisions_articles, authors, authors rev_author ',
                                    
