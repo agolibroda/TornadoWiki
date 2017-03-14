@@ -74,7 +74,7 @@
                                     <li class="active"><a href="#tab-edit" data-toggle="tab">{{_("Edit Profile")}}</a></li>
                                 </ul>
                                 <div id="generalTabContent" class="tab-content">
-		{% if error %}
+		{% if parameters.error %}
 		<span style="color: red">{{_("Error")}}: {{ parameters.error }}</span><p>
 		{% end %}
                                 
@@ -89,34 +89,8 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Login")}}</label>
-
-                                                <div class="col-sm-9 controls">
-                                                        <div class="col-xs-9"> 
-                                                    <div class="row"> <input name="login" value="{{parameters.autor.author_login}}" type="text" placeholder="login" class="form-control"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Password")}}</label>
-
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-4"><input name="pass" type="password" placeholder="password" class="form-control"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Confirm Password")}}</label>
-
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-4"><input name="pass_conf" type="password" placeholder="password" class="form-control"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
                                             <hr/>
                                             <h3>{{_("Profile Setting")}}</h3>
-
-
 
                                             <div class="form-group"><label class="col-sm-3 control-label">{{_("First Name")}}</label>
 
@@ -199,7 +173,7 @@
                                                 </div>
                                             </div>
  -->                                            <hr/>
-                                            <button type="submit" class="btn btn-green btn-block">{{_("Finish")}}</button>
+                                           <!--  <button type="submit" class="btn btn-green btn-block">{{_("Finish")}}</button> -->
                                         </form>
                                     </div>
                                 </div>

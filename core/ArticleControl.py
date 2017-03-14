@@ -317,11 +317,7 @@ class ComposeHandler(BaseHandler):
     #             self.redirect("/compose" ) 
         except Exception as e:
             logging.info( 'ComposeHandler POST!!! (Save):: Exception as et = ' + str(e))
-#             error = Error ('500', 'что - то пошло не так :-( ')
-#             self.render('error.html', error=error, link='/compose', page_name='')
-#             pageName = 'Редактирование ' + artModel.article_title
-#             fileList = []
-#             self.render("compose.html", article=artModel,  fileList=fileList, link='/compose', page_name=pageName)
+            logging.info( 'Post:: Exception as traceback.format_exc() = ' + toStr(traceback.format_exc()))
             artHelper = HelperArticle()
             categoryList += yield executor.submit(artHelper.getListArticles, config.options.list_categofy_id)
             tplControl.categoryList = categoryList

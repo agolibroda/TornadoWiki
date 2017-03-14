@@ -141,23 +141,9 @@ class Article(Model):
 # Это новая таблица  - все категории, которые только озможны, и пока там  
 # вот такие категрии (служебные?) 'inf','trm','nvg','tpl'
 
-#         artModel.article_id = self.get_argument("id", 0)
-#         artModel.article_title = self.get_argument("article_title")
-#         artModel.article_annotation = self.get_argument("article_annotation")
-#         artModel.article_source = self.get_argument("article_source")
-
 
         self.author_id = author_id
        
-#         self.article_id = self.get_argument("id", 0)
-#         self.article_category_id = self.get_argument("category_id", 0)
-#         self.article_template_id = self.get_argument("template_id", 0)
-#         self.article_permissions = self.get_argument("permissions", '')
-#         
-#         article_title = self.get_argument("title", '')
-#         article_annotation = self.get_argument("annotation", '')
-#         article_source = self.get_argument("sourse", '')
-
         if int(self.article_category_id) == int(config.options.tpl_categofy_id):
             htmlTextOut = self.article_source
 
@@ -205,32 +191,30 @@ class Article(Model):
             else:
                 self.update('article_id = ' + str (self.article_id))
                 operationFlag = 'U'
+
+            revisions_sha_hash_sou = article_title + article_annotation + article_source
+
+            mainPrimaryObj = {'primaryName': 'article_id', 'primaryValue': self.article_id }
+            self.saveRevision(self.author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
     
             self.commit()
         
 # вот после всего надо сохранить шаблон в шаблоновую директорию... 
-            logging.info( 'save:: save self.article_category_id = ' + str(self.article_category_id))
-            logging.info( 'save:: save 2 self.article_category_id = ' + str(int(self.article_category_id)))
-            logging.info( 'save:: save config.options.tpl_categofy_id = ' + str(config.options.tpl_categofy_id))
-            logging.info( 'save:: save 2 config.options.tpl_categofy_id = ' + str(int(config.options.tpl_categofy_id)))
-            logging.info( 'save:: save self.article_id = ' + str(self.article_id))
+#             logging.info( 'save:: save self.article_category_id = ' + str(self.article_category_id))
+#             logging.info( 'save:: save 2 self.article_category_id = ' + str(int(self.article_category_id)))
+#             logging.info( 'save:: save config.options.tpl_categofy_id = ' + str(config.options.tpl_categofy_id))
+#             logging.info( 'save:: save 2 config.options.tpl_categofy_id = ' + str(int(config.options.tpl_categofy_id)))
+#             logging.info( 'save:: save self.article_id = ' + str(self.article_id))
                 
             if int(self.article_category_id) == int(config.options.tpl_categofy_id):
                 logging.info( 'save:: save Template! htmlTextOut = '  + str(htmlTextOut))
                  
                 wrkTpl = Template()
                 wrkTpl.save(self.article_id, htmlTextOut, templateDir)
-            
-            
-                
-            revisions_sha_hash_sou = article_title + article_annotation + article_source
-
-            mainPrimaryObj = {'primaryName': 'article_id', 'primaryValue': self.article_id }
-            self.saveRevision(self.author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
-
 
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
+            logging.info( 'Save:: Exception as traceback.format_exc() = ' + toStr(traceback.format_exc()))
             self.rollback()
              
         logging.info( 'save:: save self.article_link! = ' + self.article_link )
@@ -411,13 +395,25 @@ class Article(Model):
     
          return getRez
  
-    def listByAutorId(self, authorId = 0):
+    def listByAutorId(self, authorId = 0, spectatorId = 0):
          """
          получить список статей
          одного автор - все статьи, всех категорий!
     
          получить список статей 
          - выбираем данные из "articles" - получить при этом АКТАЛЬНЫЕ ИД ревизий!
+         
+         authorId - ИД автора статей,  
+         spectatorId - ИД зрителя - посмотреть статьи из "закрытых" групп - может только соучастник 
+         ТЕХ групп.... а если нет, то - не показывать!!! 
+         то есть, показываем 
+             - "паблик" статьи
+             - групповые из ОТКРЫТЫХ групп
+             - групповые из ЗАКРЫТЫХ групп (там, куда вхож ЗРИТЕЛЬ)
+             - Е показывать все остальное!!!!!
+             
+             а, ну если сам себя зритель?????? - показать то, что идет для незареганого пользователя!!!!!
+             потому что все статьи - пользователь может видеть на свей странице!!!!!
                  
          """
     

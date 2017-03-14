@@ -39,6 +39,9 @@ from core.models.author         import Author
 from core.BaseHandler           import *
 from core.WikiException         import *
 
+from core.models.article import Article
+
+
 
 # A thread pool to be used for password hashing with bcrypt.
 executor = concurrent.futures.ThreadPoolExecutor(2)
@@ -50,7 +53,14 @@ class AuthCreateHandler(BaseHandler):
     - страница регистрации пользователя
     """
     def get(self):
-        self.render("create_author.html", link='auth/create', page_name= 'Регистрация нового Автора', error='')
+
+        tplControl = TemplateParams()
+#         tplControl.make(self.autor)
+        tplControl.page_name='Регистрация нового Автора'
+        tplControl.link='auth/create'
+        tplControl.error=None
+        
+        self.render("create_author.html", parameters=tplControl)
 
     @gen.coroutine
     def post(self):
@@ -86,7 +96,14 @@ class AuthCreateHandler(BaseHandler):
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render("create_author.html", link='auth/create', page_name= 'Регистрация нового Автора', error=error)
+
+            tplControl = TemplateParams()
+    #         tplControl.make(self.autor)
+            tplControl.page_name='Регистрация нового Автора'
+            tplControl.link='auth/create'
+            tplControl.error=error
+            
+            self.render("create_author.html", parameters=tplControl)
 
 
 class AuthLoginHandler(BaseHandler):
@@ -94,13 +111,14 @@ class AuthLoginHandler(BaseHandler):
         
         if self.get_current_user():
             self.redirect("/personal_desk_top")
-        self.makeTplParametr()
-        self.templateParams.page_name='Страница входа'
-        self.templateParams.link='auth/login'
-        self.templateParams.error=None
-        logging.info( 'PersonalDeskTop:: self.templateParams ' + str(self.templateParams))
+
+        tplControl = TemplateParams()
+#         tplControl.make(self.autor)
+        tplControl.page_name='Страница входа'
+        tplControl.link='auth/login'
+        tplControl.error=None
         
-        self.render("login.html", parameters=self.templateParams)
+        self.render("login.html", parameters=tplControl)
 
     @gen.coroutine
     def post(self):
@@ -114,20 +132,21 @@ class AuthLoginHandler(BaseHandler):
                 self.set_secure_cookie("wiki_author", str(authorloginLoad.author_id))
                 self.redirect(self.get_argument("next", "/personal_desk_top"))
             else:
-                self.render("login.html", error="incorrect login/password", link='auth/login', page_name= 'Страница входа')
+                raise WikiException( 'incorrect login/password' )
+            
         except Exception as e:
-            logging.info( 'Save:: Exception as et = ' + str(e))
-#             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('login.html', error="incorrect password", link='auth/login', page_name= 'Страница входа')
+            logging.info( 'AuthLoginHandler:: POST Exception as et = ' + str(e))
+
+            tplControl.error="incorrect login/password"
+            tplControl.link='auth/login'
+            tplControl.page_name='Страница входа'
+            self.render('login.html', parameters = tplControl )
 
 
 class AuthLogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie("wiki_author")
         self.redirect(self.get_argument("next", "/"))
-
-
-
 
 
 class MyProfileHandler(BaseHandler):
@@ -154,13 +173,25 @@ class MyProfileHandler(BaseHandler):
             logging.info( 'MyProfileHandler GET :: curentAuthor = ' + str(curentAuthor))
 
             if not curentAuthor.author_id: raise tornado.web.HTTPError(404, "data not found")
+
+            tplControl = TemplateParams()
+            tplControl.make(self.autor)
+            tplControl.page_name= curentAuthor.author_name + ' '+ curentAuthor.author_surname
+            tplControl.link='profile'
+            tplControl.error=None
+            tplControl.autor=curentAuthor
             
+            self.render("my_profile.html", parameters=tplControl)
             
-            self.render("my_profile.html", autor=curentAuthor, link='profile', page_name=curentAuthor.author_name + ' '+ curentAuthor.author_surname, error='' )
         except Exception as e:
-            logging.info( 'MyProfileHandler:: Exception as et = ' + str(e))
+            logging.info( 'MyProfileHandler::GET Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error, link='profile', page_name=' Error Page ')
+            
+            tplControl.error=error
+            tplControl.link='/profile'
+            tplControl.page_name=' Error Page '+ curentAuthor.author_name + ' '+ curentAuthor.author_surname
+#             self.render('error.html', parameters = tplControl )
+            self.render("my_profile.html", parameters=tplControl)
 
     @gen.coroutine
     def post(self):
@@ -206,46 +237,79 @@ class MyProfileHandler(BaseHandler):
             logging.info( 'MyProfileHandler  post rez = ' + str(rez))
             
             self.set_secure_cookie("wiki_author", str(authorLoc.author_id))
-            self.render("my_profile.html", autor=authorLoc, link='profile', page_name=authorLoc.author_name + ' '+ authorLoc.author_surname, error='' )
+            
+            tplControl = TemplateParams()
+    #         tplControl.make(self.autor)
+            tplControl.page_name = authorLoc.author_name + ' '+ authorLoc.author_surname
+            tplControl.link='profile'
+            tplControl.error=None
+            tplControl.autor=authorLoc
+            
+            self.render("my_profile.html", parameters=tplControl)
         except Exception as e:
             logging.info( 'MyProfileHandler Post:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render("my_profile.html", autor=authorLoc, link='profile', page_name=authorLoc.author_name + ' '+ authorLoc.author_surname, error=str(e) )
- 
-
-
+            
+            tplControl.error=str(e)
+            tplControl.link='/profile'
+            tplControl.page_name = authorLoc.author_name + ' '+ authorLoc.author_surname
+            tplControl.autor=authorLoc
+            self.render('my_profile.html', parameters = tplControl )
 
 
 class AuthorProfile(BaseHandler):
     """
     показать профиль любого пользователя
+    Это надо показать и профиль пользователя (открытую часть)
+    и список его статей (ПУБЛИЧНУЮ часть!!!!!)
     
     """
     @tornado.web.authenticated
     @gen.coroutine
-    def get(self):
+    def get(self, presentAuthorId = 0):
         """
         и шаблон должен быть что - то типа "просмотр данных пользователя" -) 
 
         """
         try:
-
-            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
+            # от его имени ведутся все расмотреня.... 
+            spectatorAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
     #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
     #         curentAuthor = rezult.result()
             
-            if not curentAuthor.author_id: return None
+            if not spectatorAuthor.author_id: return None
             
             logging.info( 'AdminHomeHandler:: get ')
-            artControl = ControlArticle()
-            articles = yield executor.submit( artControl.getListArticles )
+            logging.info( 'AdminHomeHandler:: get presentAuthorId = ' + str (presentAuthorId))
+#             presentAuthorId
+# Надо загрузить описание пользователя ИД.... 
+            
+            artControl = Article()
+            authorControl = Author()
+            articles = yield executor.submit( artControl.listByAutorId, presentAuthorId, spectatorAuthor.author_id )
     
-    
-            self.render(config.options.adminTplPath+"my_profile.html", articles=articles )
+            tplControl = TemplateParams()
+            tplControl.make(spectatorAuthor)
+            tplControl.autor = yield executor.submit( authorControl.get, presentAuthorId )
+            tplControl.articlesList= articles
+#             да, надо найти пользователя по его ИД, и вот тут его передать в шаблон!
+#             да и список пользовательских статей надо показать!!!!!!
+#             падение черного ястреба
+            
+            tplControl.page_name='Page of Author '
+            tplControl.link='profile'
+            tplControl.error=None
+            
+            self.render("any_profile.html", parameters=tplControl)
+
         except Exception as e:
-            logging.info( 'Save:: Exception as et = ' + str(e))
+            logging.info( 'AuthorProfile:: GET Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error, link='profile', page_name='Error Page')
+            
+            tplControl.error=error
+            tplControl.link='profile'
+            tplControl.page_name='Error Page'
+            self.render('error.html', parameters = tplControl )
 
 
 
