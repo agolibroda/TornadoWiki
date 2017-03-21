@@ -10,9 +10,11 @@ from __future__ import print_function
 import logging
 
 import json
+import string # string.Template
 
 import zlib
 # import markdown
+
 
 import tornado.options
 # import pymysql
@@ -199,13 +201,6 @@ class Article(Model):
     
             self.commit()
         
-# вот после всего надо сохранить шаблон в шаблоновую директорию... 
-#             logging.info( 'save:: save self.article_category_id = ' + str(self.article_category_id))
-#             logging.info( 'save:: save 2 self.article_category_id = ' + str(int(self.article_category_id)))
-#             logging.info( 'save:: save config.options.tpl_categofy_id = ' + str(config.options.tpl_categofy_id))
-#             logging.info( 'save:: save 2 config.options.tpl_categofy_id = ' + str(int(config.options.tpl_categofy_id)))
-#             logging.info( 'save:: save self.article_id = ' + str(self.article_id))
-                
             if int(self.article_category_id) == int(config.options.tpl_categofy_id):
                 logging.info( 'save:: save Template! htmlTextOut = '  + str(htmlTextOut))
                  
@@ -229,8 +224,8 @@ class Article(Model):
 # процедура - сохранить трансакцию!!!!!
 
 
-    def get(self, articleLink):
-         """
+    def get(self, articleLink, spectatorId = 0):
+        """
          получить статью по названию (одну) - функция для пердставления данных (!!!) 
          получить ОЛЬКО опубликованный текст  (активную статью) - для редактирования получаем статью иным образом! 
     
@@ -238,29 +233,67 @@ class Article(Model):
          выбираем данные из "article" и "articles" берем как ХТМЛ, так и РТФ ну и активный тайтл (ил "articles")
          имя ищем по ХЕШУ в таблице "titles"
          
+         Кстати, статьи бывают не только "публичными" а и групповыми и ЛИЧНЫМИ!!!
+         
          """
-         logging.info( 'Article ::: get articleLink  = ' + str(articleLink))
+        logging.info( 'Article ::: get articleLink  = ' + str(articleLink))
+        logging.info( 'Article ::: get spectatorId  = ' + str(spectatorId))
     
-         article_link = base64.b64encode(tornado.escape.utf8(articleLink)).decode(encoding='UTF-8')
+        article_link = base64.b64encode(tornado.escape.utf8(articleLink)).decode(encoding='UTF-8')
 
 #          articleLink = hashlib.sha256(
 #                                      tornado.escape.utf8(articleLink)
 #                                      ).hexdigest()  #.decode(encoding='UTF-8')
 #     
-         getRez = self.select(
+     
+        if int(spectatorId) == 0:
+            getRez = self.select(
                                 ' DISTINCT articles.article_id, articles.article_title, articles.article_link, ' + 
                                 'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, ' + 
                                 ' articles.article_template_id, articles.article_permissions ',
                                 ' revisions_articles lfind ',
                                     {
                                 'whereStr': " articles.article_id = lfind.article_id " +
+                                            " AND articles.article_permissions = 'pbl' "
                                              " AND lfind.article_link = '" + article_link  + "' " , # строка набор условий для выбора строк
                                  }
                                 )
+        else:
+            strTpl = """
+                   SELECT 
+                   articles.article_id, articles.article_title, articles.article_link, 
+                   articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, 
+                   articles.article_template_id, articles.article_permissions
+                   FROM articles, revisions_articles lfind 
+                   WHERE articles.article_permissions = 'pbl'
+                   AND articles.article_id = lfind.article_id 
+                   AND lfind.article_link = '${aLink}'
+                   UNION
+                   SELECT 
+                   articles.article_id, articles.article_title, articles.article_link, 
+                   articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, 
+                   articles.article_template_id, articles.article_permissions  
+                   FROM articles, groups, librarys, revisions_articles lfind 
+                   WHERE  articles.article_permissions = 'grp'
+                   AND groups.author_id = articles.author_id
+                   AND groups.author_id = $sId
+                   AND groups.group_id = librarys.group_id
+                   AND librarys.article_id = articles.article_id
+                   AND articles.article_id = lfind.article_id 
+                   AND lfind.article_link = '${aLink}'        
+                    """
+                    #   article_id 
+            tplWrk = string.Template(strTpl) # strTpl
+            strSelect = tplWrk.substitute(sId=str(spectatorId), aLink=article_link)
+            
+            logging.info( 'Article ::: get strSelect  = ' + str(strSelect))
+            
+            getRez = self.rowSelect(str(strSelect)) 
+
     
-         if len(getRez) == 0:
+        if len(getRez) == 0:
             raise WikiException( ARTICLE_NOT_FOUND )
-         elif len(getRez) == 1:   
+        elif len(getRez) == 1:   
             outArt = getRez[0]
             outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
             outArt.article_link = base64.b64decode(outArt.article_link).decode(encoding='UTF-8')
@@ -270,12 +303,6 @@ class Article(Model):
 
             logging.info( 'get outArt = ' + str(outArt))
 
-#        textControl.text_html = base64.b64encode(
-#                                     zlib.compress(
-#                                         tornado.escape.utf8(self.article_html)
-#                                                 )
-#                                                     ).decode(encoding='UTF-8')
-#      
             return outArt
 
 
@@ -396,58 +423,92 @@ class Article(Model):
          return getRez
  
     def listByAutorId(self, authorId = 0, spectatorId = 0):
-         """
-         получить список статей
-         одного автор - все статьи, всех категорий!
-    
-         получить список статей 
-         - выбираем данные из "articles" - получить при этом АКТАЛЬНЫЕ ИД ревизий!
-         
-         authorId - ИД автора статей,  
-         spectatorId - ИД зрителя - посмотреть статьи из "закрытых" групп - может только соучастник 
-         ТЕХ групп.... а если нет, то - не показывать!!! 
-         то есть, показываем 
-             - "паблик" статьи
-             - групповые из ОТКРЫТЫХ групп
-             - групповые из ЗАКРЫТЫХ групп (там, куда вхож ЗРИТЕЛЬ)
-             - Е показывать все остальное!!!!!
-             
-             а, ну если сам себя зритель?????? - показать то, что идет для незареганого пользователя!!!!!
-             потому что все статьи - пользователь может видеть на свей странице!!!!!
-                 
-         """
-    
-         autorIdStr = '';
-         if authorId > 0 :
-             autorIdStr = ' articles.author_id  = ' + str(authorId)
-             
-         getRez = self.select(
-    #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
-                                'articles.article_id, articles.article_title, articles.article_link, ' +
-                                'articles.article_annotation, articles.article_category_id, articles.author_id, '+
-                                ' articles.article_template_id, articles.article_permissions ',
-                                '',
-                                    {
-                                'whereStr': autorIdStr, # строка набор условий для выбора строк
-                                'orderStr': ' articles.article_id ', # строка порядок строк
-    #                                'orderStr': 'FROM_BASE64( articles.article_title )', # строка порядок строк
-                                 }
-                                )
-    
-         logging.info( 'list:: getRez = ' + str(getRez))
-         if len(getRez) == 0:
-#             raise WikiException( ARTICLE_NOT_FOUND )
-            return []
-         
-         for oneObj in getRez:
-             oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
-             oneObj.article_link = base64.b64decode(oneObj.article_link).decode(encoding='UTF-8')
-#              articleTitle = oneObj.article_title.strip().strip(" \t\n")
-#              oneObj.article_link  =  articleTitle.lower().replace(' ','_')
-             oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
-#              logging.info( 'list:: After oneArt = ' + str(oneObj))
-    
-         return getRez
+        """
+        получить список статей
+        одного автор - все статьи, всех категорий!
+        
+        получить список статей 
+        - выбираем данные из "articles" - получить при этом АКТАЛЬНЫЕ ИД ревизий!
+        
+        authorId - ИД автора статей,  
+        spectatorId - ИД зрителя - посмотреть статьи из "закрытых" групп - может только соучастник 
+        Если authorId == spectatorId Значит это сам автор просматривает свои материалы.  
+        
+        ТЕХ групп.... а если нет, то - не показывать!!! 
+        то есть, показываем 
+            - "паблик" статьи
+            - групповые из ОТКРЫТЫХ групп
+            - групповые из ЗАКРЫТЫХ групп (там, куда вхож ЗРИТЕЛЬ)
+            - Е показывать все остальное!!!!!
+            
+            а, ну если сам себя зритель?????? - показать то, что идет для незареганого пользователя!!!!!
+            потому что все статьи - пользователь может видеть на свей странице!!!!!
+                
+        """
+        if int(spectatorId) > 0 and int(spectatorId) != int(authorId):
+            strTpl = """
+                   SELECT 
+                   articles.article_id, decode(article_title, 'base64') AS order, articles.article_title, articles.article_link, articles.article_annotation, 
+                   articles.article_category_id, 
+                   articles.author_id,  articles.article_template_id, articles.article_permissions,
+                   null AS group_title, null AS group_annotation,  null AS group_id 
+                   FROM articles 
+                   WHERE  articles.author_id  = $aId 
+                   AND articles.article_permissions = 'pbl'
+                   UNION
+                   SELECT 
+                   articles.article_id, decode(article_title, 'base64') AS order, articles.article_title, articles.article_link, articles.article_annotation, 
+                   articles.article_category_id, 
+                   articles.author_id,  articles.article_template_id, articles.article_permissions,
+                       groups.group_title, groups.group_annotation, groups.group_id  
+                   FROM articles, groups, librarys
+                   WHERE  articles.author_id  = $aId 
+                   AND articles.article_permissions = 'grp'
+                   AND groups.author_id = articles.author_id
+                   AND groups.author_id = $sId
+                   AND groups.group_id = librarys.group_id
+                   AND librarys.article_id = articles.article_id
+                   ORDER BY 2 
+        
+                    """
+                    #   article_id 
+            tplWrk = string.Template(strTpl) # strTpl
+            strSelect = tplWrk.substitute(aId=str(authorId), sId=str(spectatorId))
+            getRez = self.rowSelect(str(strSelect)) 
+        else:
+            autorIdStr = '';
+            if authorId > 0 :
+                autorIdStr = ' articles.author_id  = ' + str(authorId)
+            getRez = self.select(
+        #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
+                   " articles.article_id, decode(article_title, 'base64') AS order,  articles.article_title, articles.article_link, " +
+                   " articles.article_annotation, articles.article_category_id, articles.author_id, "+
+                   " articles.article_template_id, articles.article_permissions, " +
+                   " groups.group_title, groups.group_annotation, groups.group_id " ,
+                   "",
+                       {
+                   "joinStr": "LEFT JOIN librarys ON librarys.article_id = articles.article_id LEFT JOIN groups ON groups.group_id = librarys.group_id",
+                   "whereStr": autorIdStr , # строка набор условий для выбора строк
+                   "orderStr": " 2 ", #  articles.article_id строка порядок строк
+        #                                "orderStr": "FROM_BASE64( articles.article_title )", # строка порядок строк
+                    }
+                   )
+        
+                
+        logging.info( 'listByAutorId:: getRez = ' + str(getRez))
+        if len(getRez) == 0:
+        #             raise WikiException( ARTICLE_NOT_FOUND )
+           return []
+        
+        for oneObj in getRez:
+            oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
+            oneObj.article_link = base64.b64decode(oneObj.article_link).decode(encoding='UTF-8')
+        #              articleTitle = oneObj.article_title.strip().strip(" \t\n")
+        #              oneObj.article_link  =  articleTitle.lower().replace(' ','_')
+            oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
+        #              logging.info( 'list:: After oneArt = ' + str(oneObj))
+        
+        return getRez
    
     
     def get2Edit( self, articleId, revisionId ):

@@ -27,31 +27,12 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <div class="text-center mbl"><img src="http://lorempixel.com/640/480/business/1/" alt="" class="img-responsive"/></div>
-                                    <div class="text-center mbl"><a href="#" class="btn btn-green"><i class="fa fa-upload"></i>&nbsp;
-                                         {{_("Upload")}}</a></div>
                                 </div>
                                 <table class="table table-striped table-hover">
                                     <tbody>
                                     <tr>
                                         <td>{{_("Autor Name")}}</td>
-                                        <td>{{ parameters.page_name }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>{{_("Email")}}</td>
-                                        <td>{{parameters.autor.author_email}}</td>
-                                    </tr>
-<!--                                     <tr>
-                                        <td>{{_("Address")}}</td>
-                                        <td>Street 123, Avenue 45, Country</td>
-                                    </tr>
-                                    <tr>
-                                        <td>{{_("Autor Status")}}</td>
-                                        <td><span class="label label-success">Active</span></td>
-                                    </tr>
- -->
-                                     <tr>
-                                        <td>{{_("Autor Role")}}</td>
-                                        <td><span class="label label-success">{{parameters.autor.author_role}}</span></td>
+                                        <td>{{parameters.autor.author_name}} {{parameters.autor.author_surname}}</td>
                                     </tr>
                                     <tr>
                                         <td>{{_("Member Since")}}</td>
@@ -70,111 +51,43 @@
 								</div>
                             </div>
                             <div class="col-md-9">
-                                <ul class="nav nav-tabs">
-                                    <li class="active"><a href="#tab-edit" data-toggle="tab">{{_("Edit Profile")}}</a></li>
-                                </ul>
                                 <div id="generalTabContent" class="tab-content">
-		{% if parameters.error %}
-		<span style="color: red">{{_("Error")}}: {{ parameters.error }}</span><p>
-		{% end %}
                                 
                                     <div id="tab-edit" class="tab-pane fade in active">
-                                        <form action="#" class="form-horizontal"><h3>{{_("Account Setting")}}</h3>
 
-                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Email")}}</label>
+                                            <h3></h3>
 
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9"><input name="email" value="{{parameters.autor.author_email}}" type="email" placeholder="email@yourcompany.com" class="form-control"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                    вот тут будет список статей (articles)  
+                                    и группе
+                                     
                                             <hr/>
-                                            <h3>{{_("Profile Setting")}}</h3>
 
-                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("First Name")}}</label>
-
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9"><input name="name" value="{{parameters.autor.author_name}}"  type="text" placeholder="first name" class="form-control"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Last Name")}}</label>
-
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9"><input type="text"name="surname" value="{{parameters.autor.author_surname}}"  placeholder="last name" class="form-control"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-<!--                                             <div class="form-group"><label class="col-sm-3 control-label">{{_("Gender")}}</label>
-
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9">
-                                                            <div class="radio"><label class="radio-inline"><input type="radio" value="0" name="gender" checked="checked"/>&nbsp;
-                                                                {{_("Male")}}</label><label class="radio-inline"><input type="radio" value="1" name="gender"/>&nbsp;
-                                                                {{_("Female")}}</label></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label"{{_("Birthday")}}"></label>
-
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-4"><input id="datepicker-normal" name="birthday" value="{{parameters.autor.author_surname}}" type="text" class="form-control"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Birthday")}}x</label>
-
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9"><textarea rows="3" class="form-control"></textarea></div>
-                                                    </div>
-                                                </div>
-                                            </div>
- -->                                            <hr/>
                                             
-                                            <h3>{{_("Contact Setting")}}</h3>
+                                            <h3></h3>
 
-                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Mobile Phone")}}</label>
+              <div class="row">
+          <div class="panel panel-yellow">
+              <div class="panel-heading">{{_("Articles list")}} &nbsp;&nbsp;&nbsp; 
+              <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose">{{ _("Create new wiki") }}</a></span>
+              			</div>
+              <div class="panel-body" id='articles_list_table'>
+              
+              {% include "rest/articles_list.html" %} 
+              
+              </div>
+          </div>
+          <div class="panel panel-green">
+              <div class="panel-heading">{{_("Groups list")}}</div>
+              <div class="panel-body" id="all_group_list">
+              
+              {% include "rest/all_group_list.html" %} 
 
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="mobile phone" class="form-control" name="phon" value="{{parameters.autor.author_phon}}" /></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-<!--                                             <div class="form-group"><label class="col-sm-3 control-label"{{_("Website")}}"></label>
+              </div>
+          </div>
+ 			</div>
 
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="website" class="form-control" name="name" value="{{parameters.autor.author_login}}"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Facebook")}}</label>
 
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="facebook" class="form-control" name="name" value="{{parameters.autor.author_login}}"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group"><label class="col-sm-3 control-label">{{_("Facebook")}}x</label>
-
-                                                <div class="col-sm-9 controls">
-                                                    <div class="row">
-                                                        <div class="col-xs-9"><input type="text" placeholder="twitter" class="form-control" name="name" value="{{parameters.autor.author_login}}"/></div>
-                                                    </div>
-                                                </div>
-                                            </div>
- -->                                            <hr/>
-                                           <!--  <button type="submit" class="btn btn-green btn-block">{{_("Finish")}}</button> -->
-                                        </form>
+                                            <hr/>
                                     </div>
                                 </div>
                             </div>

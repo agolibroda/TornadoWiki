@@ -127,8 +127,6 @@ class AuthLoginHandler(BaseHandler):
     
             rezult = yield executor.submit( authorloginLoad.login, self.get_argument("login"), self.get_argument("password") )
             if rezult:
-                logging.info( 'AuthLoginHandler  authorloginLoad = ' + str(authorloginLoad))
-                
                 self.set_secure_cookie("wiki_author", str(authorloginLoad.author_id))
                 self.redirect(self.get_argument("next", "/personal_desk_top"))
             else:
@@ -137,6 +135,7 @@ class AuthLoginHandler(BaseHandler):
         except Exception as e:
             logging.info( 'AuthLoginHandler:: POST Exception as et = ' + str(e))
 
+            tplControl = TemplateParams()
             tplControl.error="incorrect login/password"
             tplControl.link='auth/login'
             tplControl.page_name='Страница входа'
@@ -175,7 +174,7 @@ class MyProfileHandler(BaseHandler):
             if not curentAuthor.author_id: raise tornado.web.HTTPError(404, "data not found")
 
             tplControl = TemplateParams()
-            tplControl.make(self.autor)
+            tplControl.make(curentAuthor)
             tplControl.page_name= curentAuthor.author_name + ' '+ curentAuthor.author_surname
             tplControl.link='profile'
             tplControl.error=None
@@ -270,6 +269,8 @@ class AuthorProfile(BaseHandler):
         """
         и шаблон должен быть что - то типа "просмотр данных пользователя" -) 
 
+        presentAuthorId - ИД автора, которого рассматриваем!
+        
         """
         try:
             # от его имени ведутся все расмотреня.... 
@@ -284,19 +285,21 @@ class AuthorProfile(BaseHandler):
 #             presentAuthorId
 # Надо загрузить описание пользователя ИД.... 
             
-            artControl = Article()
             authorControl = Author()
-            articles = yield executor.submit( artControl.listByAutorId, presentAuthorId, spectatorAuthor.author_id )
     
             tplControl = TemplateParams()
             tplControl.make(spectatorAuthor)
-            tplControl.autor = yield executor.submit( authorControl.get, presentAuthorId )
-            tplControl.articlesList= articles
+            tplControl.autor = yield executor.submit( authorControl.get, int(presentAuthorId) )
+            artControl = Article()
+            articles = yield executor.submit( artControl.listByAutorId, int(presentAuthorId), spectatorAuthor.author_id )
+            tplControl.articlesList = articles
+            groupModel = Group()
+            tplControl.allGroupsList = yield executor.submit( groupModel.list )
 #             да, надо найти пользователя по его ИД, и вот тут его передать в шаблон!
 #             да и список пользовательских статей надо показать!!!!!!
 #             падение черного ястреба
             
-            tplControl.page_name='Page of Author '
+            tplControl.page_name='Page of Author ' + tplControl.autor.author_name + ' ' + tplControl.autor.author_surname
             tplControl.link='profile'
             tplControl.error=None
             
@@ -306,14 +309,11 @@ class AuthorProfile(BaseHandler):
             logging.info( 'AuthorProfile:: GET Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
             
+            tplControl = TemplateParams()
             tplControl.error=error
             tplControl.link='profile'
             tplControl.page_name='Error Page'
             self.render('error.html', parameters = tplControl )
-
-
-
-
 
 # 
 # class ProfileHandler(BaseHandler):

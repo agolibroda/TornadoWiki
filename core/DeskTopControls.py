@@ -72,19 +72,15 @@ class PersonalDeskTop(BaseHandler):
         """
         try:
             author = self.get_current_user() 
-            logging.info( 'PersonalDeskTop:: author ' + str(author))
-    
     
             tplControl = TemplateParams()
             tplControl.make(author)
 
-            logging.info( ' PersonalDeskTop:: tplControl = ' + toStr(tplControl))
-            
             tplControl.page_name = 'Рабочий стол ' + author.author_name
             tplControl.link='personal_desk_top'
 
             artHelper = HelperArticle()
-            tplControl.personalArticlesList = yield executor.submit( artHelper.getListArticlesByAutorId, author.author_id )
+            tplControl.personalArticlesList = yield executor.submit( artHelper.getListArticlesByAutorId, author.author_id, author.author_id )
             groupModel = Group()
             tplControl.autorGroupList = yield executor.submit( groupModel.grouplistForAutor, author.author_id )
             artHelper = HelperArticle()
@@ -95,8 +91,6 @@ class PersonalDeskTop(BaseHandler):
             authorModel = Author()
             authorList = yield executor.submit( authorModel.list )
             tplControl.allAuthorsList = authorList
-
-            logging.info( ' PersonalDeskTop:: tplControl = ' + core.Helpers.toStr(tplControl))
 
             self.render("personal_dt.html", parameters= tplControl ) 
 
@@ -123,10 +117,8 @@ class GroupDeskTop(BaseHandler):
 
         """
         try:
-            logging.info( 'GroupDeskTop:: get group_id = ' + str(group_id))
 
             author = self.get_current_user() 
-#             logging.info( 'PersonalDeskTop:: author ' + str(author))
 
             if not author.author_id: return None
 
@@ -139,12 +131,8 @@ class GroupDeskTop(BaseHandler):
                 groupData = yield executor.submit( groupModel.get, group_id )
                 groupName = groupData.group_title 
 
-            logging.info( 'GroupDeskTop:: get groupData = ' + str(groupData))
-                
             tplControl = TemplateParams()
-            logging.info( ' GroupDeskTop:: tplControl = ' + core.Helpers.toStr(tplControl))
             tplControl.make(author)
-            logging.info( ' GroupDeskTop:: tplControl = ' + core.Helpers.toStr(tplControl))
             tplControl.page_name = groupName 
             tplControl.groupData = groupData
 
@@ -158,8 +146,6 @@ class GroupDeskTop(BaseHandler):
             else:
                 tplControl.link='group_desk_top/' + str(group_id)   
 
-#             logging.info( ' GroupDeskTop:: tplControl = ' + toStr(tplControl))
-
             self.render("group_dt.html", parameters= tplControl)
         except Exception as e:
             logging.info( 'GroupDeskTop Get:: Exception as et = ' + str(e))
@@ -171,9 +157,7 @@ class GroupDeskTop(BaseHandler):
     @gen.coroutine
     def post(self, group_id=0):
         try:
-            logging.info( 'GroupDeskTop:: post group_id = ' + str(group_id))
             author = self.get_current_user() 
-            logging.info( 'PersonalDeskTop:: author ' + str(author))
     
             groupModel = Group()
     
@@ -182,10 +166,7 @@ class GroupDeskTop(BaseHandler):
             groupModel.group_annotation = self.get_argument("annotation")
             groupModel.group_status = self.get_argument("status", 'pbl')                                
             
-            logging.info( 'GroupDeskTop:: Before Save! groupModel = ' + str(groupModel))
-            
             rez = yield executor.submit( groupModel.save, author.author_id )
-    #         logging.info( 'GroupDeskTop:: AFTER Save! groupModel = ' + str(groupModel))
             
             self.redirect("/group_desk_top/" + str(groupModel.group_id))
         except Exception as e:
@@ -214,11 +195,6 @@ class GroupAdmDeskTop(BaseHandler):
 
         """
         try:
-#             logging.info( 'AdminHomeHandler:: get ')
-#             artControl = ControlArticle()
-#             articles = yield executor.submit( artControl.getListArticles )
-    
-    
             self.render(config.options.adminTplPath+"admin_home.html", articles=articles, tplCategory=config.options.tpl_categofy_id )
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
@@ -244,11 +220,6 @@ class SysAdmDeskTop(BaseHandler):
 
         """
         try:
-            logging.info( 'AdminHomeHandler:: get ')
-#             artControl = ControlArticle()
-#             articles = yield executor.submit( artControl.getListArticles )
-    
-    
             self.render(config.options.adminTplPath+"admin_home.html", articles=articles, tplCategory=config.options.tpl_categofy_id )
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))

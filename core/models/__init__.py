@@ -272,6 +272,29 @@ class Model: #Connector:
             self.rollback()
             raise WikiException(error)
 
+    def rowSelect(self, 
+               selectRow, # строка - селект
+               ):
+        """
+        получить данные (select)
+        - из просто самого обычного селекта, - СТРОКИ 
+        
+              
+        """
+        try:
+            _loDb = self.cursor()
+            _loDb.execute(selectRow)
+            sourse = _loDb.fetchall()
+            logging.info('select:: list:: sourse = ' + str (sourse) )
+            outListObj = self.dict2obj(sourse)    
+ 
+            return outListObj
+
+        except psycopg2.Error as error:
+            logging.error(' rowSelect exception:: sqlStr = ' + sqlStr )
+            self.rollback()
+            raise WikiException(error)
+
 
     def splitAttributes(self):
         """

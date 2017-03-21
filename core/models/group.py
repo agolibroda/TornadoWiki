@@ -156,8 +156,9 @@ class Group(Model):
             """
 
             getRez = self.select(
-                    'articles.article_id, articles.article_title, articles.article_link, ' +
-                    'articles.article_annotation, articles.article_category_id, articles.author_id, articles.article_template_id ',
+                    ' articles.article_id, articles.article_title, articles.article_link, ' +
+                    ' articles.article_annotation, articles.article_category_id, articles.author_id, articles.article_template_id, ' +
+                    ' null AS group_title, null AS group_annotation,  null AS group_id ',
                     'articles',
                         {
                     'whereStr': " librarys.article_id = articles.article_id AND  librarys.group_id = " + str(groupId) , # строка набор условий для выбора строк

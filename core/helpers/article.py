@@ -53,21 +53,16 @@ class HelperArticle():
 
     def getArticleById(self, articleId):
         logging.info( ' getArticleById:: articleId = ' + str(articleId))
-        try:
-            article = self.artModel.getById( articleId )
-            if not article: raise tornado.web.HTTPError(404)
-            fileModel = File()
+        article = self.artModel.getById( articleId )
+        if not article: raise tornado.web.HTTPError(404)
+        fileModel = File()
 # вот тут надо посмотреть - что - то не работает выбор файлов!!!!!!!
-            fileList = fileModel.getFilesListForArticle( articleId, config.options.to_out_path)
-                
+        fileList = fileModel.getFilesListForArticle( articleId, config.options.to_out_path)
+            
 #             logging.info( 'getArticleById:: article = ' + str(article))
 #             logging.info( 'getArticleById:: fileList = ' + str(fileList))
-            return (article, fileList)
-        except WikiException as e:   
-#             WikiException( ARTICLE_NOT_FOUND )
-            logging.info( 'getArticleById::Have ERROR!!!  ' + str(e))
-            if not article: raise tornado.web.HTTPError(404)
-            else: return (article, [])
+        return (article, fileList)
+     
      
     
     def getListArticles(self, categoryId = 0):
@@ -83,21 +78,16 @@ class HelperArticle():
             return []
 
 
-    def getListArticlesByAutorId(self, authorId = 0):
+    def getListArticlesByAutorId(self, authorId = 0, spectatorId = 0):
         """
         получить список статей одного автора
         
         """
-        try:
-            rezult = self.artModel.listByAutorId (authorId)
-            if not rezult: rezult = []
-    #         logging.info( 'getListArticles:: rezult = ' + str(rezult))
-            return  rezult #.result()
+        rezult = self.artModel.listByAutorId (authorId, spectatorId)
+        if not rezult: rezult = []
+#         logging.info( 'getListArticles:: rezult = ' + str(rezult))
+        return  rezult #.result()
 
-        except Exception as e:
-            logging.info( 'getListArticlesByAutorId:: Exception as et = ' + str(e))
-            error = Error ('500', 'что - то пошло не так :-( ')
-            return []
 
 
     def getArticleByIdRevId(self, articleId, revId):
@@ -108,40 +98,28 @@ class HelperArticle():
  
         if articleId and revId:
             fileModel = File()
-            try:
-                article =  self.artModel.get2Edit(articleId, revId)
-               
-                fileList = fileModel.getFilesListForArticle( articleId, config.options.to_out_path)
-                return (article, fileList)
-#             except Exception as e:   
-            except WikiException as e:   
-#             WikiException( ARTICLE_NOT_FOUND )
-                logging.info( 'getArticleByIdRevId:: e = ' + str(e))
-#                 return (self.artModel, [])
-                if not article: raise tornado.web.HTTPError(404)
-                else: return (article, [])
+            article =  self.artModel.get2Edit(articleId, revId)
+           
+            fileList = fileModel.getFilesListForArticle( articleId, config.options.to_out_path)
+            return (article, fileList)
             
 
         
-    def getArticleByName(self, articleName):
+    def getArticleByName(self, articleName, spectatorId):
         """
         получить статью по ее названию (не линка, а название!!!!! )
         хотя, по - идее, надо поредакитровать и сначала превратить навание в линку...
         
+        articleName - базе64 - кодированное имя статьи
+        spectatorId - ИД пользователя, которые ищет/смотрит статью!!!!!
+        
         """
         fileModel = File()
-        try:
-            articleLink = articleName.strip().strip(" \t\n")
-            article = self.artModel.get( articleLink )
-            fileList =  fileModel.getFilesListForArticle( article.article_id, 
-                                                        config.options.to_out_path)
-            return (article, fileList)
-        except WikiException as e:   
-#             WikiException( ARTICLE_NOT_FOUND )
-            logging.info( 'getArticleByName:: e = ' + str(e))
-#             return (self.artModel, [])
-            if not article: raise tornado.web.HTTPError(404)
-            else: return (article, [])
+        articleLink = articleName.strip().strip(" \t\n")
+        article = self.artModel.get( articleLink, spectatorId )
+        fileList =  fileModel.getFilesListForArticle( article.article_id, 
+                                                    config.options.to_out_path)
+        return (article, fileList)
 
 
     def getArticleHash(self, articleHash):
@@ -151,18 +129,11 @@ class HelperArticle():
         
         """
         fileModel = File()
-        try:
-            article = self.artModel.getByUsingHash( articleHash )
-            logging.info( ' getArticleHash:: article.article_id = ' + str(article.article_id))
-            fileList =  fileModel.getFilesListForArticle( article.article_id, 
-                                                        config.options.to_out_path)
-            return (article, fileList)
-        except WikiException as e:   
-#             WikiException( ARTICLE_NOT_FOUND )
-            logging.info( 'getArticleByName:: e = ' + str(e))
-#             return (self.artModel, [])
-            if not article: raise tornado.web.HTTPError(404)
-            else: return (article, [])
+        article = self.artModel.getByUsingHash( articleHash )
+        logging.info( ' getArticleHash:: article.article_id = ' + str(article.article_id))
+        fileList =  fileModel.getFilesListForArticle( article.article_id, 
+                                                    config.options.to_out_path)
+        return (article, fileList)
 
 
     def сomposeArticleSave(self, author_id, templateDir, article_pgroipId):
