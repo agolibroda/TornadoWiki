@@ -43,13 +43,13 @@ define("tmpTplPath", default=r"tmp", help="Path to user`s Template Area")
 define("tplExtension", default=r".html", help="Template file Extension")
 
 
-define("main_page_id", default=5, help="Id of Main User Page")
-define("info_page_categofy_id", default=4, help="Information Page Category")
-
 define("list_categofy_id", default=1, help="Information Page Category")
 
-define("tpl_categofy_id", default=3, help="Template Page Category")
-define("main_info_template", default=6, help="Main tmplate of inforation page")
+define("info_page_categofy_id", default=3, help="Information Page Category")
+define("tpl_categofy_id", default=4, help="Template Page Category")
+
+define("main_info_template", default=5, help="Main tmplate of inforation page")
+define("main_page_id", default=6, help="Id of Main User Page")
 
 
 

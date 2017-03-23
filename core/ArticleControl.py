@@ -155,6 +155,9 @@ class ArticleHandler(BaseHandler):
 
         try:
             
+            spectator = self.get_current_user()
+            logging.info( 'ArticleHandler get spectator = ' + str(spectator))
+            
             artHelper = HelperArticle()
             articleLink = articleName.strip().strip(" \t\n")
             articleLink =  articleLink.lower().replace(' ','_')
@@ -162,7 +165,7 @@ class ArticleHandler(BaseHandler):
 
             logging.info( 'ArticleHandler get articleLink = ' + str(articleLink))
             
-            (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleLink )
+            (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleLink, spectator.author_id )
        
        # а вот тут я должен получить и распарсить шаблон - как - текст в статьях (особой категории!!!!)
             if article.article_id == 0 : 
@@ -176,8 +179,9 @@ class ArticleHandler(BaseHandler):
             self.render(templateName, article=article, fileList=fileList, link='/compose', page_name='Редактирование')
         except Exception as e:
             logging.info( 'ArticleHandler Get:: Exception as et = ' + str(e))
-            error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error, link='/compose', page_name='Редактирование')
+            tplControl = TemplateParams()
+            tplControl.error = Error ('500', 'что - то пошло не так :-( ')
+            self.render('main_error.html', parameters=tplControl)
 
 
 class ComposeHandler(BaseHandler):
@@ -221,7 +225,7 @@ class ComposeHandler(BaseHandler):
     
 #                 logging.info( 'ComposeHandler get articleLink = ' + str(articleLink))
                 
-                (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleLink )
+                (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleLink, self.autor.author_id )
                 
             elif articleName == '' and hash != '':
                 """

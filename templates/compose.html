@@ -42,7 +42,7 @@
     <div class="col-md-4">
         <div class="form-group" id="selector2template">
 
-			<label for="inputSubject" class="control-label">{{_('Article Category')}}</label>
+			<label for="inputSubject" class="control-label">{{_('Article Templates')}}</label>
 			<select name="template_id" id="template_id" class="form-control">
 				 {% for entry in parameters.templatesList %}
 				<option {% if entry.article_id == parameters.templateWrkId %} selected="selected" {% end %} value="{{entry.article_id}}">{{entry.article_title}}</option>

@@ -1,0 +1,41 @@
+<!-- main_error.html -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>TorWiki</title>
+<link rel="stylesheet" href="/static/wiki.css" type="text/css">
+<link rel="alternate" href="/feed" type="application/atom+xml" 
+title="{{_('error')}}">
+
+</head>
+<body>
+<div id="body">
+<div id="header">
+<div style="float:right">
+
+{% if current_user %}
+
+<a href="/personal_desk_top">Personal Dask Top</a>
+
+{% else %}
+
+<a href="/auth/login">Sign in</a> to compose/edit
+{% end %}
+
+</div>
+<h1><a href="/">На Главную</a></h1>
+</div>
+<!-- user IS: None -->
+<div id="content">
+
+  <h1  class="eror">Ошибочка вышла № {{ parameters.error.code }}</h1>
+  <div class="body">{% raw parameters.error.message %}</div>
+
+</div>
+</div>
+
+</body>
+</html>
+<!-- / main_error.html -->
+

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>TorWiki</title>
+<link rel="stylesheet" href="/static/wiki.css" type="text/css">
+<link rel="alternate" href="/feed" type="application/atom+xml" 
+title="{{article.article_title}}">
+
+</head>
+<body>
+<div id="body">
+<div id="header">
+<div style="float:right">
+
+{% if current_user %}
+
+<a href="/personal_desk_top">Personal Dask Top</a>
+
+{% else %}
+
+<a href="/auth/login">Sign in</a> to compose/edit
+{% end %}
+
+</div>
+<h1><a href="/">На Главную</a></h1>
+</div>
+<!-- user IS: None -->
+<div id="content">
+
+<!-- modules 137  article.html -->
+<div class="article">
+<h1><a href="{{article.article_id}}">{{article.article_title}}</a></h1>
+<div class="body">{{article.article_annotation}}</div>
+<div class="body">
+{% raw article.article_source %}
+<br>
+<!-- modules/files_list.html -->
+{{fileList}}
+<!-- / modules/files_list.html -->
+</div>
+<div class="admin">
+[<a href="{{article.article_id}}">Edit this wiki</a>]
+[<a href="{{article.article_id}}">View all revisions</a>]
+</div>
+</div>
+
+</div>
+</div>
+
+</body>
+</html>
