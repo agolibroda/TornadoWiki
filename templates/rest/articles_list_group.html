@@ -8,6 +8,7 @@
 	         <th>Название</th>
 	         <th>Кратке содержание</th>
 	         <th>Редактировать</th>
+	         <th>Ревизии</th>
 	     </tr>
 	     </thead>
 	     <tbody>
@@ -18,6 +19,7 @@
 			     <td><a href="/{{ article.article_link }}">{{ article.article_title }}</a></td>
 			     <td><a href="/{{ article.article_link }}">{{ article.article_annotation }}</a></td>
 			     <td> <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose/{{ article.article_link }}">{{ _("Edit this wiki") }}</a></span></td>
+			     <td> <span class="badge badge-orange"><a style="color: #ffffff;" href="/revisionse/{{ article.article_id }}">{{ _("Revisions this wiki") }}</a></span></td>
 			 </tr>
 			
   {% end %}

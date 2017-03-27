@@ -1,0 +1,99 @@
+<!-- revisionses_dt.html -->
+
+{% extends "base.html" %}
+
+{% block body %}
+
+
+ <!--BEGIN CONTENT-->
+  <div class="page-content">
+      <div id="tab-general">
+
+		<div class="col-lg-12">
+          <div id="generalTabContent" class="tab-content">
+          
+          <div id="tab-view" class="tab-pane fade">
+              <div class="row">
+ 					{{ _("Revision") }}: {{ parameters.article_title if parameters.article_title else "" }}
+<br>
+ 					{{ _("Autor wiki") }}: {{ parameters.article_autor if parameters.article_autor else "" }}
+ 					<!-- перейти на страницу профиля автора article_autor_id -->
+               </div>
+          </div>
+      
+      </div>
+</div>
+
+
+    	<div class="col-lg-12">
+              <div class="row">
+          <div class="panel panel-yellow">
+			<div class="panel-heading">{{ _("Revisions wiki") }} &nbsp;&nbsp;&nbsp; 
+			</div>
+              <div class="panel-body" id='groups_list_table'>
+
+' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date, '+ 
+' revisions_articles.article_id, revisions_articles.revisions_sha_hash, ' +
+' revisions_articles.article_title, revisions_articles.article_annotation, ' +
+' revisions_articles.author_id, authors.author_name, authors.author_surname ' +
+' revisions_articles.revision_author_id, rev_author.author_name AS revision_author_name, '+ 
+' rev_author.author_surname AS revision_author_surname, revisions_articles.article_permissions',				
+
+   {% if len(parameters.revisions) > 0 %}
+ 
+	 <table class="table table-hover">
+	     <thead>
+	     <tr>
+	         <th>Дата</th>
+	         <th>Название</th>
+	         <th>Кратке содержание</th>
+	         <th>Редактировать</th>
+	         <th>Автор</th>
+	         <th>Автор Ревизи</th>
+	     </tr>
+	     </thead>
+	     <tbody>
+                                    
+  {% for revision in parameters.revisions %}
+			
+			 <tr>
+			     <td><a href="/{{ revision.article_link }}">{{ revision.rev_article_title }}</a></td>
+			     <td><a href="/{{ revision.article_link }}">{{ revision.article_annotation }}</a></td>
+			     <td> <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose/{{ revision.article_link }}">{{ _("Edit this wiki") }}</a></span></td>
+			 </tr>
+			
+  {% end %}
+ 
+  {% else %} 
+  	{{ _("Аrticles yet") }}  &nbsp;&nbsp;&nbsp;&nbsp; <a href="/compose"><i class="fa fa-edit fa-fw"></i><span class="menu-title">{{ _("Create new wiki") }}</span></a>
+  {% end %}
+
+
+
+              </div>
+          </div>
+          
+          
+  </div>
+         
+  </div>
+
+<br>              
+<br>              
+<br>              
+              
+              
+          </div>
+      </div>
+  </div>
+  <!--END CONTENT-->
+
+{% end %}
+
+
+{% block bottom %}
+
+
+{% end %}
+
+<!-- / revisionses_dt.html -->

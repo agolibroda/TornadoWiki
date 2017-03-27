@@ -516,19 +516,6 @@ class Article(Model):
 #         return textColtrol.get2Edit( articleId, revisionId )
 
 
-    def revisionsList(self, articleId):
-        """
-        получить список ревизий для одной статей
-        упорядочивать по дате ревизии - в начале - самые последние
-        Обязательно - автора!
-
-        - выбираем данные из "revisions"  и "titles"  и "authors" 
-        """
-        pass
-#         revControl = self.RevisionLoc()
-#         return revControl.revisionsList(articleId)
-
-
     def IsUniqueRevision(self, titleHash, annotationHash, articleHash):
         """
         проверить, является ли данная ревизия уникальной 
@@ -595,43 +582,47 @@ class Article(Model):
 # "чисто" ревизные вещи - дату, автора, флаг 
 # и уже в таком порядке все и выбирать... 
         
-        def revisionsList(self, articleId):
-            """
-            получить список ревизий для одной статей
-            упорядочивать по дате ревизии - в начале - самые последние
-            Обязательно - автора!
-    
-    
-            - выбираем данные из "texts"  и "annotations"  и "titles"  и "authors" 
-            
-            
-            """
-            getRez = self.select(
-    #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
-                                   ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date, '+ 
-                                   ' revisions_articles.article_id, revisions_articles.revisions_sha_hash, ' +
-                                   ' revisions_articles.article_title, revisions_articles.article_annotation, ' +
-                                   ' revisions_articles.author_id, authors.author_name, authors.author_surname ' +
-                                   ' revisions_articles.revision_author_id, rev_author.author_name AS revision_author_name, '+ 
-                                   ' rev_author.author_surname AS revision_author_surname, revisions_articles.article_permissions',
-                                   
-                                   ' revisions_articles, authors, authors rev_author ',
-                                   
-                                       {
-                                   'whereStr': ' revisions.author_id =  authors.author_id '  +
-                                            ' AND revisions.revision_author_id =  rev_author.author_id '  +
-                                            ' AND revisions.article_id =  ' + str(articleId), # строка набор условий для выбора строк
-                                   'orderStr': ' revisions.revision_date DESC ', # строка порядок строк
-    #                                'orderStr': 'FROM_BASE64( articles.article_title )', # строка порядок строк
-                                    }
-                                   )
-    
-            if len(getRez) == 0:
-                raise WikiException( ARTICLE_NOT_FOUND )
-            
+    def revisionsList(self, articleId):
+        """
+        получить список ревизий для одной статей
+        упорядочивать по дате ревизии - в начале - самые последние
+        Обязательно - автора!
+
+
+        - выбираем данные из "texts"  и "annotations"  и "titles"  и "authors" 
+        
+        
+        """
+        getRez = self.select(
+                               ' articles.article_id, articles.article_title, ' +
+                               ' articles.article_title, revisions_articles.article_annotation, ' +
+                               ' revisions_articles.article_title AS rev_article_title, ' + 
+                               ' revisions_articles.article_link, revisions_articles.article_annotation, ' +
+                               ' revisions_articles.article_source, ' + 
+                               ' EXTRACT(EPOCH FROM revisions_articles.revision_date) AS revision_date, '+ 
+                               ' revisions_articles.revisions_sha_hash, ' +
+                               ' revisions_articles.author_id, authors.author_name, authors.author_surname, ' +
+                               ' revisions_articles.revision_author_id, rev_author.author_name AS revision_author_name, '+ 
+                               ' rev_author.author_surname AS revision_author_surname, revisions_articles.article_permissions',
+                               
+                               ' revisions_articles, authors, authors rev_author ',
+                               
+                                   {
+                               'whereStr': ' articles.author_id =  authors.author_id '  +
+                                        ' AND revisions_articles.revision_author_id =  rev_author.author_id '  +
+                                        ' AND articles.article_id =  ' + str(articleId) +  # строка набор условий для выбора строк
+                                        ' AND revisions_articles.article_id =  ' + str(articleId), # строка набор условий для выбора строк
+                               'orderStr': ' revisions_articles.revision_date DESC ', # строка порядок строк
+#                                'orderStr': 'FROM_BASE64( articles.article_title )', # строка порядок строк
+                                }
+                               )
+
+        if len(getRez) == 0:
+            raise WikiException( ARTICLE_NOT_FOUND )
+        
 #             for oneObj in getRez:
-    #             logging.info( 'list:: Before oneArt = ' + str(oneObj))
-                
+#             logging.info( 'list:: Before oneArt = ' + str(oneObj))
+            
 #                 oneObj.article_title = base64.b64decode(oneObj.title_text).decode(encoding='UTF-8')
 #                 articleTitle = oneObj.article_title.strip().strip(" \t\n")
 #                 oneObj.article_link =  articleTitle.lower().replace(' ','_')
@@ -640,7 +631,7 @@ class Article(Model):
 
 #         logging.info( 'article:: revisionsList:::  str(len(getRez)) = ' + str(len(getRez)))
 #         logging.info( 'article:: revisionsList:::  getRez = ' + str(getRez))
-            return getRez
+        return getRez
 
 
 

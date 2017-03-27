@@ -47,7 +47,7 @@ class Application(tornado.web.Application):
             (r"/compose/([^/]+)", ComposeHandler), # (ArticleControl)
             (r"/upload/([^/]+)",  UploadHandler), # (ArticleControl) upload #filesupl
 
-            (r"/revisions", RevisionsHandler),# (ArticleControl) Список ревизий как отдельный список (???) 
+            (r"/revisionse/([0-9]+)", RevisionsHandler),# (ArticleControl) Список ревизий как отдельный список (???) 
             (r"/revision_view", RevisionViewHandler), # (ArticleControl) просмотр одной рвизи????
 
             (r"/auth/create", AuthCreateHandler), # (ProfileControl.py)

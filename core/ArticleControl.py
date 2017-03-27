@@ -138,7 +138,6 @@ class ArticleListHandler(BaseHandler):
 
 
 
-
 class ArticleHandler(BaseHandler):
     """
     загрузка страницы по ее названию (линке) 
@@ -311,8 +310,10 @@ class ComposeHandler(BaseHandler):
     
     #         logging.info( 'ComposeHandler:: AFTER Save! artModel = ' + str(artModel))
             
+            #  поучить ссылку н страничку, откуда был переход на нынешню...
             if rez:
-                self.redirect("/" + tornado.escape.url_escape(article_link))
+#                self.redirect("/" + tornado.escape.url_escape(article_link))
+                self.redirect("/personal_desk_top")
             else:
                 logging.info( 'ComposeHandler:: rez = ' + str(rez))
     #             как - то надо передать данные и ошибку - что - то пошло же не так... 
@@ -336,103 +337,38 @@ class ComposeHandler(BaseHandler):
             self.render("compose.html", parameters= tplControl)
 
 
-#############################################
-# тут похоже, надо передумать, и сделать из ЭТОГО текста основняк....abs(x) 
-
-
-# class AdminComposeHandler(BaseHandler):
-#     """
-#     редактирование статьи с правами админа 
-#     - расширенное количество типов (м.б.)
-#     - может возможностоь менять "article_category_id" фактически - 
-#         "тип статьи" 
-#         - шаблон 
-#         - статья категория
-#         - инфрмационная статья 
-#     """
-#     @tornado.web.authenticated
-#     @gen.coroutine
-#     def get(self):
-#         try:
-#             articleId = self.get_argument("aid", None)
-#             revId = self.get_argument("rid", None)
-#             logging.info( 'AdminComposeHandler:: self.get_argument("ned", 0) = ' + str(self.get_argument("ned", 0)))
-#             isNotEdit = self.get_argument("ned", 0)
-#             logging.info( 'AdminComposeHandler:: isNotEdit = ' + str(isNotEdit))
-#             article = Article()
-#             fileList = []
-#     
-#             if articleId and revId:
-#                 artHelper = HelperArticle()
-#                 (article, fileList) = yield executor.submit( artHelper.getArticleByIdRevId, articleId, revId ) 
-#                 logging.info( 'AdminComposeHandler:: get article = ' + str(article))
-#             article.tpl_categofy_id = config.options.info_page_categofy_id 
-#             self.render(config.options.adminTplPath+"compose.html", article=article,  fileList=fileList, isCkEditMake=isNotEdit, link='/compose', page_name='Редактирование')
-#         except Exception as e:
-#             logging.info( 'Save:: Exception as et = ' + str(e))
-#             error = Error ('500', 'что - то пошло не так :-( ')
-#             self.render('error.html', error=error, link='/compose', page_name='Редактирование')
-# 
-#     @tornado.web.authenticated
-#     @gen.coroutine
-#     def post(self):
-#         try:
-#             artModel = Article()
-#     
-#             curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-#     #         logging.info( 'AdminComposeHandler:: post rezult = ' + str(rezult))
-#     #         curentAuthor = rezult.result()
-#             
-#             if not curentAuthor.author_id: return False
-#     
-#             artModel.article_id = self.get_argument("id", 0)
-#             artModel.article_title = self.get_argument("title")
-#             artModel.article_annotation = self.get_argument("annotation")
-#             artModel.article_source = self.get_argument("sourse")
-#             artModel.article_category_id = self.get_argument("category_id", 0)
-#             artModel.article_template_id = int(self.get_argument("template_id", 0))
-#             artModel.article_permissions = self.get_argument("permissions", 'pbl')                                
-# 
-#             logging.info( 'AdminComposeHandler:: Before Save! artModel = ' + str(artModel))
-#     
-#             article_link =  artModel.article_title.lower().replace(' ','_')
-#             
-#             templateDir = self.get_template_path()
-#             
-#             rez = yield executor.submit( artModel.save, curentAuthor.author_id, templateDir )
-#             logging.info( 'AdminComposeHandler:: rez = ' + str(rez))
-#             
-# #             redirectLink = "/article/' + str(rez.article_id) # article_link
-#             redirectLink = "/article/' + article_link
-#             logging.info( 'AdminComposeHandler:: redirectLink = ' + str(redirectLink))
-#             self.redirect( redirectLink )
-#     
-#         except Exception as e:
-#             logging.info( 'Save:: Exception as et = ' + str(e))
-#             error = Error ('500', 'что - то пошло не так :-( ')
-#             self.render('error.html', error=error, link='/compose', page_name='Редактирование')
-
-
-#############################################
-
-
-
 
 class RevisionsHandler(BaseHandler):
+    """
+    показать список ревизий одного документа 
+     Список может отдать на редактирование 
+     любую из ревизий документа
+     
+    
+    """
     @gen.coroutine
-    def get(self):
+    def get(self, articleId):
         try:
-            articleId = self.get_argument("id", None)
+#             articleId = self.get_argument("id", None)
+            self.autor = self.get_current_user()
             artModel = Article()
-            articles = yield executor.submit( artModel.revisionsList, articleId)
-            if not articles:
-                self.redirect("/compose")
-                return
-            self.render("revisions.html", articles=articles, link='/compose', page_name='Редактирование')
+            revisions = yield executor.submit( artModel.revisionsList, articleId)
+            
+            tplControl = TemplateParams()
+            tplControl.make(self.autor)
+            tplControl.revisions=revisions
+            tplControl.article_title = revisions[0].article_title
+            tplControl.article_autor_id = revisions[0].author_id
+            tplControl.article_autor = revisions[0].author_name + ' ' + revisions[0].author_surname
+            tplControl.page_name ='Список ревизий'
+            tplControl.link='/compose'
+            
+            
+            self.render("revisionses_dt.html", parameters=tplControl )
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error, link='/compose', page_name='Редактирование')
+            self.render('error.html', error=error, link='/compose', page_name='Список ревизий')
    
    
 
