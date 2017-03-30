@@ -4,50 +4,96 @@
 
 {% block body %}
 
+<style>
+<!--
+
+.hiddy {
+visibility: hidden;
+height: 10px;
+
+}
+.visi {
+visibility: visible;
+height: 250px;
+}
+
+-->
+</style>
+<script type="text/javascript">
+<!--
+
+function b64_to_utf8( str ) {
+	  return decodeURIComponent(escape(window.atob( str )));
+	}
+
+function sourseViewerShow(source){
+	if($('#source_viewer').css('visibility') == 'hidden'){
+		 $('#source_viewer').removeClass("hidden");
+		 $('#source_viewer').addClass("visi");
+		 
+        $('#source').css('height', '180px');
+    } else {
+		 $('#source_viewer').removeClass("visi");
+		 $('#source_viewer').addClass("hidden");
+//        $('#source').css('height', '10px');
+    }
+    $('#source').html(b64_to_utf8(source));
+};
+
+//-->
+</script>
 
  <!--BEGIN CONTENT-->
   <div class="page-content">
       <div id="tab-general">
 
-		<div class="col-lg-12">
-          <div id="generalTabContent" class="tab-content">
-          
-          <div id="tab-view" class="tab-pane fade">
+    	<div class="col-lg-12">
               <div class="row">
- 					{{ _("Revision") }}: {{ parameters.article_title if parameters.article_title else "" }}
-<br>
- 					{{ _("Autor wiki") }}: {{ parameters.article_autor if parameters.article_autor else "" }}
- 					<!-- перейти на страницу профиля автора article_autor_id -->
-               </div>
-          </div>
-      
-      </div>
-</div>
+				<!-- Source Viewer -->
+				<div id="source_viewer"  class="hiddy">
+				
+				
+					<div class="panel panel-yellow"class="">
+					    <div class="panel-heading">
+					        {{_("Source Viewer")}}</div>
+					    <div class="panel-body pan">
+					        <div class="form-body pal" id='source'>
+					        
+					вот, тут будет просмотр исходников
+					panel panel-yellow 
+					            
+					        </div>
+					    </div>
+					</div>
+				
+				</div>
+
+              
+              </div>
+        </div>
 
 
     	<div class="col-lg-12">
               <div class="row">
-          <div class="panel panel-yellow">
+          <div class="panel panel-grey">
 			<div class="panel-heading">{{ _("Revisions wiki") }} &nbsp;&nbsp;&nbsp; 
+ 					{{ _("Revision") }}: {{ parameters.article_title if parameters.article_title else "" }}
+ 					{{ _("Autor wiki") }}: {{ parameters.article_autor if parameters.article_autor else "" }}
+ 					<!-- перейти на страницу профиля автора article_autor_id -->
+			
 			</div>
               <div class="panel-body" id='groups_list_table'>
-
-' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date, '+ 
-' revisions_articles.article_id, revisions_articles.revisions_sha_hash, ' +
-' revisions_articles.article_title, revisions_articles.article_annotation, ' +
-' revisions_articles.author_id, authors.author_name, authors.author_surname ' +
-' revisions_articles.revision_author_id, rev_author.author_name AS revision_author_name, '+ 
-' rev_author.author_surname AS revision_author_surname, revisions_articles.article_permissions',				
 
    {% if len(parameters.revisions) > 0 %}
  
 	 <table class="table table-hover">
 	     <thead>
 	     <tr>
-	         <th>Дата</th>
-	         <th>Название</th>
-	         <th>Кратке содержание</th>
-	         <th>Редактировать</th>
+	         <th>{{ _("Date") }}</th>
+	         <th>{{ _("Title") }}</th>
+	         <th>{{ _("Fnnotation") }} </th>
+	         <th>{{ _("Edit wiki") }}</th>
+	         <th>{{ _("Viev wiki") }}</th>
 	         <th>Автор</th>
 	         <th>Автор Ревизи</th>
 	     </tr>
@@ -57,12 +103,18 @@
   {% for revision in parameters.revisions %}
 			
 			 <tr>
+			     <td><a href="/{{ revision.article_link }}">{{revision.revision_date.strftime("%d.%m.%Y")}}</a></td>
 			     <td><a href="/{{ revision.article_link }}">{{ revision.rev_article_title }}</a></td>
 			     <td><a href="/{{ revision.article_link }}">{{ revision.article_annotation }}</a></td>
 			     <td> <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose/{{ revision.article_link }}">{{ _("Edit this wiki") }}</a></span></td>
+			     <td> <span class="badge badge-orange"><a style="color: #ffffff;" href="#" onclick="sourseViewerShow('{{revision.article_source}}')">{{ _("Edit this wiki") }}</a></span></td>
+			     <td><a href="/profile/{{ revision.author_id }}">{{ revision.author_name }} {{ revision.author_surname }}</a></td>
+			     <td><a href="/profile/{{ revision.revision_author_id }}">{{ revision.revision_author_name }} {{ revision.revision_author_surname }}</a></td>
 			 </tr>
 			
   {% end %}
+  </tbody>
+  </table>
  
   {% else %} 
   	{{ _("Аrticles yet") }}  &nbsp;&nbsp;&nbsp;&nbsp; <a href="/compose"><i class="fa fa-edit fa-fw"></i><span class="menu-title">{{ _("Create new wiki") }}</span></a>
@@ -95,5 +147,6 @@
 
 
 {% end %}
+
 
 <!-- / revisionses_dt.html -->

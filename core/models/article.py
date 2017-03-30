@@ -21,6 +21,10 @@ import tornado.options
 
 import hashlib
 import base64
+
+import urllib 
+from urllib.parse import quote
+
         
 from _overlapped import NULL
 
@@ -235,7 +239,7 @@ class Article(Model):
 #         outArt.article_link = base64.b64decode(outArt.article_link).decode(encoding='UTF-8')
 #         outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
         decodeText =  base64.b64decode(outArt.article_source) #.decode(encoding='UTF-8')
-        outArt.article_source = zlib.decompress(decodeText)  #.decode('UTF-8')    
+        outArt.article_source = zlib.decompress(decodeText).decode("utf-8")  #.decode('UTF-8')    
         logging.info( 'get outArt = ' + str(outArt))
 
         return outArt
@@ -536,12 +540,14 @@ class Article(Model):
         по такому Хешу мохно поднять любую трансакцию!!!!
         
         Это делаем для РЕДАКТИРОВНИЯ!!!
+        ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date,  ' +
         
         """
 
         getRez = self.select(
                                'texts.article_id, revisions.revision_id, texts.article_source, annotations.annotation_text, titles.title_text, ' +
-                               ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date,  revisions.author_id, revisions.revision_actual_flag, ' +
+                               ' revisions.revision_date AS revision_date,  ' +
+                               ' revisions.author_id, revisions.revision_actual_flag, ' +
                                'articles.article_category_id, articles.article_template_id, articles.author_id, articles.article_permissions ' ,
                                'revisions_articles, articles',
                                    {
@@ -591,6 +597,7 @@ class Article(Model):
 
         - выбираем данные из "texts"  и "annotations"  и "titles"  и "authors" 
         
+                               ' EXTRACT(EPOCH FROM revisions_articles.revision_date) AS revision_date, '+ 
         
         """
         getRez = self.select(
@@ -599,7 +606,7 @@ class Article(Model):
                                ' revisions_articles.article_title AS rev_article_title, ' + 
                                ' revisions_articles.article_link, revisions_articles.article_annotation, ' +
                                ' revisions_articles.article_source, ' + 
-                               ' EXTRACT(EPOCH FROM revisions_articles.revision_date) AS revision_date, '+ 
+                               ' revisions_articles.revision_date AS revision_date, '+ 
                                ' revisions_articles.revisions_sha_hash, ' +
                                ' revisions_articles.author_id, authors.author_name, authors.author_surname, ' +
                                ' revisions_articles.revision_author_id, rev_author.author_name AS revision_author_name, '+ 
@@ -620,17 +627,10 @@ class Article(Model):
         if len(getRez) == 0:
             raise WikiException( ARTICLE_NOT_FOUND )
         
-#             for oneObj in getRez:
-#             logging.info( 'list:: Before oneArt = ' + str(oneObj))
-            
-#                 oneObj.article_title = base64.b64decode(oneObj.title_text).decode(encoding='UTF-8')
-#                 articleTitle = oneObj.article_title.strip().strip(" \t\n")
-#                 oneObj.article_link =  articleTitle.lower().replace(' ','_')
+        for oneObj in getRez:
+            oneObj = self.articleDecode(oneObj)
+            oneObj.article_source = base64.b64encode(tornado.escape.utf8(oneObj.article_source)).decode(encoding='UTF-8') 
 
-#                 oneObj.article_source =  base64.b64decode(oneObj.article_source).decode(encoding='UTF-8')
-
-#         logging.info( 'article:: revisionsList:::  str(len(getRez)) = ' + str(len(getRez)))
-#         logging.info( 'article:: revisionsList:::  getRez = ' + str(getRez))
         return getRez
 
 
