@@ -26,18 +26,23 @@ function b64_to_utf8( str ) {
 	  return decodeURIComponent(escape(window.atob( str )));
 	}
 
-function sourseViewerShow(source){
+function sourseViewerShow(title, link, source){
 	if($('#source_viewer').css('visibility') == 'hidden'){
 		 $('#source_viewer').removeClass("hidden");
 		 $('#source_viewer').addClass("visi");
 		 
         $('#source').css('height', '180px');
+       
+        $('#titleView').html(title);
+        $('#editLink').html(' <a style="color: #ffffff;" href="/compose/'+ link +'">{{ _("Edit this wiki") }}</a> ');
+        $('#source').html(b64_to_utf8(source));
+        
     } else {
 		 $('#source_viewer').removeClass("visi");
 		 $('#source_viewer').addClass("hidden");
 //        $('#source').css('height', '10px');
     }
-    $('#source').html(b64_to_utf8(source));
+    
 };
 
 //-->
@@ -55,7 +60,9 @@ function sourseViewerShow(source){
 				
 					<div class="panel panel-yellow"class="">
 					    <div class="panel-heading">
-					        {{_("Source Viewer")}}</div>
+					         <span  id="titleView">Title></span>
+					        &nbsp;&nbsp;&nbsp; 
+              <span class="badge badge-blue" id="editLink"><a style="color: #ffffff;" href="/compose">{{ _("Create new wiki") }}</a></span></div>
 					    <div class="panel-body pan">
 					        <div class="form-body pal" id='source'>
 					        
@@ -106,8 +113,8 @@ function sourseViewerShow(source){
 			     <td><a href="/{{ revision.article_link }}">{{revision.revision_date.strftime("%d.%m.%Y")}}</a></td>
 			     <td><a href="/{{ revision.article_link }}">{{ revision.rev_article_title }}</a></td>
 			     <td><a href="/{{ revision.article_link }}">{{ revision.article_annotation }}</a></td>
-			     <td> <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose/{{ revision.article_link }}">{{ _("Edit this wiki") }}</a></span></td>
-			     <td> <span class="badge badge-orange"><a style="color: #ffffff;" href="#" onclick="sourseViewerShow('{{revision.article_source}}')">{{ _("Edit this wiki") }}</a></span></td>
+			     <td> <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose/{{ revision.revisions_sha_hash }}">{{ _("Edit this wiki") }}</a></span></td>
+			     <td> <span class="badge badge-orange"><a style="color: #ffffff;" href="#" onclick="sourseViewerShow('{{ revision.rev_article_title }}', '{{ revision.revisions_sha_hash }}', '{{revision.article_source}}')">{{ _("Edit this wiki") }}</a></span></td>
 			     <td><a href="/profile/{{ revision.author_id }}">{{ revision.author_name }} {{ revision.author_surname }}</a></td>
 			     <td><a href="/profile/{{ revision.revision_author_id }}">{{ revision.revision_author_name }} {{ revision.revision_author_surname }}</a></td>
 			 </tr>
