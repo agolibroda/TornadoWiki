@@ -105,7 +105,7 @@ class HelperArticle():
             
 
         
-    def getArticleByName(self, articleName, spectatorId):
+    def getArticleByName(self, spectatorId, articleName):
         """
         получить статью по ее названию (не линка, а название!!!!! )
         хотя, по - идее, надо поредакитровать и сначала превратить навание в линку...
@@ -122,15 +122,14 @@ class HelperArticle():
         return (article, fileList)
 
 
-    def getArticleHash(self, articleHash):
+    def getArticleHash(self, spectatorId, articleHash):
         """
         получить статью по ее ХЕШУ (не линка, а название!!!!! )
         хотя, по - идее, надо поредакитровать и сначала превратить навание в линку...
         
         """
         fileModel = File()
-        article = self.artModel.getByUsingHash( articleHash )
-        logging.info( ' getArticleHash:: article.article_id = ' + str(article.article_id))
+        article = self.artModel.getByUsingHash( spectatorId, articleHash )
         fileList =  fileModel.getFilesListForArticle( article.article_id, 
                                                     config.options.to_out_path)
         return (article, fileList)
@@ -142,9 +141,7 @@ class HelperArticle():
         
         """
         try:
-            logging.info( 'сomposeArticleSave:: self.artModel = ' + str(self.artModel))
             article = self.artModel.save(author_id, templateDir)
-            logging.info( 'сomposeArticleSave:: After Save^ article = ' + str(article))
             
             if int(article_pgroipId) > 0 :
                 groupModel = Group()

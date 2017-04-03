@@ -158,6 +158,7 @@ class Model: #Connector:
                 del self.__dict__[requestParamName]
             paramsObj = self.splitAttributes()
             
+            
             if requestParamName != '':
                 sqlStr = "INSERT INTO " + self._tabName +" ( " + paramsObj.strListAttrNames + " ) VALUES ( " + paramsObj.strListAttrValues + " )  returning " + requestParamName
                 logging.info(' insert:: sqlStr = ' + sqlStr)
@@ -201,6 +202,76 @@ class Model: #Connector:
             logging.error(' update exception:: sqlStr = ' + sqlStr )
             lCurs.rollback()
             raise WikiException(error)
+
+    def save(self, autorId, operationFlag, mainPrimaryObj, revisions_sha_hash_source, requestParamName = ''):
+        """
+        сохранение ревизии для данных.
+        при сохранении ревизии стоит (наверное) делать так:
+        - сказать всем ревизиям, что они устарели (сделать флаг "О")
+        - попытаться добавить ревизию (с флагом "А") 
+        - если не получилось, то на ревизии с тем, актуальным ХЕШЕМ поставить фла "А"
+        
+        mainPrimaryObj = {'primaryName': 'article_id', 'primaryValue': 123 }
+         
+        INSERT INTO distributors (did, dname)
+        VALUES (5, 'Gizmo Transglobal')
+        ON CONFLICT (did) DO UPDATE SET dname = EXCLUDED.dname;
+            
+        """
+        paramsObj = self.splitAttributes()
+# во тут надо добавить араметры ревизии в инсерт!!
+#   actual_flag revision_data_type NOT NULL,
+#   revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+#   revision_author_id int NOT NULL references authors(author_id),
+ 
+        try:
+            _loDb = self.cursor()
+#             _loDb.begin()
+            self.begin()
+
+            logging.info(' save::Before Save self = ' + toStr(self))
+     
+            # Все ревизии ЭТОЙ записи - устарели!!!! - проабдейтим список ревизий
+            sqlStr = "UPDATE revisions_" + self._tabName + " SET revision_actual_flag = 'O' WHERE " +\
+                     mainPrimaryObj['primaryName'] + " = "  + str(mainPrimaryObj['primaryValue'])
+            logging.info(' save:: sqlStr = ' + sqlStr)
+            _loDb.execute(sqlStr)
+            
+            revision_date = datetime.now() 
+            revisions_sha_hash =  hashlib.sha256(
+                        tornado.escape.utf8(revisions_sha_hash_source + str(revision_date) )
+                                                ).hexdigest()
+                                                 
+            returningStr = ''
+            if requestParamName != '':
+                returningStr = " returning " + requestParamName
+            # Теперь можно записать новые данные  в ревизии.    
+            paramsObj.strListAttrNames += ', revision_actual_flag, revision_author_id,  operation_flag, revisions_sha_hash, revision_date '
+            paramsObj.strListAttrValues += ", 'A', " +  str(autorId) + ", '" + operationFlag + "',  '" + revisions_sha_hash + "', '" + str(revision_date) + "' "
+     
+            sqlStr = "INSERT INTO " + self._tabName +" ( " + paramsObj.strListAttrNames + ") VALUES " +\
+                    "( " + paramsObj.strListAttrValues + " ) " + returningStr  + \
+                    " ON CONFLICT (revisions_sha_hash) DO UPDATE SET revision_actual_flag = 'A'; "
+            logging.info(' save:: sqlStr = ' + sqlStr)
+            _loDb.execute(sqlStr)
+            if requestParamName != '':
+                sourse = _loDb.fetchone()
+                logging.info(' save:: sourse = ' + str(sourse))
+                logging.info(' save:: sourse[requestParamName] = ' + str(sourse[requestParamName]))
+                self.__dict__[requestParamName] = sourse[requestParamName]
+                return  sourse[requestParamName]
+ 
+#             _loDb.commit()
+            self.commit()
+        except psycopg2.Error as error:
+            logging.error(' save exception:: ' + str (error) )
+            logging.error(' save exception:: sqlStr = ' + sqlStr )
+#             _loDb.rollback()
+            self.rollback()
+            raise WikiException(error)
+
+
+
 
     def select(self, 
                selectStr, # строка - чего хотим получить из селекта
@@ -356,125 +427,10 @@ class Model: #Connector:
         return objValuesNameList
 
 
-##############################################
-# Набор методов для  работы с Ревизиями! 
-# - добавит ревизию 
-# - получить список ревизий
-# - получить оду ревизию...
-# - узнать является ли набор данных уникальным (не похожим на текущее значение данных - значит, у нас возможны циклы!!!!!)
 
-    def saveRevision(self, autorId, operationFlag, mainPrimaryObj, revisions_sha_hash_source):
-        """
-        сохранение ревизии для данных.
-        при сохранении ревизии стоит (наверное) делать так:
-        - сказать всем ревизиям, что они устарели (сделать флаг "О")
-        - попытаться добавить ревизию (с флагом "А") 
-        - если не получилось, то на ревизии с тем, актуальным ХЕШЕМ поставить фла "А"
-        
-        mainPrimaryObj = {'primaryName': 'article_id', 'primaryValue': 123 }
-         
-        INSERT INTO distributors (did, dname)
-        VALUES (5, 'Gizmo Transglobal')
-        ON CONFLICT (did) DO UPDATE SET dname = EXCLUDED.dname;
-            
-        """
-        paramsObj = self.splitAttributes()
-# во тут надо добавить араметры ревизии в инсерт!!
-#   actual_flag revision_data_type NOT NULL,
-#   revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-#   revision_author_id int NOT NULL references authors(author_id),
- 
-        try:
-            _loDb = self.cursor()
-#             _loDb.begin()
-            self.begin()
 
-            logging.info(' saveRevision::Before Save self = ' + toStr(self))
-     
-            # Все ревизии ЭТОЙ записи - устарели!!!! - проабдейтим список ревизий
-            sqlStr = "UPDATE revisions_" + self._tabName + " SET revision_actual_flag = 'O' WHERE " +\
-                     mainPrimaryObj['primaryName'] + " = "  + str(mainPrimaryObj['primaryValue'])
-            logging.info(' saveRevision:: sqlStr = ' + sqlStr)
-            _loDb.execute(sqlStr)
-            
-            revision_date = datetime.now() 
-            revisions_sha_hash =  hashlib.sha256(
-                        tornado.escape.utf8(revisions_sha_hash_source + str(revision_date) )
-                                                ).hexdigest() 
 
  
-            # Теперь можно записать новые данные  в ревизии.    
-            paramsObj.strListAttrNames += ', revision_actual_flag, revision_author_id,  operation_flag, revisions_sha_hash, revision_date '
-            paramsObj.strListAttrValues += ", 'A', " +  str(autorId) + ", '" + operationFlag + "',  '" + revisions_sha_hash + "', '" + str(revision_date) + "' "
-     
-            sqlStr = "INSERT INTO revisions_" + self._tabName +" ( " + paramsObj.strListAttrNames + ") VALUES " +\
-                    "( " + paramsObj.strListAttrValues + " ) " + \
-                    " ON CONFLICT (revisions_sha_hash) DO UPDATE SET revision_actual_flag = 'A'; "
-            logging.info(' saveRevision:: sqlStr = ' + sqlStr)
-            _loDb.execute(sqlStr)
- 
-#             _loDb.commit()
-            self.commit()
-        except psycopg2.Error as error:
-            logging.error(' saveRevision exception:: ' + str (error) )
-            logging.error(' saveRevision exception:: sqlStr = ' + sqlStr )
-#             _loDb.rollback()
-            self.rollback()
-            raise WikiException(error)
-
-
-
-    def selectRevisions(self, 
-               selectStr = '', # строка - чего хотим получить из селекта
-               addTables = '',  # строка - список ДОПОЛНИТЕЛЬНЫХ таблиц (основную таблизу для объекта указываем при инициализации) 
-               anyParams = {} #  все остальные секции селекта
-               ):
-        """
-        сделать базовый селект, для работы с ревизиями,
-         - добавляем к базовым данным оболочку "чисто ревизий" :-) 
-         и поом уже вызывать ...
-        
-        """
-        
-        if addTables != '':  addTables += ", " 
-        addTables += "revisions_" + self._tabName + ' rev '
-
-        if selectStr != '' : selectStr += ', ' 
-        selectStr += ' rev.operation_flag, EXTRACT(EPOCH FROM rev.revision_date) AS revision_date, '
-        selectStr += ' author_name AS rev_author_name, author_surname AS rev_author_surname '
-        
-        strAddJoin = ' LEFT JOIN authors ON authors.author_id = rev.revision_author_id '
-        
-        return self.select(
-                                selectStr,
-                                addTables,
-                                   { 
-                               'joinStr': str(anyParams.get('joinStr')) + strAddJoin,
-                               'whereStr': str(anyParams.get('joinStr'))
-                                }
-                               )
-
-        
-        def IsUniqueRevision(self, titleHash, annotationHash, textHash):
-            """
-            проверить, является ли данная ревизия уникальной 
-            - может поменятся все, 
-            - может - заглавие
-            - может - аннотация
-            - может текст
-            """
-            isUniqueRez = self.select(
-                       ' revisions.text_sha_hash, revAnnotation.annotation_sha_hash, revTitle.title_sha_hash',
-                       'revisions revTitle, revisions revAnnotation',
-                           { 
-                       'whereStr': " ( revTitle.title_sha_hash = '"+ titleHash + "' " +
-                                    " OR revAnnotation.annotation_sha_hash = '"+ annotationHash + "' " +
-                                    " OR revisions.text_sha_hash = '" + textHash  + "' ) " ,             # строка набор условий для выбора строк
-                        }
-                       )
-            
-            return isUniqueRez
-
 
 
 

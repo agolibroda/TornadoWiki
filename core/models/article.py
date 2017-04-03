@@ -240,7 +240,7 @@ class Article(Model):
 #         outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
         decodeText =  base64.b64decode(outArt.article_source) #.decode(encoding='UTF-8')
         outArt.article_source = zlib.decompress(decodeText).decode("utf-8")  #.decode('UTF-8')    
-        logging.info( 'get outArt = ' + str(outArt))
+#         logging.info( 'articleDecode outArt = ' + str(outArt))
 
         return outArt
 
@@ -307,9 +307,7 @@ class Article(Model):
                     #   article_id 
             tplWrk = string.Template(strTpl) # strTpl
             strSelect = tplWrk.substitute(sId=str(spectatorId), aLink=article_link)
-            
-            logging.info( 'Article ::: get strSelect  = ' + str(strSelect))
-            
+#             logging.info( 'Article ::: get strSelect  = ' + str(strSelect))
             getRez = self.rowSelect(str(strSelect)) 
 
     
@@ -348,31 +346,46 @@ class Article(Model):
 
 
 
-    def getByUsingHash(self, hash):
-         """
-         получить статью (ВЕРСИЮ) по hash (одну) 
-         а вот что показать? 
-         ну, походу, все, из ТОЙ версии, которую заказал пользователь!!! 
+    def getByUsingHash(self, spectatorId, hash):
+        """
+        получить статью (ВЕРСИЮ) по hash (одну) 
+        а вот что показать? 
+        ну, походу, все, из ТОЙ версии, которую заказал пользователь!!! 
     
-         """
-         logging.info( 'Article ::: getById articleId  = ' + str(articleId))
+        """
+        logging.info( 'Article ::: getByUsingHash hash  = ' + str(hash))
     
-         getRez = self.select(
-                                'articles.article_id, articles.article_title, articles.article_link, '+
-                                'articles.article_annotation,  articles.article_source, articles.article_category_id, '+ 
-                                'articles.author_id, articles.article_template_id, articles.article_permissions ',
-                                '',
-                                    {
-                                'whereStr': ' articles.article_id = ' + str(hash)  ,
-                                 }
-                                )
+        strTpl = """
+               SELECT 
+               lfind.article_id, lfind.article_title, lfind.article_link, 
+               lfind.article_annotation,  lfind.article_source, lfind.article_category_id, lfind.author_id, 
+               lfind.article_template_id, lfind.article_permissions, lfind.revision_actual_flag
+               FROM revisions_articles lfind 
+               WHERE lfind.article_permissions = 'pbl'
+               AND lfind.revisions_sha_hash = '${aHash}'
+               UNION
+               SELECT 
+               lfind.article_id, lfind.article_title, lfind.article_link, 
+               lfind.article_annotation,  lfind.article_source, lfind.article_category_id, lfind.author_id, 
+               lfind.article_template_id, lfind.article_permissions, lfind.revision_actual_flag  
+               FROM groups, librarys, revisions_articles lfind 
+               WHERE  lfind.article_permissions = 'grp'
+               AND groups.author_id = lfind.author_id
+               AND groups.author_id = $sId
+               AND groups.group_id = librarys.group_id
+               AND librarys.article_id = lfind.article_id
+               AND lfind.revisions_sha_hash = '${aHash}'        
+                """
+                #   article_id 
+        tplWrk = string.Template(strTpl) # strTpl
+        strSelect = tplWrk.substitute(sId=str(spectatorId), aHash=hash)
+#         logging.info( 'Article ::: getByUsingHash strSelect  = ' + str(strSelect))
+        getRez = self.rowSelect(str(strSelect)) 
     
-         if len(getRez) == 0:
+        if len(getRez) == 0:
             raise WikiException( ARTICLE_NOT_FOUND )
-         elif len(getRez) == 1:   
-#              logging.info( ' getById getRez = ' + str(getRez[0]))
+        elif len(getRez) == 1:   
             outArt = self.articleDecode(getRez[0])
-#              logging.info( ' getById outArt = ' + str(outArt))
             return outArt
 
     
@@ -545,10 +558,12 @@ class Article(Model):
         """
 
         getRez = self.select(
-                               'texts.article_id, revisions.revision_id, texts.article_source, annotations.annotation_text, titles.title_text, ' +
-                               ' revisions.revision_date AS revision_date,  ' +
-                               ' revisions.author_id, revisions.revision_actual_flag, ' +
-                               'articles.article_category_id, articles.article_template_id, articles.author_id, articles.article_permissions ' ,
+                               """
+                                texts.article_id, revisions.revision_id, texts.article_source, annotations.annotation_text, titles.title_text, 
+                               revisions.revision_date AS revision_date,  
+                                revisions.author_id, revisions.revision_actual_flag, 
+                               articles.article_category_id, articles.article_template_id, articles.author_id, articles.article_permissions 
+                                """ ,
                                'revisions_articles, articles',
                                    {
                                'whereStr': "  texts.text_sha_hash =  revisions.text_sha_hash" +
@@ -601,16 +616,19 @@ class Article(Model):
         
         """
         getRez = self.select(
-                               ' articles.article_id, articles.article_title, ' +
-                               ' articles.article_title, revisions_articles.article_annotation, ' +
-                               ' revisions_articles.article_title AS rev_article_title, ' + 
-                               ' revisions_articles.article_link, revisions_articles.article_annotation, ' +
-                               ' revisions_articles.article_source, ' + 
-                               ' revisions_articles.revision_date AS revision_date, '+ 
-                               ' revisions_articles.revisions_sha_hash, ' +
-                               ' revisions_articles.author_id, authors.author_name, authors.author_surname, ' +
-                               ' revisions_articles.revision_author_id, rev_author.author_name AS revision_author_name, '+ 
-                               ' rev_author.author_surname AS revision_author_surname, revisions_articles.article_permissions',
+                               """
+                                articles.article_id, articles.article_title, 
+                               articles.article_title, revisions_articles.article_annotation, 
+                               revisions_articles.article_title AS rev_article_title,  
+                               revisions_articles.article_link, revisions_articles.article_annotation, 
+                               revisions_articles.article_source,  
+                               revisions_articles.revision_date AS revision_date,  
+                               revisions_articles.revisions_sha_hash, 
+                               revisions_articles.author_id, authors.author_name, authors.author_surname, 
+                               revisions_articles.revision_author_id, rev_author.author_name AS revision_author_name, 
+                               rev_author.author_surname AS revision_author_surname, revisions_articles.article_permissions, 
+                               revisions_articles.revision_actual_flag 
+                                """,
                                
                                ' revisions_articles, authors, authors rev_author ',
                                

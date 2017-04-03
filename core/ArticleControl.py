@@ -164,7 +164,7 @@ class ArticleHandler(BaseHandler):
 
             logging.info( 'ArticleHandler get articleLink = ' + str(articleLink))
             
-            (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleLink, spectator.author_id )
+            (article, fileList) = yield executor.submit( artHelper.getArticleByName, spectator.author_id, articleLink )
        
        # а вот тут я должен получить и распарсить шаблон - как - текст в статьях (особой категории!!!!)
             if article.article_id == 0 : 
@@ -212,25 +212,27 @@ class ComposeHandler(BaseHandler):
             fileList = []
             artHelper = HelperArticle()
             artHelper.setArticleCategiry (config.options.info_page_categofy_id) 
-            logging.info( 'ComposeHandler:: 1 artHelper.getModel() = ' + str(artHelper.getModel()))
             
             pageName='Редактирование статьи'
+
             
             if articleName != '' and hash == '':
+                logging.info( 'ComposeHandler get articleName = ' + str(articleName))
                 
                 articleLink = articleName.strip().strip(" \t\n")
                 articleLink =  articleLink.lower().replace(' ','_')
                 articleLink =  articleLink.replace('__','_')
     
-#                 logging.info( 'ComposeHandler get articleLink = ' + str(articleLink))
                 
-                (article, fileList) = yield executor.submit( artHelper.getArticleByName, articleLink, self.autor.author_id )
+                (article, fileList) = yield executor.submit( artHelper.getArticleByName, self.autor.author_id, articleLink )
                 
-            elif articleName == '' and hash != '':
+            elif hash != '':
                 """
                 Выберем статью по ее ХЕШУ - это, скорее всего, будет одна из старых версий.... 
                 """
-                (article, fileList) = yield executor.submit( artHelper.getArticleHash, hash )
+                logging.info( 'ComposeHandler get hash = ' + str(hash))
+                logging.info( 'ComposeHandler get self.autor.author_id = ' + str(self.autor.author_id))
+                (article, fileList) = yield executor.submit( artHelper.getArticleHash, self.autor.author_id, hash )
 #             elif articleName != '':
 #                 artHelper.setArticleTitle (articleName)
 #                 pageName='Редактирование ' + articleName
