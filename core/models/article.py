@@ -67,8 +67,7 @@ class Article(Model):
     
     название и текст могут менятся. 
      
-    articles - хранилище ВСЕХ статей в системе.
-    revisions_articles - хранилище всех ревиий. 
+    articles - хранилище ВСЕХ статей в системе и всех ревиий. 
     
     статья Это:
     - заглавие
@@ -138,8 +137,7 @@ class Article(Model):
         значит, делает длинную строку, и берем от нее ХЭШ 
         смотрим по таблице ревизий - есть ли точно такое же, если сть, то 
         одаем автору ошибку, если все нормално, тогда записываем статью, и записываем ревизию.
-        2.2.1 поменяем запись в "article"
-        2.2.2 добавим новую запись в "revisions_articles"  
+        2.2.1 добавим новую запись в "articles"  
         
         """
 
@@ -174,28 +172,21 @@ class Article(Model):
 #             self.rollback()
 
 
-        self.begin()
-
         logging.info( 'article Before Save 2 self.article_id = ' + str(self) )
         
         try:
         
             if int(self.article_id) == 0:
-                self.article_id = self.insert('article_id')
                 operationFlag = 'I'
-                        
             else:
-                self.update('article_id = ' + str (self.article_id))
                 operationFlag = 'U'
 
-            revisions_sha_hash_sou =  self.article_title + self.article_link + self.article_annotation + self.article_source
+            sha_hash_sou =  self.article_title + self.article_link + self.article_annotation + self.article_source
             
-            logging.info( 'save:: revisions_sha_hash_sout = '  + str(revisions_sha_hash_sou))
+            logging.info( 'save:: sha_hash_sout = '  + str(sha_hash_sou))
 
             mainPrimaryObj = {'primaryName': 'article_id', 'primaryValue': self.article_id }
-            self.saveRevision(self.author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
-    
-            self.commit()
+            self.article_id = self.save(self.author_id, operationFlag, mainPrimaryObj, sha_hash_sou, 'article_id')
         
             if int(self.article_category_id) == int(config.options.tpl_categofy_id):
                  
@@ -271,12 +262,13 @@ class Article(Model):
         if int(spectatorId) == 0:
             getRez = self.select(
                                 ' DISTINCT articles.article_id, articles.article_title, articles.article_link, ' + 
-                                'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, ' + 
+                                'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.revision_author_id, ' + 
                                 ' articles.article_template_id, articles.article_permissions ',
-                                ' revisions_articles lfind ',
+                                ' articles lfind ',
                                     {
-                                'whereStr': " articles.article_id = lfind.article_id " +
-                                            " AND articles.article_permissions = 'pbl' "
+                                'whereStr': " articles.article_id = lfind.article_id " +\
+                                            " AND articles.article_permissions = 'pbl' " +\
+                                            " AND articles.actual_flag = 'A' " +\
                                              " AND lfind.article_link = '" + article_link  + "' " , # строка набор условий для выбора строк
                                  }
                                 )
@@ -284,21 +276,23 @@ class Article(Model):
             strTpl = """
                    SELECT 
                    articles.article_id, articles.article_title, articles.article_link, 
-                   articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, 
+                   articles.article_annotation,  articles.article_source, articles.article_category_id, articles.revision_author_id, 
                    articles.article_template_id, articles.article_permissions
-                   FROM articles, revisions_articles lfind 
+                   FROM articles, articles lfind 
                    WHERE articles.article_permissions = 'pbl'
                    AND articles.article_id = lfind.article_id 
+                   AND articles.actual_flag = 'A' 
                    AND lfind.article_link = '${aLink}'
                    UNION
                    SELECT 
                    articles.article_id, articles.article_title, articles.article_link, 
-                   articles.article_annotation,  articles.article_source, articles.article_category_id, articles.author_id, 
+                   articles.article_annotation,  articles.article_source, articles.article_category_id, articles.revision_author_id, 
                    articles.article_template_id, articles.article_permissions  
-                   FROM articles, groups, librarys, revisions_articles lfind 
+                   FROM articles, groups, librarys, articles lfind 
                    WHERE  articles.article_permissions = 'grp'
-                   AND groups.author_id = articles.author_id
-                   AND groups.author_id = $sId
+                   AND articles.actual_flag = 'A' 
+                   AND groups.revision_author_id = articles.revision_author_id
+                   AND groups.revision_author_id = $sId
                    AND groups.group_id = librarys.group_id
                    AND librarys.article_id = articles.article_id
                    AND articles.article_id = lfind.article_id 
@@ -329,10 +323,11 @@ class Article(Model):
          getRez = self.select(
                                 'articles.article_id, articles.article_title, articles.article_link, '+
                                 'articles.article_annotation,  articles.article_source, articles.article_category_id, '+ 
-                                'articles.author_id, articles.article_template_id, articles.article_permissions',
+                                'articles.revision_author_id, articles.article_template_id, articles.article_permissions',
                                 '',
                                     {
-                                'whereStr': ' articles.article_id = ' + str(articleId)  ,
+                                'whereStr': ' articles.article_id = ' + str(articleId) +\
+                                            " AND articles.actual_flag = 'A' "  ,
                                  }
                                 )
     
@@ -358,23 +353,23 @@ class Article(Model):
         strTpl = """
                SELECT 
                lfind.article_id, lfind.article_title, lfind.article_link, 
-               lfind.article_annotation,  lfind.article_source, lfind.article_category_id, lfind.author_id, 
-               lfind.article_template_id, lfind.article_permissions, lfind.revision_actual_flag
-               FROM revisions_articles lfind 
+               lfind.article_annotation,  lfind.article_source, lfind.article_category_id, lfind.revision_author_id, 
+               lfind.article_template_id, lfind.article_permissions, lfind.actual_flag
+               FROM articles lfind 
                WHERE lfind.article_permissions = 'pbl'
-               AND lfind.revisions_sha_hash = '${aHash}'
+               AND lfind.sha_hash = '${aHash}'
                UNION
                SELECT 
                lfind.article_id, lfind.article_title, lfind.article_link, 
-               lfind.article_annotation,  lfind.article_source, lfind.article_category_id, lfind.author_id, 
-               lfind.article_template_id, lfind.article_permissions, lfind.revision_actual_flag  
-               FROM groups, librarys, revisions_articles lfind 
+               lfind.article_annotation,  lfind.article_source, lfind.article_category_id, lfind.revision_author_id, 
+               lfind.article_template_id, lfind.article_permissions, lfind.actual_flag  
+               FROM groups, librarys, articles lfind 
                WHERE  lfind.article_permissions = 'grp'
-               AND groups.author_id = lfind.author_id
-               AND groups.author_id = $sId
+               AND groups.revision_author_id = lfind.revision_author_id
+               AND groups.revision_author_id = $sId
                AND groups.group_id = librarys.group_id
                AND librarys.article_id = lfind.article_id
-               AND lfind.revisions_sha_hash = '${aHash}'        
+               AND lfind.sha_hash = '${aHash}'        
                 """
                 #   article_id 
         tplWrk = string.Template(strTpl) # strTpl
@@ -403,10 +398,15 @@ class Article(Model):
          if categoryId > 0 :
              categoryStr = ' articles.article_category_id = ' + str(categoryId)
              
+         if categoryStr == '':
+             categoryStr += " articles.actual_flag = 'A' "
+         else:
+             categoryStr += " AND articles.actual_flag = 'A' "
+             
          getRez = self.select(
     #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
                                 'articles.article_id, articles.article_title, articles.article_link, ' +
-                                'articles.article_annotation, articles.article_category_id, articles.author_id, '+ 
+                                'articles.article_annotation, articles.article_category_id, articles.revision_author_id, '+ 
                                 ' articles.article_template_id, articles.article_permissions ',
                                 '',
                                     {
@@ -459,22 +459,24 @@ class Article(Model):
                    SELECT 
                    articles.article_id, articles.article_title, articles.article_link, articles.article_annotation, 
                    articles.article_category_id, 
-                   articles.author_id,  articles.article_template_id, articles.article_permissions,
+                   articles.revision_author_id,  articles.article_template_id, articles.article_permissions,
                    null AS group_title, null AS group_annotation,  null AS group_id 
                    FROM articles 
-                   WHERE  articles.author_id  = $aId 
+                   WHERE  articles.revision_author_id  = $aId 
                    AND articles.article_permissions = 'pbl'
+                   AND articles.actual_flag = 'A' 
                    UNION
                    SELECT 
                    articles.article_id, articles.article_title, articles.article_link, articles.article_annotation, 
                    articles.article_category_id, 
-                   articles.author_id,  articles.article_template_id, articles.article_permissions,
+                   articles.revision_author_id,  articles.article_template_id, articles.article_permissions,
                        groups.group_title, groups.group_annotation, groups.group_id  
                    FROM articles, groups, librarys
-                   WHERE  articles.author_id  = $aId 
+                   WHERE  articles.revision_author_id  = $aId 
                    AND articles.article_permissions = 'grp'
-                   AND groups.author_id = articles.author_id
-                   AND groups.author_id = $sId
+                   AND articles.actual_flag = 'A' 
+                   AND groups.revision_author_id = articles.revision_author_id
+                   AND groups.revision_author_id = $sId
                    AND groups.group_id = librarys.group_id
                    AND librarys.article_id = articles.article_id
                    ORDER BY 2 
@@ -487,11 +489,17 @@ class Article(Model):
         else:
             autorIdStr = '';
             if authorId > 0 :
-                autorIdStr = ' articles.author_id  = ' + str(authorId)
+                autorIdStr = ' articles.revision_author_id  = ' + str(authorId)
+                
+            if autorIdStr == '':
+                autorIdStr += " articles.actual_flag = 'A' "
+            else:
+                autorIdStr += " AND articles.actual_flag = 'A' "
+                
             getRez = self.select(
         #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
                    " articles.article_id, articles.article_title, articles.article_link, " +
-                   " articles.article_annotation, articles.article_category_id, articles.author_id, "+
+                   " articles.article_annotation, articles.article_category_id, articles.revision_author_id, "+
                    " articles.article_template_id, articles.article_permissions, " +
                    " groups.group_title, groups.group_annotation, groups.group_id " ,
                    "",
@@ -545,52 +553,6 @@ class Article(Model):
 
 
 
-    def getOneRevision ( self, articleId, revisionHash ):
-        """
-        получить ОДНУ ревизию статьи  
-        у всякой ревизии есть ее уникальный Хеш!       
-        для всякого типа данных известно, как этот Хеш создается, и знаит,
-        по такому Хешу мохно поднять любую трансакцию!!!!
-        
-        Это делаем для РЕДАКТИРОВНИЯ!!!
-        ' EXTRACT(EPOCH FROM revisions.revision_date) AS revision_date,  ' +
-        
-        """
-
-        getRez = self.select(
-                               """
-                                texts.article_id, revisions.revision_id, texts.article_source, annotations.annotation_text, titles.title_text, 
-                               revisions.revision_date AS revision_date,  
-                                revisions.author_id, revisions.revision_actual_flag, 
-                               articles.article_category_id, articles.article_template_id, articles.author_id, articles.article_permissions 
-                                """ ,
-                               'revisions_articles, articles',
-                                   {
-                               'whereStr': "  texts.text_sha_hash =  revisions.text_sha_hash" +
-                                            " AND titles.title_sha_hash = revisions.title_sha_hash " +
-                                            " AND annotations.annotation_sha_hash = revisions.annotation_sha_hash " +
-                                            " AND revisions.article_id = articles.article_id " +
-                                            " AND revisions.revision_id = " + revisionId  + " " +
-                                            " AND revisions.article_id = " + articleId  + " "  #### строка набор условий для выбора строк
-                                }
-                               )
-
-        if len(getRez) == 0:
-            raise WikiException( ARTICLE_NOT_FOUND )
-        elif len(getRez) == 1:   
-#             logging.info( 'getRez = ' + str(getRez[0]))
-            outArt = self.articleDecode(getRez[0])
-
-#                 self.article_link = titleText
-            
-#             del(outArt.title_text) 
-#             del(outArt.text_html) 
-#             del(outArt.annotation_text) 
-
-#                 logging.info( 'TEXT ::: get2Edit outArt  = ' + str(outArt))
-             
-            return outArt
-
  
  
 #     def select(self, 
@@ -612,32 +574,31 @@ class Article(Model):
 
         - выбираем данные из "texts"  и "annotations"  и "titles"  и "authors" 
         
-                               ' EXTRACT(EPOCH FROM revisions_articles.revision_date) AS revision_date, '+ 
+                               ' EXTRACT(EPOCH FROM articles.operation_timestamp) AS operation_timestamp, '+ 
         
         """
         getRez = self.select(
                                """
                                 articles.article_id, articles.article_title, 
-                               articles.article_title, revisions_articles.article_annotation, 
-                               revisions_articles.article_title AS rev_article_title,  
-                               revisions_articles.article_link, revisions_articles.article_annotation, 
-                               revisions_articles.article_source,  
-                               revisions_articles.revision_date AS revision_date,  
-                               revisions_articles.revisions_sha_hash, 
-                               revisions_articles.author_id, authors.author_name, authors.author_surname, 
-                               revisions_articles.revision_author_id, rev_author.author_name AS revision_author_name, 
-                               rev_author.author_surname AS revision_author_surname, revisions_articles.article_permissions, 
-                               revisions_articles.revision_actual_flag 
+                               articles.article_title, articles.article_annotation, 
+                               articles.article_title AS rev_article_title,  
+                               articles.article_link, articles.article_annotation, 
+                               articles.article_source,  
+                               articles.operation_timestamp AS operation_timestamp,  
+                               articles.sha_hash, 
+                               articles.revision_author_id, 
+                               author.author_name AS author_name, 
+                               author.author_surname AS author_surname, 
+                               articles.article_permissions, 
+                               articles.actual_flag 
                                 """,
                                
-                               ' revisions_articles, authors, authors rev_author ',
+                               ' authors, authors author ',
                                
                                    {
-                               'whereStr': ' articles.author_id =  authors.author_id '  +
-                                        ' AND revisions_articles.revision_author_id =  rev_author.author_id '  +
-                                        ' AND articles.article_id =  ' + str(articleId) +  # строка набор условий для выбора строк
-                                        ' AND revisions_articles.article_id =  ' + str(articleId), # строка набор условий для выбора строк
-                               'orderStr': ' revisions_articles.revision_date DESC ', # строка порядок строк
+                               'whereStr': ' articles.revision_author_id =  authors.author_id '  +\
+                                        ' AND articles.article_id =  ' + str(articleId) ,  # строка набор условий для выбора строк
+                               'orderStr': ' articles.operation_timestamp DESC ', # строка порядок строк
 #                                'orderStr': 'FROM_BASE64( articles.article_title )', # строка порядок строк
                                 }
                                )

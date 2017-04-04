@@ -49,104 +49,81 @@ function sourseViewerClose(){
 </script>
 
  <!--BEGIN CONTENT-->
-  <div class="page-content">
-      <div id="tab-general">
+<div class="page-content">
+	<div id="tab-general">
 
-    	<div class="col-lg-12">
-              <div class="row">
+		<div class="col-lg-12">
+			<div class="row">
 				<!-- Source Viewer -->
 				<div id="source_viewer"  class="hiddy">
-				
-				
 					<div class="panel panel-yellow"class="">
 					    <div class="panel-heading">
-					         <span  id="titleView">Title></span>
-					        &nbsp;&nbsp;&nbsp; 
-              <span class="badge badge-blue" id="editLink"><a style="color: #ffffff;" href="/compose">{{ _("Create new wiki") }}</a></span>
-              <span class="badge badge-blue pull-right" ><a style="color: #ffffff;" href="#"onclick="sourseViewerClose()">X</a></span>
+							<span  id="titleView">Title></span>
+							&nbsp;&nbsp;&nbsp; 
+							<span class="badge badge-blue" id="editLink"><a style="color: #ffffff;" href="/compose">{{ _("Create new wiki") }}</a></span>
+							<span class="badge badge-blue pull-right" ><a style="color: #ffffff;" href="#"onclick="sourseViewerClose()">X</a></span>
               			</div>
 					    <div class="panel-body pan">
 					        <div class="form-body pal" id='source'>
-					        
-					вот, тут будет просмотр исходников
-					panel panel-yellow 
-					            
+								        
+								вот, тут будет просмотр исходников
+								panel panel-yellow 
+								            
 					        </div>
 					    </div>
 					</div>
-				
 				</div>
-
-              
-              </div>
-        </div>
-
-
+			</div>
+		</div>
     	<div class="col-lg-12">
               <div class="row">
-          <div class="panel panel-grey">
-			<div class="panel-heading">{{ _("Revisions wiki") }} &nbsp;&nbsp;&nbsp; 
- 					"{{ parameters.article_title if parameters.article_title else "" }}" &nbsp;&nbsp;&nbsp; 
- 					{{ _("Autor wiki") }}: {{ parameters.article_autor if parameters.article_autor else "" }}
- 					<!-- перейти на страницу профиля автора article_autor_id -->
-			
+		          <div class="panel panel-grey">
+					<div class="panel-heading">{{ _("Revisions wiki") }} &nbsp;&nbsp;&nbsp; 
+	 					"{{ parameters.article_title if parameters.article_title else "" }}" &nbsp;&nbsp;&nbsp; 
+	 					{{ _("Autor wiki") }}: {{ parameters.article_autor if parameters.article_autor else "" }}
+	 					<!-- перейти на страницу профиля автора article_autor_id -->
+					</div>
+              		<div class="panel-body" id='groups_list_table'>
+
+   						{% if len(parameters.revisions) > 0 %}
+ 
+						 <table class="table table-hover">
+						     <thead>
+						     <tr>
+						         <th>{{ _("Date") }}</th>
+						         <th>{{ _("Title") }}</th>
+						         <th>{{ _("Fnnotation") }} </th>
+						         <th>{{ _("Edit wiki") }}</th>
+						         <th>{{ _("Viev wiki") }}</th>
+						         <th>Автор Ревизии</th>
+						     </tr>
+						     </thead>
+						     <tbody>
+								{% for revision in parameters.revisions %}
+								 <tr {% if revision.actual_flag == 'A'  %} class="success" {% end %} >
+								     <td><a href="/{{ revision.article_link }}">{{revision.operation_timestamp.strftime("%d.%m.%Y")}}</a></td>
+								     <td><a href="/{{ revision.article_link }}">{{ revision.rev_article_title }}</a></td>
+								     <td><a href="/{{ revision.article_link }}">{{ revision.article_annotation }}</a></td>
+								     <td> <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose/{{ revision.article_link }}?hash={{ revision.sha_hash }}">{{ _("Edit this wiki") }}</a></span></td>
+								     <td> <span class="badge badge-orange"><a style="color: #ffffff;" href="#" onclick="sourseViewerShow('{{ revision.rev_article_title }}', '{{ revision.article_link }}', '{{ revision.sha_hash }}', '{{revision.article_source}}')">{{ _("Edit this wiki") }}</a></span></td>
+								     <td><a href="/profile/{{ revision.author_id }}">{{ revision.author_name }} {{ revision.author_surname }}</a></td>
+								 </tr>
+								{% end %}
+					  		</tbody>
+						</table>
+						  {% else %} 
+						  	{{ _("Аrticles yet") }}  &nbsp;&nbsp;&nbsp;&nbsp; <a href="/compose"><i class="fa fa-edit fa-fw"></i><span class="menu-title">{{ _("Create new wiki") }}</span></a>
+						  {% end %}
+						</div>
+					</div>
+				</div>
 			</div>
-              <div class="panel-body" id='groups_list_table'>
-
-   {% if len(parameters.revisions) > 0 %}
- 
-	 <table class="table table-hover">
-	     <thead>
-	     <tr>
-	         <th>{{ _("Date") }}</th>
-	         <th>{{ _("Title") }}</th>
-	         <th>{{ _("Fnnotation") }} </th>
-	         <th>{{ _("Edit wiki") }}</th>
-	         <th>{{ _("Viev wiki") }}</th>
-	         <th>Автор</th>
-	         <th>Автор Ревизи</th>
-	     </tr>
-	     </thead>
-	     <tbody>
-                                    
-  {% for revision in parameters.revisions %}
-			
-			
-			 <tr {% if revision.revision_actual_flag == 'A'  %} class="success" {% end %} >
-			     <td><a href="/{{ revision.article_link }}">{{revision.revision_date.strftime("%d.%m.%Y")}}</a></td>
-			     <td><a href="/{{ revision.article_link }}">{{ revision.rev_article_title }}</a></td>
-			     <td><a href="/{{ revision.article_link }}">{{ revision.article_annotation }}</a></td>
-			     <td> <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose/{{ revision.article_link }}?hash={{ revision.revisions_sha_hash }}">{{ _("Edit this wiki") }}</a></span></td>
-			     <td> <span class="badge badge-orange"><a style="color: #ffffff;" href="#" onclick="sourseViewerShow('{{ revision.rev_article_title }}', '{{ revision.article_link }}', '{{ revision.revisions_sha_hash }}', '{{revision.article_source}}')">{{ _("Edit this wiki") }}</a></span></td>
-			     <td><a href="/profile/{{ revision.author_id }}">{{ revision.author_name }} {{ revision.author_surname }}</a></td>
-			     <td><a href="/profile/{{ revision.revision_author_id }}">{{ revision.revision_author_name }} {{ revision.revision_author_surname }}</a></td>
-			 </tr>
-			
-  {% end %}
-  </tbody>
-  </table>
- 
-  {% else %} 
-  	{{ _("Аrticles yet") }}  &nbsp;&nbsp;&nbsp;&nbsp; <a href="/compose"><i class="fa fa-edit fa-fw"></i><span class="menu-title">{{ _("Create new wiki") }}</span></a>
-  {% end %}
-
-
-
-              </div>
-          </div>
-          
-          
-  </div>
-         
-  </div>
 
 <br>              
 <br>              
 <br>              
 <br>              
 <br>              
-              
-              
           </div>
       </div>
   </div>

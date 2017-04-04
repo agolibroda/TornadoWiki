@@ -32,11 +32,11 @@ CREATE TABLE IF NOT EXISTS authors (
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revisions_author_id int NOT NULL 
+  revision_author_id int NOT NULL 
   
 );
 
-CREATE FUNCTION trigger_authors_before_lns () RETURNS trigger AS $$ 
+CREATE OR REPLACE FUNCTION trigger_authors_before_lns () RETURNS trigger AS $$ 
 BEGIN 
       If  NEW.author_id = 0 OR NEW.author_id IS NULL then 
       NEW.article_id = nextval('authors_author_id_seq');
@@ -64,9 +64,9 @@ CREATE INDEX authors_author_email_id ON authors (author_email);
 
 CREATE INDEX authors_articles_operation_flag_idx ON authors (operation_flag);
 
-CREATE INDEX authors_sha_hash_idx ON authors (sha_hash);
+CREATE UNIQUE INDEX authors_sha_hash_idx ON authors (sha_hash);
 CREATE INDEX authors_operation_timestamp_idx ON authors (operation_timestamp);
-CREATE INDEX authors_revisions_author_id_idx ON authors (revisions_author_id);
+CREATE INDEX authors_revision_author_id_idx ON authors (revision_author_id);
 CREATE INDEX authors_actual_flag_idx ON authors (actual_flag);
 
 
@@ -95,11 +95,11 @@ CREATE TABLE IF NOT EXISTS articles (
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revisions_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL references authors(author_id)
   
 );
 
-CREATE FUNCTION trigger_articles_before_lns () RETURNS trigger AS $$ 
+CREATE OR REPLACE FUNCTION trigger_articles_before_lns () RETURNS trigger AS $$ 
 BEGIN 
       If  NEW.article_id = 0 OR NEW.article_id IS NULL then 
       NEW.article_id = nextval('articles_article_id_seq');
@@ -121,9 +121,11 @@ CREATE INDEX articles_article_category_id ON articles (article_category_id);
 CREATE INDEX articles_article_template_id_id ON articles (article_template_id);
 CREATE INDEX articles_permissions_id ON articles (article_permissions);
 
+CREATE UNIQUE INDEX articles_sha_hash_idx ON articles (sha_hash);
+
 CREATE INDEX articles_operation_flag_idx ON articles (operation_flag);
 CREATE INDEX articles_operation_timestamp_idx ON articles (operation_timestamp);
-CREATE INDEX articles_revisions_author_id_idx ON articles (revisions_author_id);
+CREATE INDEX articles_revision_author_id_idx ON articles (revision_author_id);
 
 
 
@@ -144,11 +146,11 @@ CREATE TABLE IF NOT EXISTS files (
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revisions_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL references authors(author_id)
   
 );
 
-CREATE FUNCTION trigger_files_before_lns () RETURNS trigger AS $$ 
+CREATE OR REPLACE FUNCTION trigger_files_before_lns () RETURNS trigger AS $$ 
 BEGIN 
       If  NEW.file_id = 0 OR NEW.file_id IS NULL then 
       NEW.file_id = nextval('files_file_id_seq');
@@ -169,10 +171,11 @@ CREATE INDEX files_create_date_id ON files (file_create_date);
 CREATE INDEX files_extension_id ON files (file_extension);
 CREATE INDEX files_name_id ON files (file_name);
 
+CREATE UNIQUE INDEX files_sha_hash_idx ON files (sha_hash);
 
 CREATE INDEX files_operation_flag_idx ON files (operation_flag);
 CREATE INDEX files_date_idx ON files (operation_timestamp);
-CREATE INDEX files_revisions_author_id_idx ON files (revisions_author_id);
+CREATE INDEX files_revision_author_id_idx ON files (revision_author_id);
 
 
 DROP TYPE IF EXISTS files_kross_type;
@@ -191,7 +194,7 @@ CREATE TABLE IF NOT EXISTS files_kroses (
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revisions_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL references authors(author_id)
 );
 
 
@@ -200,17 +203,18 @@ CREATE INDEX files_kroses_article_id ON files_kroses (article_id);
 CREATE INDEX file_kros_create_date_idx ON files_kroses (file_kros_create_date);
 CREATE INDEX file_kros_flag_id ON files_kroses (file_kros_flag);
 
+CREATE UNIQUE INDEX files_kroses_sha_hash_idx ON files_kroses (sha_hash);
 
 CREATE INDEX files_kroses_operation_flag_idx ON files_kroses (operation_flag);
 CREATE INDEX files_kroses_operation_timestamp_idx ON files_kroses (operation_timestamp);
-CREATE INDEX files_kroses_revisions_author_id_idx ON files_kroses (revisions_author_id);
+CREATE INDEX files_kroses_revision_author_id_idx ON files_kroses (revision_author_id);
 CREATE INDEX files_kroses_actual_flag_idx ON files_kroses (actual_flag);
 
 
 
 
 
-INSERT INTO  authors (author_id, author_create, author_login, author_name, author_surname, author_pass, author_phon, author_email, author_role, operation_flag, revisions_author_id, actual_flag, sha_hash) VALUES 
+INSERT INTO  authors (author_id, author_create, author_login, author_name, author_surname, author_pass, author_phon, author_email, author_role, operation_flag, revision_author_id, actual_flag, sha_hash) VALUES 
 (1,	'2015-12-25 12:53:08',	'login',	'MyName',	'SurName',	'$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0.',	'1234-65432-4444',	'mail_0001@mail.com',	'admin', 'I', 1, 'A', 'b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB');
 
 --SELECT setval('articles_article_id_seq', (SELECT MAX(article_id) FROM articles) );
@@ -220,12 +224,12 @@ ALTER SEQUENCE authors_author_id_seq OWNED BY authors.author_id;
 
 
 
-INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revisions_author_id) VALUES (6, 'Главная статья сайта', 'главная_статья_сайта', 'Главная статья сайта - что будет на главной странице сайта?', 'eJyzKbC7MPnC7gsbLmy6sPfChov9ChcbLzZdbAAK7L2w42LbhQ1AASBn58UmIPPCfqDMvgtbL+wCc9UKS/NLrEPyi8IzszMhHJukIgV9O14utbyk4gJrG/0COwCyQzSm', 3, 5, 'pbl', '849c4af9da930987ec5e1f7f80af9c3bb612de4caed11fb62db74949f03a6a41', 'A', 'I', '2017-03-23 18:47:28.45462', 1);
-INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revisions_author_id) VALUES (3, 'Информационные статьи', 'информационные_статьи', 'Категория - Информационные статьи', 'eJwly7ENgzAABdFVXNFFDABiGAYgjiA9IEQKGIAqM7hBshA2K9zfCEdprnpX2oovF14DjoBnz5q6tYV5GH00Ek2K4yCym+z1fnYFG0ETUT0nTnOaYlqDlkQ0/LxGrfg/L3Nb3asDPc0=', 1, 5, 'pbl', '665350b869896eaaec57c3c068d790be2f31b8502a1d8c0ed46776fbb884b634', 'A', 'I', '2017-03-23 18:30:30.98642', 1);
-INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revisions_author_id) VALUES (2, 'Служебные статьи', 'служебные_статьи', 'Категория - Служебные статьи', 'eJyzKbC7MOXC7ov9ChfbL2y9sPnCPoULey82X9gGJLvV8pKKC6wV1ApL80usLywEKgNJbL2wESR5YavCxcaLTRc2XGy62HNhB0SRTVKRgr4dL9eFfRf2X9hxsfHChgt7L+y4sNVGv8AOAEchPeU=', 1, 5, 'pbl', 'a6e13583c2d7ccd978828a6db7feb85fe35f4124a57ed72f0d95abd98d91b891', 'A', 'I', '2017-03-23 18:28:56.856951', 1);
-INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revisions_author_id) VALUES (4, 'Шаблоны', 'шаблоны', 'Категория  - Шаблоны', 'eJyzKbC7sPxi04V9CkBiw4VdF/Zd2KqgVliaX2J9YQVQYOOF3UChvRe7IWI2+gV2ABH9HNs=', 1, 5, 'pbl', 'a713cf338b87ed943ccd9955206e18c9a1d0b7bcbcb1c18765faff99a3ce6e29', 'A', 'I', '2017-03-23 18:31:31.116259', 1);
-INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revisions_author_id) VALUES (1, 'Список Категорий статей', 'список_категорий_статей', 'Начальный список категрий - что бы можно было категоризировать статьи', 'eJx9jsENwjAUQ++VukNO3FAHIOowHQBFsAClCJDKCjBDK1TUkqasYG+EAxwQBy5f+fGzv63LccEDPUs0COjRGT3fH3c0Jg5u0eGKiRvpg5kti7Vb2MzlaZImVglnMQf5PU8IrJXxa7PFymTi5zHds8JNWvuBWQoVLvcXqFuBu5d9lLrXPqnhPwuPKtHCR5B1bPgEeWiE/A==', 1, 5, 'pbl', 'ff3e6cdd19859e807b44f01fd725b6a151cb937e7c3901a20f692b935fbe6104', 'A', 'I', '2017-03-23 18:25:05.885938', 1);
-INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revisions_author_id) VALUES (5, 'Основной шаблон Информационной страницы', 'основной_шаблон_информационной_страницы', 'Основной шаблон Информационной страницы собственной персоной!', 'eJyNVMtqGzEU3Qf8DzeCrIojTBctwTObJoVCaQNxW0opRhlde4Q10iBdxzHGq+67ybr/ELot/YfJH1WahzuJ08dmLjrSOfdxpBkfnr59Mfl4fgY5FTodHIx3EYWMsUASkOXCeaSEvZu8HD5nESdFGtOJdR/UQo15swy4VmYBDnXCPK01+hyRGOQOZwnjngSpjK8C5TjzngGtS0wY4TXxuL4vIDShM4Jwx58hyo4kylKrLOhZwwXZ4sl1oRkMDupKErbZCBdyaTxu47Te2G5jkpCGdw1eWrmOUaorUDJhcc36QDyIbgfVbSVspq2gE6fmOTWKmyNQM8iWzqGh6dKjg6NtnUp05ZfovDVCTyX6xZRsydLzFoJT4RcwseWYi04Otcc9DbGknGs7V4alF2puQJlIAbKQ2aK0HjlKRY2AkR2fh9JrW0fpby2WVt+qW6huqh/VbfW9+nn35e5rVAvTGaU91uFwCHVHry5O4I01CMNhf0SZNRS6bkcbTxdWLoP7MHr6DKBzIt6tHjPTwvtgZLPLHpa376CS0b4/OtuvvKffGLrPEsZYqu9PpLad7vHqQTqxgod0b5cua/wZX7r0ft98psJ3qpWnXtebTYRfB3C7bc/zvzMeq0vIIpo/OPj0z1GdhZsAlCsPq/qVivTz/9DeKwz9ah2e4ZXyYUC+pe7KaePjSPeieP0v+QXedm0o', 4, 5, 'pbl', '1c0205a3970f770cdeef9cd6b99c0c3079001245e96303bd2d41859c0aa396fe', 'A', 'U', '2017-03-23 22:06:28.471117', 1);
+INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (6, 'Главная статья сайта', 'главная_статья_сайта', 'Главная статья сайта - что будет на главной странице сайта?', 'eJyzKbC7MPnC7gsbLmy6sPfChov9ChcbLzZdbAAK7L2w42LbhQ1AASBn58UmIPPCfqDMvgtbL+wCc9UKS/NLrEPyi8IzszMhHJukIgV9O14utbyk4gJrG/0COwCyQzSm', 3, 5, 'pbl', '849c4af9da930987ec5e1f7f80af9c3bb612de4caed11fb62db74949f03a6a41', 'A', 'I', '2017-03-23 18:47:28.45462', 1);
+INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (3, 'Информационные статьи', 'информационные_статьи', 'Категория - Информационные статьи', 'eJwly7ENgzAABdFVXNFFDABiGAYgjiA9IEQKGIAqM7hBshA2K9zfCEdprnpX2oovF14DjoBnz5q6tYV5GH00Ek2K4yCym+z1fnYFG0ETUT0nTnOaYlqDlkQ0/LxGrfg/L3Nb3asDPc0=', 1, 5, 'pbl', '665350b869896eaaec57c3c068d790be2f31b8502a1d8c0ed46776fbb884b634', 'A', 'I', '2017-03-23 18:30:30.98642', 1);
+INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (2, 'Служебные статьи', 'служебные_статьи', 'Категория - Служебные статьи', 'eJyzKbC7MOXC7ov9ChfbL2y9sPnCPoULey82X9gGJLvV8pKKC6wV1ApL80usLywEKgNJbL2wESR5YavCxcaLTRc2XGy62HNhB0SRTVKRgr4dL9eFfRf2X9hxsfHChgt7L+y4sNVGv8AOAEchPeU=', 1, 5, 'pbl', 'a6e13583c2d7ccd978828a6db7feb85fe35f4124a57ed72f0d95abd98d91b891', 'A', 'I', '2017-03-23 18:28:56.856951', 1);
+INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (4, 'Шаблоны', 'шаблоны', 'Категория  - Шаблоны', 'eJyzKbC7sPxi04V9CkBiw4VdF/Zd2KqgVliaX2J9YQVQYOOF3UChvRe7IWI2+gV2ABH9HNs=', 1, 5, 'pbl', 'a713cf338b87ed943ccd9955206e18c9a1d0b7bcbcb1c18765faff99a3ce6e29', 'A', 'I', '2017-03-23 18:31:31.116259', 1);
+INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (1, 'Список Категорий статей', 'список_категорий_статей', 'Начальный список категрий - что бы можно было категоризировать статьи', 'eJx9jsENwjAUQ++VukNO3FAHIOowHQBFsAClCJDKCjBDK1TUkqasYG+EAxwQBy5f+fGzv63LccEDPUs0COjRGT3fH3c0Jg5u0eGKiRvpg5kti7Vb2MzlaZImVglnMQf5PU8IrJXxa7PFymTi5zHds8JNWvuBWQoVLvcXqFuBu5d9lLrXPqnhPwuPKtHCR5B1bPgEeWiE/A==', 1, 5, 'pbl', 'ff3e6cdd19859e807b44f01fd725b6a151cb937e7c3901a20f692b935fbe6104', 'A', 'I', '2017-03-23 18:25:05.885938', 1);
+INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (5, 'Основной шаблон Информационной страницы', 'основной_шаблон_информационной_страницы', 'Основной шаблон Информационной страницы собственной персоной!', 'eJyNVMtqGzEU3Qf8DzeCrIojTBctwTObJoVCaQNxW0opRhlde4Q10iBdxzHGq+67ybr/ELot/YfJH1WahzuJ08dmLjrSOfdxpBkfnr59Mfl4fgY5FTodHIx3EYWMsUASkOXCeaSEvZu8HD5nESdFGtOJdR/UQo15swy4VmYBDnXCPK01+hyRGOQOZwnjngSpjK8C5TjzngGtS0wY4TXxuL4vIDShM4Jwx58hyo4kylKrLOhZwwXZ4sl1oRkMDupKErbZCBdyaTxu47Te2G5jkpCGdw1eWrmOUaorUDJhcc36QDyIbgfVbSVspq2gE6fmOTWKmyNQM8iWzqGh6dKjg6NtnUp05ZfovDVCTyX6xZRsydLzFoJT4RcwseWYi04Otcc9DbGknGs7V4alF2puQJlIAbKQ2aK0HjlKRY2AkR2fh9JrW0fpby2WVt+qW6huqh/VbfW9+nn35e5rVAvTGaU91uFwCHVHry5O4I01CMNhf0SZNRS6bkcbTxdWLoP7MHr6DKBzIt6tHjPTwvtgZLPLHpa376CS0b4/OtuvvKffGLrPEsZYqu9PpLad7vHqQTqxgod0b5cua/wZX7r0ft98psJ3qpWnXtebTYRfB3C7bc/zvzMeq0vIIpo/OPj0z1GdhZsAlCsPq/qVivTz/9DeKwz9ah2e4ZXyYUC+pe7KaePjSPeieP0v+QXedm0o', 4, 5, 'pbl', '1c0205a3970f770cdeef9cd6b99c0c3079001245e96303bd2d41859c0aa396fe', 'A', 'U', '2017-03-23 22:06:28.471117', 1);
 
 
 DROP TYPE IF EXISTS group_status_def CASCADE;
@@ -250,11 +254,11 @@ CREATE TABLE IF NOT EXISTS groups (
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revisions_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL references authors(author_id)
 
 );
 
-CREATE FUNCTION trigger_groups_before_lns () RETURNS trigger AS $$ 
+CREATE OR REPLACE FUNCTION trigger_groups_before_lns () RETURNS trigger AS $$ 
 BEGIN 
       If  NEW.group_id = 0 OR NEW.group_id IS NULL then 
       NEW.group_id = nextval('groups_group_id_seq');
@@ -276,9 +280,11 @@ CREATE INDEX groups_create_date_idx ON groups (group_create_date);
 CREATE INDEX groups_title_idx ON groups (group_title);
 CREATE INDEX groups_status_idx ON groups (group_status);
 
+CREATE UNIQUE INDEX groups_sha_hash_idx ON groups (sha_hash);
+
 CREATE INDEX group_operation_flag_idx ON groups (operation_flag);
 CREATE INDEX group_operation_timestamp_idx ON groups (operation_timestamp);
-CREATE INDEX group_revisions_author_id_idx ON groups (revisions_author_id);
+CREATE INDEX group_revision_author_id_idx ON groups (revision_author_id);
 CREATE INDEX group_actual_flag_idx ON groups (actual_flag);
 
 
@@ -297,7 +303,7 @@ CREATE TABLE IF NOT EXISTS members (
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revisions_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL references authors(author_id)
 
 );
   
@@ -307,7 +313,7 @@ CREATE INDEX members_member_role_type_idx ON members (member_role_type);
 
 CREATE INDEX members_operation_flag_idx ON members (operation_flag);
 CREATE INDEX members_operation_timestamp_idx ON members (operation_timestamp);
-CREATE INDEX members_revisions_author_id_idx ON members (revisions_author_id);
+CREATE INDEX members_revision_author_id_idx ON members (revision_author_id);
 CREATE INDEX members_actual_flag_idx ON members (actual_flag);
 
 
@@ -326,7 +332,7 @@ CREATE TABLE IF NOT EXISTS librarys (
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revisions_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL references authors(author_id)
   );
 
 CREATE INDEX librarys_group_id_idx ON librarys (group_id);
@@ -335,7 +341,7 @@ CREATE INDEX librarys_permission_type_idx ON librarys (library_permission_type);
 
 CREATE INDEX librarys_operation_flag_idx ON librarys (operation_flag);
 CREATE INDEX librarys_operation_timestamp_idx ON librarys (operation_timestamp);
-CREATE INDEX librarys_revisions_author_id_idx ON librarys (revisions_author_id);
+CREATE INDEX librarys_revision_author_id_idx ON librarys (revision_author_id);
 CREATE INDEX librarys_actual_flag_idx ON librarys (actual_flag);
 
 

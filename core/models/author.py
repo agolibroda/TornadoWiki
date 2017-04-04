@@ -55,21 +55,20 @@ class Author(Model):
         """
         if self.author_pass != '':
             bbsalt =  config.options.salt.encode()
-            self.author_pass = bcrypt.hashpw( tornado.escape.utf8(self.author_pass),  bbsalt ).decode('utf-8') 
+            self.author_pass = bcrypt.hashpw( tornado.escape.utf8(self.author_pass), bbsalt ).decode('utf-8') 
         if self.author_id == 0:
             self.author_create = datetime.now()
-            self.author_id = self.insert('author_id')
+#             self.author_id = self.insert('author_id')
             operationFlag = 'I'
         else:
             self.author_create =  datetime.fromtimestamp(int(self.author_create))
-            logging.info(' save:: before Update = ' + str(self))
-            self.update('author_id = ' + str(self.author_id))
+#             self.update('author_id = ' + str(self.author_id))
             operationFlag = 'U'
             
         mainPrimaryObj = {'primaryName': 'author_id', 'primaryValue': self.author_id }
-        revisions_sha_hash_sou =  self.author_login + self.author_name + self.author_surname + self.author_role +self.author_phon + self.author_email  
+        sha_hash_sou =  self.author_login + self.author_name + self.author_surname + self.author_role +self.author_phon + self.author_email  
         logging.info(' save:: mainPrimaryObj = ' + str(mainPrimaryObj))
-        self.saveRevision(self.author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
+        self.author_id = self.save(self.author_id, operationFlag, mainPrimaryObj, sha_hash_sou, 'author_id')
         return True
         
         
@@ -84,7 +83,7 @@ class Author(Model):
             raise WikiException(LOGIN_IS_ENPTY)
         if pwdStr != '':
             bbsalt =  config.options.salt.encode()
-            test_pass = bcrypt.hashpw( tornado.escape.utf8(pwdStr),  bbsalt ).decode('utf-8') 
+            test_pass = bcrypt.hashpw( tornado.escape.utf8(pwdStr), bbsalt ).decode('utf-8') 
         else:
             raise WikiException(PASSWD_IS_ENPTY)
 
@@ -116,7 +115,8 @@ class Author(Model):
                     'author_id,  author_login, author_name,  author_surname, author_role, author_phon, author_email, floor(EXTRACT(EPOCH FROM author_create)) AS author_create ', # строка - чего хотим получить из селекта
                     '', #'authors',  # строка - список таблиц 
                     {
-                     'whereStr': " author_id = " + str(authorId)
+                     'whereStr': " author_id = " + str(authorId) + \
+                     " AND actual_flag = 'A' " 
                      } #  все остальные секции селекта
                     )
 #         logging.info('Author:: get:: resList = ')

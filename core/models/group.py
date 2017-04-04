@@ -157,11 +157,13 @@ class Group(Model):
 
             getRez = self.select(
                     ' articles.article_id, articles.article_title, articles.article_link, ' +
-                    ' articles.article_annotation, articles.article_category_id, articles.author_id, articles.article_template_id, ' +
+                    ' articles.article_annotation, articles.article_category_id, ' + 
+                    ' articles.article_template_id, ' +
                     ' null AS group_title, null AS group_annotation,  null AS group_id ',
                     'articles',
                         {
-                    'whereStr': " librarys.article_id = articles.article_id AND  librarys.group_id = " + str(groupId) , # строка набор условий для выбора строк
+                    'whereStr': " librarys.article_id = articles.article_id AND " +\
+                    " librarys.group_id = " + str(groupId) , # строка набор условий для выбора строк
                     'orderStr': ' articles.article_id ', # строка порядок строк
                                      }
                                     )
@@ -232,18 +234,22 @@ class Group(Model):
     def grouplistForAutor(self, author_id):
         """
         Получить список групп для одного автора - все руппы, которые АВТОР создал, 
-        и в которых АВТОР является АДМИНОМ
-        у, походу, инттереснее плучитьвсе группы АВТОРА - и где автор "Админ" и "учасник" 
-        а авторство в группе ... ну, не знаю. :-)
+        и в которых АВТОР является участником
+       
+        вот тут возможно, надо будет все поправить - 
+        и показывать только ПАБЛИК группы, и/или приватные группы, 
+        в которых участвуют оба  - и зритель, и автор 
         
         """
         try:
             resList = self.select(
-                        ' groups.group_id,  groups.group_title, groups.group_annotation,  groups.group_status, floor(EXTRACT(EPOCH FROM groups.group_create_date)) AS group_create_date, ' + 
+                        ' groups.group_id,  groups.group_title, groups.group_annotation,  groups.group_status, groups.group_create_date, ' + 
                         ' members.member_role_type ' , # строка - чего хотим получить из селекта
                         '  members ', #'authors',  # строка - список таблиц 
                         {
-                         'whereStr': " members.author_id = groups.author_id AND  members.group_id = groups.group_id AND groups.author_id = " + str(author_id) 
+                         'whereStr': " members.author_id = " + str(author_id) + \
+                         " AND  members.group_id = groups.group_id " +\
+                         " OR groups.author_id = " + str(author_id) 
                          } #  все остальные секции селекта
                         )
 #             logging.info( 'grouplistForAutor:: resList =  ' + str(resList))
