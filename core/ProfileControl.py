@@ -92,7 +92,7 @@ class AuthCreateHandler(BaseHandler):
             logging.info( 'AuthCreateHandler  post rez = ' + str(rez))
             
             self.set_secure_cookie("wiki_author", str(authorLoc.author_id))
-            self.redirect(self.get_argument("next", "/"))
+            self.redirect(self.get_argument("next", "/personal_desk_top"))
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')
@@ -101,7 +101,7 @@ class AuthCreateHandler(BaseHandler):
     #         tplControl.make(self.autor)
             tplControl.page_name='Регистрация нового Автора'
             tplControl.link='auth/create'
-            tplControl.error=error
+            tplControl.error=str(error)
             
             self.render("create_author.html", parameters=tplControl)
 
@@ -194,6 +194,7 @@ class MyProfileHandler(BaseHandler):
 
     @gen.coroutine
     def post(self):
+
         try:
 #             if self.any_author_exists():
 #                 raise tornado.web.HTTPError(400, "author already created")
@@ -206,13 +207,15 @@ class MyProfileHandler(BaseHandler):
             logging.info( 'MyProfileHandler  post surname !!!! = ' + str(self.get_argument("surname")))
             logging.info( 'MyProfileHandler  post phon !!!! = ' + str(self.get_argument("phon")))
 
-            authorLoc = yield executor.submit(self.get_current_user ) 
+            authorLoc = yield executor.submit(self.get_current_user )
+             
+            tplControl = TemplateParams()
+            tplControl.make(authorLoc)
 
             passwd = self.get_argument("pass")
             passwd2 = self.get_argument("pass_conf")
             if passwd != passwd2: 
 #  надо добавить сообщение о том,что пароли не совпадают, и вывести эти сообщеия в правильном месте!!!!                
-                error = Error ('500', 'Пароли не совпадают! ')
                 raise WikiException( 'Пароли не совпадают! ' )  # Exception # 
 
       
@@ -237,7 +240,6 @@ class MyProfileHandler(BaseHandler):
             
             self.set_secure_cookie("wiki_author", str(authorLoc.author_id))
             
-            tplControl = TemplateParams()
     #         tplControl.make(self.autor)
             tplControl.page_name = authorLoc.author_name + ' '+ authorLoc.author_surname
             tplControl.link='profile'
@@ -247,7 +249,7 @@ class MyProfileHandler(BaseHandler):
             self.render("my_profile.html", parameters=tplControl)
         except Exception as e:
             logging.info( 'MyProfileHandler Post:: Exception as et = ' + str(e))
-            error = Error ('500', 'что - то пошло не так :-( ')
+            logging.info( 'MyProfileHandler Post:: Exception as authorLoc = ' + str(authorLoc))
             
             tplControl.error=str(e)
             tplControl.link='/profile'

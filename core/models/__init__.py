@@ -219,10 +219,6 @@ class Model: #Connector:
             
         """
         paramsObj = self.splitAttributes()
-# во тут надо добавить араметры ревизии в инсерт!!
-#   actual_flag revision_data_type NOT NULL,
-#   revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-#   revision_author_id int NOT NULL references authors(author_id),
  
         try:
             _loDb = self.cursor()
@@ -232,26 +228,27 @@ class Model: #Connector:
             logging.info(' save::Before Save self = ' + toStr(self))
      
             # Все ревизии ЭТОЙ записи - устарели!!!! - проабдейтим список ревизий
-            sqlStr = "UPDATE revisions_" + self._tabName + " SET revision_actual_flag = 'O' WHERE " +\
+            sqlStr = "UPDATE " + self._tabName + " SET actual_flag = 'O' WHERE " +\
                      mainPrimaryObj['primaryName'] + " = "  + str(mainPrimaryObj['primaryValue'])
             logging.info(' save:: sqlStr = ' + sqlStr)
             _loDb.execute(sqlStr)
             
-            revision_date = datetime.now() 
-            revisions_sha_hash =  hashlib.sha256(
-                        tornado.escape.utf8(revisions_sha_hash_source + str(revision_date) )
+            operation_timestamp = datetime.now() 
+            sha_hash =  hashlib.sha256(
+                        tornado.escape.utf8(revisions_sha_hash_source + str(operation_timestamp) )
                                                 ).hexdigest()
                                                  
             returningStr = ''
             if requestParamName != '':
                 returningStr = " returning " + requestParamName
             # Теперь можно записать новые данные  в ревизии.    
-            paramsObj.strListAttrNames += ', revision_actual_flag, revision_author_id,  operation_flag, revisions_sha_hash, revision_date '
-            paramsObj.strListAttrValues += ", 'A', " +  str(autorId) + ", '" + operationFlag + "',  '" + revisions_sha_hash + "', '" + str(revision_date) + "' "
+            
+            paramsObj.strListAttrNames += ', actual_flag, revision_author_id,  operation_flag, sha_hash, operation_timestamp '
+            paramsObj.strListAttrValues += ", 'A', " +  str(autorId) + ", '" + operationFlag + "',  '" + sha_hash + "', '" + str(operation_timestamp) + "' "
      
             sqlStr = "INSERT INTO " + self._tabName +" ( " + paramsObj.strListAttrNames + ") VALUES " +\
-                    "( " + paramsObj.strListAttrValues + " ) " + returningStr  + \
-                    " ON CONFLICT (revisions_sha_hash) DO UPDATE SET revision_actual_flag = 'A'; "
+                    "( " + paramsObj.strListAttrValues + " ) "  + \
+                    " ON CONFLICT (sha_hash) DO UPDATE SET actual_flag = 'A' "  + returningStr + ' ;'
             logging.info(' save:: sqlStr = ' + sqlStr)
             _loDb.execute(sqlStr)
             if requestParamName != '':
@@ -259,9 +256,8 @@ class Model: #Connector:
                 logging.info(' save:: sourse = ' + str(sourse))
                 logging.info(' save:: sourse[requestParamName] = ' + str(sourse[requestParamName]))
                 self.__dict__[requestParamName] = sourse[requestParamName]
+                self.commit()
                 return  sourse[requestParamName]
- 
-#             _loDb.commit()
             self.commit()
         except psycopg2.Error as error:
             logging.error(' save exception:: ' + str (error) )
@@ -317,11 +313,11 @@ class Model: #Connector:
             sqlStr = 'SELECT '+ selectStr
             if addTables != None:
                 sqlStr += ' FROM ' + self._tabName 
+                if addTables  != '':  sqlStr += ', ' + str(addTables)
             
 #             if addTables == '':
 #                 sqlStr += ' FROM ' + self._tabName 
                 
-                if addTables  != '':  sqlStr += ', ' + str(addTables)
                 
             if str(anyParams.get('joinStr', ''))     != '':  sqlStr += ' ' + str(anyParams.get('joinStr'))
             if str(anyParams.get('whereStr', ''))    != '':  sqlStr += ' WHERE ' + str(anyParams.get('whereStr'))
@@ -332,10 +328,12 @@ class Model: #Connector:
 
             _loDb.execute(sqlStr)
             sourse = _loDb.fetchall()
-            logging.info('select:: list:: sourse = ' + str (sourse) )
+            for one in sourse:
+                logging.info('select:: list:: sourse = ' + str (one) )
             outListObj = self.dict2obj(sourse)    
+            for one in outListObj:
+                logging.info('select:: list:: outListObj = ' + str (one) )
  
-
             return outListObj
 
         except psycopg2.Error as error:

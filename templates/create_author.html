@@ -5,8 +5,8 @@
 	<div class="col-md-9">
 	  <div id="generalTabContent" class="tab-content">
 
-		{% if error %}
-		<span style="color: red">{{_("Error")}}: {{ error }}</span><p>
+		{% if parameters.error %}
+		<span style="color: red">{{_("Error")}}: {{ parameters.error }}</span><p>
 		{% end %}
  	  
 	      <div id="tab-edit" class="tab-pane fade in active">

@@ -58,17 +58,15 @@ class Author(Model):
             self.author_pass = bcrypt.hashpw( tornado.escape.utf8(self.author_pass), bbsalt ).decode('utf-8') 
         if self.author_id == 0:
             self.author_create = datetime.now()
-#             self.author_id = self.insert('author_id')
             operationFlag = 'I'
         else:
-            self.author_create =  datetime.fromtimestamp(int(self.author_create))
-#             self.update('author_id = ' + str(self.author_id))
+            self.author_create =  self.author_create
             operationFlag = 'U'
             
         mainPrimaryObj = {'primaryName': 'author_id', 'primaryValue': self.author_id }
         sha_hash_sou =  self.author_login + self.author_name + self.author_surname + self.author_role +self.author_phon + self.author_email  
-        logging.info(' save:: mainPrimaryObj = ' + str(mainPrimaryObj))
-        self.author_id = self.save(self.author_id, operationFlag, mainPrimaryObj, sha_hash_sou, 'author_id')
+        
+        self.author_id = Model.save(self, self.author_id, operationFlag, mainPrimaryObj, sha_hash_sou, 'author_id')
         return True
         
         
@@ -112,7 +110,7 @@ class Author(Model):
         загрузить ОДНО значение - по ИД пользователя
         """
         resList = self.select(
-                    'author_id,  author_login, author_name,  author_surname, author_role, author_phon, author_email, floor(EXTRACT(EPOCH FROM author_create)) AS author_create ', # строка - чего хотим получить из селекта
+                    'author_id,  author_login, author_name,  author_surname, author_role, author_phon, author_email, author_create ', # строка - чего хотим получить из селекта
                     '', #'authors',  # строка - список таблиц 
                     {
                      'whereStr': " author_id = " + str(authorId) + \
@@ -136,7 +134,7 @@ class Author(Model):
     def list(self):
         logging.info('Author:: list:: START!!! >>>> ')
 #         cur = self.db().cursor()
-        selectStr = 'author_id,  author_login, author_name, author_surname, author_role, author_phon, author_email, floor(EXTRACT(EPOCH FROM author_create)) AS author_create'
+        selectStr = 'author_id,  author_login, author_name, author_surname, author_role, author_phon, author_email, author_create '
         fromStr = '' #'authors'
         anyParams = {
                     'orderStr': ' author_id', # строка порядок строк

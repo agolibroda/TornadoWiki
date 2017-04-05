@@ -105,8 +105,13 @@ class BaseHandler(tornado.web.RequestHandler):
 
         self.author = SingletonAuthor()
         try:
-            author_id = int(self.get_secure_cookie("wiki_author"))
-#             logging.info('BaseHandler:: get_current_user:: get_secure_cookie author_id '+ str(author_id))
+            cookie = self.get_secure_cookie("wiki_author")
+            logging.info('BaseHandler:: get_current_user:: cookie = '+ str(cookie))
+            author_id = 0
+            if not cookie:
+                return None
+            author_id = int(cookie)
+            logging.info('BaseHandler:: get_current_user:: get_secure_cookie author_id '+ str(author_id))
             if not author_id or author_id == 0: return None
 #             logging.info('BaseHandler:: get_current_user:: 11 self.author '+ str(self.author))
             if self.author.author_id == 0:

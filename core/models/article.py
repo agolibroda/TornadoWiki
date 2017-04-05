@@ -114,7 +114,7 @@ class Article(Model):
 
         Model.__init__(self, 'articles')   
         self.article_id = id # эти параметры прилетают из формы редактирования
-        self.author_id = 0;
+#         self.author_id = 0;
         self.article_title = title # эти параметры прилетают из формы редактирования
         self.article_annotation = '' # Это аннотация статьи!!!!!
         self.article_source = '' # эти параметры прилетают из формы редактирования
@@ -146,7 +146,7 @@ class Article(Model):
 # вот такие категрии (служебные?) 'inf','trm','nvg','tpl'
 
 
-        self.author_id = author_id
+#         self.author_id = author_id
        
         if int(self.article_category_id) == int(config.options.tpl_categofy_id):
             htmlTextOut = self.article_source
@@ -186,10 +186,11 @@ class Article(Model):
             logging.info( 'save:: sha_hash_sout = '  + str(sha_hash_sou))
 
             mainPrimaryObj = {'primaryName': 'article_id', 'primaryValue': self.article_id }
-            self.article_id = self.save(self.author_id, operationFlag, mainPrimaryObj, sha_hash_sou, 'article_id')
+            self.article_id = Model.save(self, author_id, operationFlag, mainPrimaryObj, sha_hash_sou, 'article_id')
+
+            logging.info( 'save:: After SAVE = '  + str(self))
         
             if int(self.article_category_id) == int(config.options.tpl_categofy_id):
-                 
                 wrkTpl = Template()
                 wrkTpl.save(self.article_id, htmlTextOut, templateDir)
 

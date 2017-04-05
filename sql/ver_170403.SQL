@@ -17,7 +17,7 @@ CREATE SEQUENCE IF NOT EXISTS authors_author_id_seq;
 
 DROP TABLE IF EXISTS authors;
 CREATE TABLE IF NOT EXISTS authors (
-  author_id int  NOT NULL primary key,
+  author_id int  NOT NULL,
   author_create timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   author_login varchar(50) NOT NULL,
   author_name varchar(254) DEFAULT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS authors (
   author_email varchar(254) DEFAULT NULL,
   author_role author_type NOT NULL DEFAULT 'volunteer',
   
-  sha_hash character varying(66) NOT NULL,
+  sha_hash character varying(66) NOT NULL primary key,
   actual_flag actual_type NOT NULL,
   
   operation_flag data_type NOT NULL,
@@ -39,7 +39,8 @@ CREATE TABLE IF NOT EXISTS authors (
 CREATE OR REPLACE FUNCTION trigger_authors_before_lns () RETURNS trigger AS $$ 
 BEGIN 
       If  NEW.author_id = 0 OR NEW.author_id IS NULL then 
-      NEW.article_id = nextval('authors_author_id_seq');
+	      NEW.author_id = nextval('authors_author_id_seq');
+	      NEW.revision_author_id = NEW.author_id;
       end if;
 
 return NEW;
@@ -81,7 +82,7 @@ CREATE SEQUENCE IF NOT EXISTS articles_article_id_seq;
 
 DROP TABLE IF EXISTS articles;
 CREATE TABLE IF NOT EXISTS articles (
-  article_id int not null   primary key,
+  article_id int not null,
   article_title character varying(254) NOT NULL,
   article_link character varying(254) NOT NULL,
   article_annotation text,
@@ -90,12 +91,12 @@ CREATE TABLE IF NOT EXISTS articles (
   article_template_id int DEFAULT NULL,
   article_permissions permission_type  NOT NULL DEFAULT 'pbl',
   
-  sha_hash character varying(66) NOT NULL,
+  sha_hash character varying(66) NOT NULL primary key,
   actual_flag actual_type NOT NULL,
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL
   
 );
 
@@ -135,18 +136,18 @@ CREATE SEQUENCE IF NOT EXISTS files_file_id_seq;
 
 DROP TABLE IF EXISTS files;
 CREATE TABLE IF NOT EXISTS files (
-  file_id int not null  primary key,
+  file_id int not null,
   file_create_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   file_inside_name varchar(66) NOT NULL,
   file_extension varchar(20) NOT NULL,
   file_name varchar(254) NOT NULL,
   
-  sha_hash character varying(66) NOT NULL,
+  sha_hash character varying(66) NOT NULL primary key,
   actual_flag actual_type NOT NULL,
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL
   
 );
 
@@ -184,17 +185,17 @@ CREATE TYPE files_kross_type AS enum('A','M');
 -- Дамп структуры для таблица wiki.files_kroses
 DROP TABLE IF EXISTS files_kroses;
 CREATE TABLE IF NOT EXISTS files_kroses (
-  file_id int not null references files(file_id),
-  article_id int NOT NULL references articles(article_id),
+  file_id int not null,
+  article_id int NOT NULL,
   file_kros_create_date timestamp NOT NULL,
   file_kros_flag files_kross_type NOT NULL,
   
-  sha_hash character varying(66) NOT NULL  primary key,
+  sha_hash character varying(66) NOT NULL primary key,
   actual_flag actual_type NOT NULL,
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL
 );
 
 
@@ -217,7 +218,10 @@ CREATE INDEX files_kroses_actual_flag_idx ON files_kroses (actual_flag);
 INSERT INTO  authors (author_id, author_create, author_login, author_name, author_surname, author_pass, author_phon, author_email, author_role, operation_flag, revision_author_id, actual_flag, sha_hash) VALUES 
 (1,	'2015-12-25 12:53:08',	'login',	'MyName',	'SurName',	'$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0.',	'1234-65432-4444',	'mail_0001@mail.com',	'admin', 'I', 1, 'A', 'b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB');
 
---SELECT setval('articles_article_id_seq', (SELECT MAX(article_id) FROM articles) );
+--SELECT setval('articles_article_id_seq', (SELECT MAX(article_id)+1 FROM articles) );
+SELECT setval('articles_article_id_seq', COALESCE((SELECT MAX(article_id)+1 FROM articles), 1), false);
+ALTER SEQUENCE articles_article_id_seq OWNED BY articles.article_id;
+
 SELECT setval('authors_author_id_seq', COALESCE((SELECT MAX(author_id)+1 FROM authors), 1), false);
 --ALTER SEQUENCE articles_article_id_seq START (SELECT MAX(article_id)+1 FROM articles) ;
 ALTER SEQUENCE authors_author_id_seq OWNED BY authors.author_id;
@@ -242,8 +246,8 @@ CREATE SEQUENCE groups_group_id_seq;
 
 DROP TABLE IF EXISTS groups CASCADE;
 CREATE TABLE IF NOT EXISTS groups (
-  group_id int NOT NULL   primary key,
-  author_id int NOT NULL references authors(author_id),
+  group_id int NOT NULL,
+  author_id int NOT NULL,
   group_create_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   group_title varchar(254) NOT NULL,
   group_annotation text,
@@ -254,7 +258,7 @@ CREATE TABLE IF NOT EXISTS groups (
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL
 
 );
 
@@ -294,8 +298,8 @@ CREATE TYPE role_type AS enum('M','A');
 
 DROP TABLE IF EXISTS members CASCADE;
 CREATE TABLE IF NOT EXISTS members (
-  group_id int NOT NULL references groups(group_id),
-  author_id int NOT NULL references authors(author_id),
+  group_id int NOT NULL,
+  author_id int NOT NULL,
   member_role_type role_type NOT NULL,
 
   sha_hash character varying(66) NOT NULL  primary key,
@@ -303,7 +307,7 @@ CREATE TABLE IF NOT EXISTS members (
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL
 
 );
   
@@ -323,8 +327,8 @@ CREATE TYPE library_permission_type_def AS enum('R','W');
 
 DROP TABLE IF EXISTS librarys CASCADE;
 CREATE TABLE IF NOT EXISTS librarys (
-  group_id int NOT NULL references groups(group_id),
-  article_id int NOT NULL references articles(article_id),
+  group_id int NOT NULL,
+  article_id int NOT NULL,
   library_permission_type library_permission_type_def NOT NULL,
 
   sha_hash character varying(66) NOT NULL  primary key,
@@ -332,7 +336,7 @@ CREATE TABLE IF NOT EXISTS librarys (
   
   operation_flag data_type NOT NULL,
   operation_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  revision_author_id int NOT NULL references authors(author_id)
+  revision_author_id int NOT NULL
   );
 
 CREATE INDEX librarys_group_id_idx ON librarys (group_id);
