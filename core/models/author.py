@@ -63,7 +63,7 @@ class Author(Model):
             self.author_create =  self.author_create
             operationFlag = 'U'
             
-        mainPrimaryObj = {'primaryName': 'author_id', 'primaryValue': self.author_id }
+        mainPrimaryObj = {'author_id': self.author_id }
         sha_hash_sou =  self.author_login + self.author_name + self.author_surname + self.author_role +self.author_phon + self.author_email  
         
         self.author_id = Model.save(self, self.author_id, operationFlag, mainPrimaryObj, sha_hash_sou, 'author_id')

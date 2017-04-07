@@ -141,14 +141,18 @@ class HelperArticle():
         
         """
         try:
+            self.artModel.begin()
+
             article = self.artModel.save(author_id, templateDir)
-            
+            logging.info( 'сomposeArticleSave:: author_id = ' + str(author_id))
+            logging.info( 'сomposeArticleSave:: article_pgroipId = ' + str(article_pgroipId))
+            logging.info( 'сomposeArticleSave:: article.article_id = ' + str(article.article_id))
+      
             if int(article_pgroipId) > 0 :
                 groupModel = Group()
-#                 logging.info( 'сomposeArticleSave:: author_id = ' + str(author_id))
-#                 logging.info( 'сomposeArticleSave:: article_pgroipId = ' + str(article_pgroipId))
-#                 logging.info( 'сomposeArticleSave:: article.article_id = ' + str(article.article_id))
                 groupModel.librarySave(int(author_id), int(article_pgroipId), int(article.article_id), 'W')
+                
+            self.artModel.commit()                
             return True
         except WikiException as e:   
 #             WikiException( ARTICLE_NOT_FOUND )

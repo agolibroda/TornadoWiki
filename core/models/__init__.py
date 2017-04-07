@@ -223,13 +223,21 @@ class Model: #Connector:
         try:
             _loDb = self.cursor()
 #             _loDb.begin()
-            self.begin()
 
             logging.info(' save::Before Save self = ' + toStr(self))
+            logging.info(' save::Before Save mainPrimaryObj = ' + toStr(mainPrimaryObj))
      
+            list = []
+            for primaryName, primaryValue in mainPrimaryObj.items():
+                logging.info(' save::Before Save primaryName = ' + toStr(primaryName))
+                logging.info(' save::Before Save primaryValue = ' + toStr(primaryValue))
+                list.append(primaryName + ' = ' + str(primaryValue))
+                
+            whtreStr  = ' AND '.join(list)    
+            logging.info(' save::Before Save whtreStr = ' + toStr(whtreStr))
+                
             # Все ревизии ЭТОЙ записи - устарели!!!! - проабдейтим список ревизий
-            sqlStr = "UPDATE " + self._tabName + " SET actual_flag = 'O' WHERE " +\
-                     mainPrimaryObj['primaryName'] + " = "  + str(mainPrimaryObj['primaryValue'])
+            sqlStr = "UPDATE " + self._tabName + " SET actual_flag = 'O' WHERE " + whtreStr
             logging.info(' save:: sqlStr = ' + sqlStr)
             _loDb.execute(sqlStr)
             
@@ -258,7 +266,7 @@ class Model: #Connector:
                 self.__dict__[requestParamName] = sourse[requestParamName]
                 self.commit()
                 return  sourse[requestParamName]
-            self.commit()
+#             self.commit()
         except psycopg2.Error as error:
             logging.error(' save exception:: ' + str (error) )
             logging.error(' save exception:: sqlStr = ' + sqlStr )

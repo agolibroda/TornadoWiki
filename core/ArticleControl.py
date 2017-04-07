@@ -360,8 +360,6 @@ class RevisionsHandler(BaseHandler):
             tplControl.make(self.autor)
             tplControl.revisions=revisions
             tplControl.article_title = revisions[0].article_title
-            tplControl.article_autor_id = revisions[0].author_id
-            tplControl.article_autor = revisions[0].author_name + ' ' + revisions[0].author_surname
             tplControl.page_name = 'Revisions List' # _("Revisions List")
             tplControl.link='/compose'
             

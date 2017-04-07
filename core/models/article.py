@@ -185,7 +185,7 @@ class Article(Model):
             
             logging.info( 'save:: sha_hash_sout = '  + str(sha_hash_sou))
 
-            mainPrimaryObj = {'primaryName': 'article_id', 'primaryValue': self.article_id }
+            mainPrimaryObj = {'article_id': self.article_id }
             self.article_id = Model.save(self, author_id, operationFlag, mainPrimaryObj, sha_hash_sou, 'article_id')
 
             logging.info( 'save:: After SAVE = '  + str(self))
@@ -581,20 +581,20 @@ class Article(Model):
         getRez = self.select(
                                """
                                 articles.article_id, articles.article_title, 
-                               articles.article_title, articles.article_annotation, 
+                               articles.article_annotation, 
                                articles.article_title AS rev_article_title,  
                                articles.article_link, articles.article_annotation, 
                                articles.article_source,  
                                articles.operation_timestamp AS operation_timestamp,  
                                articles.sha_hash, 
-                               articles.revision_author_id, 
-                               author.author_name AS author_name, 
-                               author.author_surname AS author_surname, 
+                               articles.revision_author_id AS author_id, 
+                               authors.author_name AS author_name, 
+                               authors.author_surname AS author_surname, 
                                articles.article_permissions, 
                                articles.actual_flag 
                                 """,
                                
-                               ' authors, authors author ',
+                               ' authors ',
                                
                                    {
                                'whereStr': ' articles.revision_author_id =  authors.author_id '  +\

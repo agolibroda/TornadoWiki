@@ -5,10 +5,8 @@
 	 <table class="table table-hover table-bordered">
 	     <thead>
 	     <tr>
-	         <th>{{_("Create Date")}}</th>
 	         <th>{{_("Group Name")}}</th>
 	         <th>{{_("Annotation")}}</th>
-	         <th>{{_("Author Name")}}</th>
 	         <th> </th>
 	         <th> </th>
 	     </tr>
@@ -18,10 +16,8 @@
   {% for group in parameters.allGroupsList %}
 			
 			 <tr>
-			     <td>{{locale.format_date(group.group_create_date, full_format=True, shorter=True) }}</td>
 			     <td><a href="/group_desk_top/{{group.group_id }}">{{group.group_title}}</a></td>
 			     <td>{{group.group_annotation}}</td>
-			     <td>{{group.author_name}} {{group.author_surname}}</td>
 			     <td><span class="label label-sm label-success">Approved</span></td>
 			     <td><span class="label label-sm label-success">Approved</span></td>
 			 </tr>

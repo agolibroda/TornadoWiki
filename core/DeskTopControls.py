@@ -131,6 +131,7 @@ class GroupDeskTop(BaseHandler):
                 groupData = yield executor.submit( groupModel.get, group_id )
                 groupName = groupData.group_title 
 
+            logging.info( 'GroupDeskTop Get:: 1 = ' + str(True))
             tplControl = TemplateParams()
             tplControl.make(author)
             tplControl.page_name = groupName 
@@ -138,13 +139,17 @@ class GroupDeskTop(BaseHandler):
 
             articles = yield executor.submit( groupModel.getGroupArticleList, group_id )
             tplControl.articlesList = articles 
+            logging.info( 'GroupDeskTop Get:: 2 = ' + str(True))
             members = yield executor.submit( groupModel.getGroupMembersleList, group_id )
             tplControl.groupMembersList = members 
+            logging.info( 'GroupDeskTop Get:: 3 = ' + str(True))
 
-            if group_id == 0:
+            if int(group_id) == 0:
                 tplControl.link = 'group_desk_top'
             else:
                 tplControl.link='group_desk_top/' + str(group_id)   
+
+            logging.info( 'GroupDeskTop Get:: 4 = ' + str(True))
 
             self.render("group_dt.html", parameters= tplControl)
         except Exception as e:

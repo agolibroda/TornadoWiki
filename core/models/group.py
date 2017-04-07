@@ -62,11 +62,11 @@ class Group(Model):
         Model.__init__(self, 'groups')   
 
         self.group_id = 0
-        self.author_id = 0
+#         self.author_id = 0
         self.group_title = group_title
         self.group_annotation = group_annotation
         self.group_status = group_status
-        self.group_create_date = datetime.now()
+#         self.group_create_date = datetime.now()
         
         
     class Member(Model):
@@ -78,17 +78,12 @@ class Group(Model):
             
         def save(self, author_id ):
 
-            try:
-                self.insert()
-            except Exception as e:
-                logging.info( 'Member Save:: Exception as e = ' + str(e))
-
             operationFlag = 'I'
 
-            mainPrimaryObj = {'primaryName': 'group_id', 'primaryValue': self.group_id }
+            mainPrimaryObj = {'group_id': self.group_id, 'author_id': self.author_id }
             revisions_sha_hash_sou =  str(self.group_id) + str(self.author_id) + self.member_role_type 
-            logging.info(' save:: mainPrimaryObj = ' + str(mainPrimaryObj))
-            self.saveRevision(author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
+            logging.info(' Member save:: self = ' + str(self))
+            Model.save(self, author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
 
 
         def getGroupMembersleList(self, groupId):
@@ -98,11 +93,12 @@ class Group(Model):
             """
 
             getRez = self.select(
-                    'authors.author_id,  author_login, author_name,author_surname, author_role, author_phon, author_email, '+
-                        'floor(EXTRACT(EPOCH FROM author_create)) AS author_create ',
+                    'authors.author_id,  author_login, author_name, author_surname, author_role, author_phon, author_email ',
                     'authors',
                         {
-                    'whereStr': " members.author_id = authors.author_id  AND members.group_id = " + str(groupId) , # строка набор условий для выбора строк
+                    'whereStr': " members.author_id = authors.author_id  AND " +\
+                    " members.actual_flag = 'A' AND authors.actual_flag = 'A' AND "
+                    " members.group_id = " + str(groupId) , # строка набор условий для выбора строк
                     'orderStr': ' author_name, author_surname ', # строка порядок строк
                                      }
                                     )
@@ -135,18 +131,12 @@ class Group(Model):
 
         def save(self, author_id):
 
-            try:
-                self.insert()
+            operationFlag = 'I'
 
-                operationFlag = 'I'
-    
-                mainPrimaryObj = {'primaryName': 'group_id', 'primaryValue': self.group_id }
-                revisions_sha_hash_sou =  str(self.group_id) + str(self.author_id) + self.member_role_type 
-                logging.info(' save:: mainPrimaryObj = ' + str(mainPrimaryObj))
-                self.saveRevision(author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
-
-            except Exception as e:
-                logging.info( 'Library Save:: Exception as e = ' + str(e))
+            mainPrimaryObj = {'group_id': self.group_id, 'article_id': self.article_id }
+            revisions_sha_hash_sou =  str(self.group_id) + str(self.article_id) + self.library_permission_type 
+            logging.info(' Library save:: self = ' + str(self))
+            Model.save(self, author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
 
 
         def getGroupArticleList(self, groupId):
@@ -163,26 +153,20 @@ class Group(Model):
                     'articles',
                         {
                     'whereStr': " librarys.article_id = articles.article_id AND " +\
+                    " articles.actual_flag = 'A' AND librarys.actual_flag = 'A' AND "
                     " librarys.group_id = " + str(groupId) , # строка набор условий для выбора строк
                     'orderStr': ' articles.article_id ', # строка порядок строк
                                      }
                                     )
 
 # 'whereStr': " groups.author_id = authors.author_id AND  groups.group_id = " + str(group_id)            
-        
-            logging.info( 'list:: getRez = ' + str(getRez))
+            for item in getRez:
+                logging.info( 'getGroupArticleList:: getRez = ' + str(item))
+            
             if len(getRez) == 0:
     #             raise WikiException( ARTICLE_NOT_FOUND )
                return []
              
-            for oneObj in getRez:
-                oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
-                oneObj.article_link = base64.b64decode(oneObj.article_link).decode(encoding='UTF-8')
-    #              articleTitle = oneObj.article_title.strip().strip(" \t\n")
-    #              oneObj.article_link  =  articleTitle.lower().replace(' ','_')
-                oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
-    #              logging.info( 'list:: After oneArt = ' + str(oneObj))
-        
             return getRez
     
 
@@ -192,15 +176,15 @@ class Group(Model):
         загрузить ОДНО значение - по ИД группы
         """
         resList = self.select(
-                    'group_id,  group_title, group_annotation,  group_status, floor(EXTRACT(EPOCH FROM group_create_date)) AS group_create_date, ' + 
-                    ' author_name, author_surname ' , # строка - чего хотим получить из селекта
-                    ' authors ', #'authors',  # строка - список таблиц 
+                    'group_id,  group_title, group_annotation ' , # строка - чего хотим получить из селекта
+                    '', #'authors',  # строка - список таблиц 
                     {
-                     'whereStr': " groups.author_id = authors.author_id AND  groups.group_id = " + str(group_id)
+                     'whereStr': " groups.actual_flag = 'A' AND  groups.group_id = " + str(group_id)
                      } #  все остальные секции селекта
                     )
-#         logging.info('Author:: get:: resList = ')
-#         logging.info(resList)
+        for item in resList:
+            logging.info('Author:: get:: resList = ' + str(item))
+            
         if len(resList) == 1:
 #             return resList[0]
             objValuesNameList = list(resList[0].__dict__.keys())
@@ -218,11 +202,10 @@ class Group(Model):
         
         """
         resList = self.select(
-                    'group_id,  group_title, group_annotation,  group_status, floor(EXTRACT(EPOCH FROM group_create_date)) AS group_create_date, ' + 
-                    ' author_name, author_surname ' , # строка - чего хотим получить из селекта
+                    'group_id,  group_title, group_annotation,  group_status  ' , # строка - чего хотим получить из селекта
                     ' authors ', #'authors',  # строка - список таблиц 
                     {
-                     'whereStr': " groups.author_id = authors.author_id "
+                     'whereStr': " groups.actual_flag = 'A' "
                      } #  все остальные секции селекта
                     )
 #         logging.info('Author:: get:: resList = ')
@@ -243,15 +226,16 @@ class Group(Model):
         """
         try:
             resList = self.select(
-                        ' groups.group_id,  groups.group_title, groups.group_annotation,  groups.group_status, groups.group_create_date, ' + 
+                        ' DISTINCT groups.group_id,  groups.group_title, groups.group_annotation,  groups.group_status, ' + 
                         ' members.member_role_type ' , # строка - чего хотим получить из селекта
-                        '  members ', #'authors',  # строка - список таблиц 
+                        '  members', #'authors',  # строка - список таблиц 
                         {
-                         'whereStr': " members.author_id = " + str(author_id) + \
-                         " AND  members.group_id = groups.group_id " +\
-                         " OR groups.author_id = " + str(author_id) 
+                         'whereStr': " groups.actual_flag = 'A' AND members.author_id = " + str(author_id) + \
+                         " AND  members.group_id = groups.group_id ",
+                         'orderStr': '  groups.group_title ' 
                          } #  все остальные секции селекта
                         )
+            
 #             logging.info( 'grouplistForAutor:: resList =  ' + str(resList))
             return resList
         except Exception as e:        
@@ -291,22 +275,17 @@ class Group(Model):
         logging.info(' save:: before SAVE = ' + str(self)) 
                
         if self.group_id == 0:
-            self.author_id = author_id
-            self.group_create_date = datetime.now()
-            self.group_id = self.insert('group_id')
+#             self.group_create_date = datetime.now()
             operationFlag = 'I'
         else:
-            del(  self.group_create_date) # =  datetime.fromtimestamp(int(self.group_create_date))
-            del(  self.author_id) # = self.author_id
-#             self.group_create_date = datetime.now()
-            self.update('group_id = ' + str(self.group_id))
             operationFlag = 'U'
-            
-        mainPrimaryObj = {'primaryName': 'group_id', 'primaryValue': self.group_id }
+        
+        self.begin()    
+        mainPrimaryObj = {'group_id': self.group_id }
         revisions_sha_hash_sou = self.group_title + self.group_annotation + self.group_status
         
         logging.info(' save:: mainPrimaryObj = ' + str(mainPrimaryObj))
-        self.saveRevision(author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou)
+        self.group_id =  Model.save(self, author_id, operationFlag, mainPrimaryObj, revisions_sha_hash_sou, 'group_id')
         # теперь сохранить автора группы как ее админа.
 
         if operationFlag == 'I':
@@ -316,7 +295,7 @@ class Group(Model):
             memberControl.member_role_type = 'A'
             memberControl.save(author_id)
         
-        
+        self.commit()
         return True
 
 

@@ -218,22 +218,20 @@ CREATE INDEX files_kroses_actual_flag_idx ON files_kroses (actual_flag);
 INSERT INTO  authors (author_id, author_create, author_login, author_name, author_surname, author_pass, author_phon, author_email, author_role, operation_flag, revision_author_id, actual_flag, sha_hash) VALUES 
 (1,	'2015-12-25 12:53:08',	'login',	'MyName',	'SurName',	'$2b$12$.b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB/PrsH0.',	'1234-65432-4444',	'mail_0001@mail.com',	'admin', 'I', 1, 'A', 'b9454ab5a22859b68bb4uvIvIvpREbnd9t2DJ7rqm1bwB');
 
---SELECT setval('articles_article_id_seq', (SELECT MAX(article_id)+1 FROM articles) );
-SELECT setval('articles_article_id_seq', COALESCE((SELECT MAX(article_id)+1 FROM articles), 1), false);
-ALTER SEQUENCE articles_article_id_seq OWNED BY articles.article_id;
-
 SELECT setval('authors_author_id_seq', COALESCE((SELECT MAX(author_id)+1 FROM authors), 1), false);
 --ALTER SEQUENCE articles_article_id_seq START (SELECT MAX(article_id)+1 FROM articles) ;
 ALTER SEQUENCE authors_author_id_seq OWNED BY authors.author_id;
-
-
 
 INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (6, 'Главная статья сайта', 'главная_статья_сайта', 'Главная статья сайта - что будет на главной странице сайта?', 'eJyzKbC7MPnC7gsbLmy6sPfChov9ChcbLzZdbAAK7L2w42LbhQ1AASBn58UmIPPCfqDMvgtbL+wCc9UKS/NLrEPyi8IzszMhHJukIgV9O14utbyk4gJrG/0COwCyQzSm', 3, 5, 'pbl', '849c4af9da930987ec5e1f7f80af9c3bb612de4caed11fb62db74949f03a6a41', 'A', 'I', '2017-03-23 18:47:28.45462', 1);
 INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (3, 'Информационные статьи', 'информационные_статьи', 'Категория - Информационные статьи', 'eJwly7ENgzAABdFVXNFFDABiGAYgjiA9IEQKGIAqM7hBshA2K9zfCEdprnpX2oovF14DjoBnz5q6tYV5GH00Ek2K4yCym+z1fnYFG0ETUT0nTnOaYlqDlkQ0/LxGrfg/L3Nb3asDPc0=', 1, 5, 'pbl', '665350b869896eaaec57c3c068d790be2f31b8502a1d8c0ed46776fbb884b634', 'A', 'I', '2017-03-23 18:30:30.98642', 1);
 INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (2, 'Служебные статьи', 'служебные_статьи', 'Категория - Служебные статьи', 'eJyzKbC7MOXC7ov9ChfbL2y9sPnCPoULey82X9gGJLvV8pKKC6wV1ApL80usLywEKgNJbL2wESR5YavCxcaLTRc2XGy62HNhB0SRTVKRgr4dL9eFfRf2X9hxsfHChgt7L+y4sNVGv8AOAEchPeU=', 1, 5, 'pbl', 'a6e13583c2d7ccd978828a6db7feb85fe35f4124a57ed72f0d95abd98d91b891', 'A', 'I', '2017-03-23 18:28:56.856951', 1);
 INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (4, 'Шаблоны', 'шаблоны', 'Категория  - Шаблоны', 'eJyzKbC7sPxi04V9CkBiw4VdF/Zd2KqgVliaX2J9YQVQYOOF3UChvRe7IWI2+gV2ABH9HNs=', 1, 5, 'pbl', 'a713cf338b87ed943ccd9955206e18c9a1d0b7bcbcb1c18765faff99a3ce6e29', 'A', 'I', '2017-03-23 18:31:31.116259', 1);
 INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (1, 'Список Категорий статей', 'список_категорий_статей', 'Начальный список категрий - что бы можно было категоризировать статьи', 'eJx9jsENwjAUQ++VukNO3FAHIOowHQBFsAClCJDKCjBDK1TUkqasYG+EAxwQBy5f+fGzv63LccEDPUs0COjRGT3fH3c0Jg5u0eGKiRvpg5kti7Vb2MzlaZImVglnMQf5PU8IrJXxa7PFymTi5zHds8JNWvuBWQoVLvcXqFuBu5d9lLrXPqnhPwuPKtHCR5B1bPgEeWiE/A==', 1, 5, 'pbl', 'ff3e6cdd19859e807b44f01fd725b6a151cb937e7c3901a20f692b935fbe6104', 'A', 'I', '2017-03-23 18:25:05.885938', 1);
-INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (5, 'Основной шаблон Информационной страницы', 'основной_шаблон_информационной_страницы', 'Основной шаблон Информационной страницы собственной персоной!', 'eJyNVMtqGzEU3Qf8DzeCrIojTBctwTObJoVCaQNxW0opRhlde4Q10iBdxzHGq+67ybr/ELot/YfJH1WahzuJ08dmLjrSOfdxpBkfnr59Mfl4fgY5FTodHIx3EYWMsUASkOXCeaSEvZu8HD5nESdFGtOJdR/UQo15swy4VmYBDnXCPK01+hyRGOQOZwnjngSpjK8C5TjzngGtS0wY4TXxuL4vIDShM4Jwx58hyo4kylKrLOhZwwXZ4sl1oRkMDupKErbZCBdyaTxu47Te2G5jkpCGdw1eWrmOUaorUDJhcc36QDyIbgfVbSVspq2gE6fmOTWKmyNQM8iWzqGh6dKjg6NtnUp05ZfovDVCTyX6xZRsydLzFoJT4RcwseWYi04Otcc9DbGknGs7V4alF2puQJlIAbKQ2aK0HjlKRY2AkR2fh9JrW0fpby2WVt+qW6huqh/VbfW9+nn35e5rVAvTGaU91uFwCHVHry5O4I01CMNhf0SZNRS6bkcbTxdWLoP7MHr6DKBzIt6tHjPTwvtgZLPLHpa376CS0b4/OtuvvKffGLrPEsZYqu9PpLad7vHqQTqxgod0b5cua/wZX7r0ft98psJ3qpWnXtebTYRfB3C7bc/zvzMeq0vIIpo/OPj0z1GdhZsAlCsPq/qVivTz/9DeKwz9ah2e4ZXyYUC+pe7KaePjSPeieP0v+QXedm0o', 4, 5, 'pbl', '1c0205a3970f770cdeef9cd6b99c0c3079001245e96303bd2d41859c0aa396fe', 'A', 'U', '2017-03-23 22:06:28.471117', 1);
+INSERT INTO articles (article_id, article_title, article_link, article_annotation, article_source, article_category_id, article_template_id, article_permissions, sha_hash, actual_flag, operation_flag, operation_timestamp, revision_author_id) VALUES (5, 'Основной шаблон Информационной страницы', 'основной_шаблон_информационной_страницы', 'Основной шаблон Информационной страницы собственной персоной!', 'eJyNVMtqGzEU3Qf8DzeCrIojTBctwTObJoVCaQNxW0opRhlde4Q10iBdxzHGq+67ybr/ELot/YfJH1WahzuJ08dmLjrSOfdxpBkfnr59Mfl4fgY5FTodHIx3EYWMsUASkOXCeaSEvZu8HD5nESdFGtOJdR/UQo15swy4VmYBDnXCPK01+hyRGOQOZwnjngSpjK8C5TjzngGtS0wY4TXxuL4vIDShM4Jwx58hyo4kylKrLOhZwwXZ4sl1oRkMDupKErbZCBdyaTxu47Te2G5jkpCGdw1eWrmOUaorUDJhcc36QDyIbgfVbSVspq2gE6fmOTWKmyNQM8iWzqGh6dKjg6NtnUp05ZfovDVCTyX6xZRsydLzFoJT4RcwseWYi04Otcc9DbGknGs7V4alF2puQJlIAbKQ2aK0HjlKRY2AkR2fh9JrW0fpby2WVt+qW6huqh/VbfW9+nn35e5rVAvTGaU91uFwCHVHry5O4I01CMNhf0SZNRS6bkcbTxdWLoP7MHr6DKBzIt6tHjPTwvtgZLPLHpa376CS0b4/OtuvvKffGLrPEsZYqu9PpLad7vHqQTqxgod0b5cua/wZX7r0ft98psJ3qpWnXtebTYRfB3C7bc/zvzMeq0vIIpo/OPj0z1GdhZsAlCsPq/qVivTz/9DeKwz9ah2e4ZXyYUC+pe7KaePjSPeieP0v+QXedm0o', 4, 5, 'pbl', '1c0205a3970f770cdeef9cd6b99c0c3079001245e96303bd2d41859c0aa396fe', 'A', 'I', '2017-03-23 22:06:28.471117', 1);
+
+--SELECT setval('articles_article_id_seq', (SELECT MAX(article_id)+1 FROM articles) );
+SELECT setval('articles_article_id_seq', COALESCE((SELECT MAX(article_id)+1 FROM articles), 1), false);
+ALTER SEQUENCE articles_article_id_seq OWNED BY articles.article_id;
 
 
 DROP TYPE IF EXISTS group_status_def CASCADE;
@@ -247,8 +245,6 @@ CREATE SEQUENCE groups_group_id_seq;
 DROP TABLE IF EXISTS groups CASCADE;
 CREATE TABLE IF NOT EXISTS groups (
   group_id int NOT NULL,
-  author_id int NOT NULL,
-  group_create_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   group_title varchar(254) NOT NULL,
   group_annotation text,
   group_status group_status_def  NOT NULL DEFAULT 'pbl',
@@ -279,8 +275,6 @@ EXECUTE PROCEDURE trigger_groups_before_lns ();
 
 
 CREATE INDEX groups_group_id_idx ON groups (group_id);
-CREATE INDEX groups_author_id_idx ON groups (author_id);
-CREATE INDEX groups_create_date_idx ON groups (group_create_date);
 CREATE INDEX groups_title_idx ON groups (group_title);
 CREATE INDEX groups_status_idx ON groups (group_status);
 
