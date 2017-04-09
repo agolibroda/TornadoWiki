@@ -89,6 +89,17 @@ class HelperArticle():
         return  rezult #.result()
 
 
+    def getListArticlesAll(self, spectatorId = 0):
+        """
+        получить Полный список статей для одного зрителя
+        
+        """
+        rezult = self.artModel.getListArticlesAll (spectatorId)
+        if not rezult: rezult = []
+#         logging.info( 'getListArticles:: rezult = ' + str(rezult))
+        return  rezult #.result()
+
+
 
     def getArticleByIdRevId(self, articleId, revId):
         """

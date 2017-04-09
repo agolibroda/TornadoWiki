@@ -86,6 +86,8 @@ class PersonalDeskTop(BaseHandler):
             artHelper = HelperArticle()
             articles = yield executor.submit( artHelper.getListArticlesByAutorId, author.author_id )
             tplControl.articlesList = articles
+            articlesAll = yield executor.submit( artHelper.getListArticlesAll, author.author_id )
+            tplControl.allArticlesList = articlesAll
             groupList = yield executor.submit( groupModel.list )
             tplControl.allGroupsList = groupList
             authorModel = Author()

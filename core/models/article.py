@@ -280,9 +280,10 @@ class Article(Model):
                    articles.article_annotation,  articles.article_source, articles.article_category_id, articles.revision_author_id, 
                    articles.article_template_id, articles.article_permissions
                    FROM articles, articles lfind 
-                   WHERE articles.article_permissions = 'pbl'
-                   AND articles.article_id = lfind.article_id 
+                   WHERE ( articles.article_permissions = 'pbl'
+                           OR articles.revision_author_id = $sId )
                    AND articles.actual_flag = 'A' 
+                   AND articles.article_id = lfind.article_id
                    AND lfind.article_link = '${aLink}'
                    UNION
                    SELECT 
@@ -302,7 +303,7 @@ class Article(Model):
                     #   article_id 
             tplWrk = string.Template(strTpl) # strTpl
             strSelect = tplWrk.substitute(sId=str(spectatorId), aLink=article_link)
-#             logging.info( 'Article ::: get strSelect  = ' + str(strSelect))
+            logging.info( 'Article ::: get strSelect  = ' + str(strSelect))
             getRez = self.rowSelect(str(strSelect)) 
 
     
@@ -311,35 +312,6 @@ class Article(Model):
         elif len(getRez) == 1:   
             outArt = self.articleDecode(getRez[0])
             return outArt
-
-
-    def getById(self, articleId):
-         """
-         получить статью по ID (одну) - функция для пердставления данных (!!!) 
-         получить ОЛЬКО опубликованный текст  (активную статью) - для редактирования получаем статью иным образом! 
-    
-         """
-         logging.info( 'Article ::: getById articleId  = ' + str(articleId))
-    
-         getRez = self.select(
-                                'articles.article_id, articles.article_title, articles.article_link, '+
-                                'articles.article_annotation,  articles.article_source, articles.article_category_id, '+ 
-                                'articles.revision_author_id, articles.article_template_id, articles.article_permissions',
-                                '',
-                                    {
-                                'whereStr': ' articles.article_id = ' + str(articleId) +\
-                                            " AND articles.actual_flag = 'A' "  ,
-                                 }
-                                )
-    
-         if len(getRez) == 0:
-            raise WikiException( ARTICLE_NOT_FOUND )
-         elif len(getRez) == 1:   
-#              logging.info( ' getById getRez = ' + str(getRez[0]))
-            outArt = self.articleDecode(getRez[0])
-#              logging.info( ' getById outArt = ' + str(outArt))
-            return outArt
-
 
 
     def getByUsingHash(self, spectatorId, hash):
@@ -357,8 +329,9 @@ class Article(Model):
                lfind.article_annotation,  lfind.article_source, lfind.article_category_id, lfind.revision_author_id, 
                lfind.article_template_id, lfind.article_permissions, lfind.actual_flag
                FROM articles lfind 
-               WHERE lfind.article_permissions = 'pbl'
-               AND lfind.sha_hash = '${aHash}'
+               WHERE lfind.sha_hash = '${aHash}'
+               AND ( lfind.article_permissions = 'pbl' 
+                       OR  lfind.revision_author_id = $sId )
                UNION
                SELECT 
                lfind.article_id, lfind.article_title, lfind.article_link, 
@@ -375,7 +348,7 @@ class Article(Model):
                 #   article_id 
         tplWrk = string.Template(strTpl) # strTpl
         strSelect = tplWrk.substitute(sId=str(spectatorId), aHash=hash)
-#         logging.info( 'Article ::: getByUsingHash strSelect  = ' + str(strSelect))
+        logging.info( 'Article ::: getByUsingHash strSelect  = ' + str(strSelect))
         getRez = self.rowSelect(str(strSelect)) 
     
         if len(getRez) == 0:
@@ -455,16 +428,16 @@ class Article(Model):
             потому что все статьи - пользователь может видеть на свей странице!!!!!
                 
         """
-        if int(spectatorId) > 0 and int(spectatorId) != int(authorId):
+        if int(spectatorId) > 0: # and int(spectatorId) != int(authorId):
             strTpl = """
                    SELECT 
                    articles.article_id, articles.article_title, articles.article_link, articles.article_annotation, 
                    articles.article_category_id, 
                    articles.revision_author_id,  articles.article_template_id, articles.article_permissions,
-                   null AS group_title, null AS group_annotation,  null AS group_id 
+                   '' AS group_title, '' AS group_annotation,  0 AS group_id 
                    FROM articles 
-                   WHERE  articles.revision_author_id  = $aId 
-                   AND articles.article_permissions = 'pbl'
+                   WHERE articles.revision_author_id  = $aId 
+                   AND articles.article_permissions = 'pbl' 
                    AND articles.actual_flag = 'A' 
                    UNION
                    SELECT 
@@ -529,18 +502,65 @@ class Article(Model):
         
         return getRez
    
-#     
-#     def get2Edit( self, articleId, revisionId ):
-#         """
-#         получить ОДНУ ревизию статьи        
-#         
-#         Это делаем для РЕДАКТИРОВНИЯ!!!
-#         
-#         """
-# 
-#         textColtrol = self.Text()
-#         return textColtrol.get2Edit( articleId, revisionId )
-
+    def getListArticlesAll (self, spectatorId = 0):
+        if int(spectatorId) > 0: # and int(spectatorId) != int(authorId):
+            strTpl = """
+                   SELECT 
+                   articles.article_id, articles.article_title, articles.article_link, articles.article_annotation, 
+                   articles.article_category_id, 
+                   articles.revision_author_id,  articles.article_template_id, articles.article_permissions,
+                   null AS group_title, null AS group_annotation,  null AS group_id 
+                   FROM articles 
+                   WHERE articles.article_permissions = 'pbl' 
+                   AND articles.actual_flag = 'A' 
+                   UNION
+                   SELECT 
+                   articles.article_id, articles.article_title, articles.article_link, articles.article_annotation, 
+                   articles.article_category_id, 
+                   articles.revision_author_id,  articles.article_template_id, articles.article_permissions,
+                       groups.group_title, groups.group_annotation, groups.group_id  
+                   FROM articles, groups, librarys
+                   WHERE articles.article_permissions = 'grp'
+                   AND articles.actual_flag = 'A' 
+                   AND groups.revision_author_id = articles.revision_author_id
+                   AND groups.revision_author_id = $sId
+                   AND groups.group_id = librarys.group_id
+                   AND librarys.article_id = articles.article_id
+                   ORDER BY 2 
+        
+                    """
+                    #   article_id 
+            tplWrk = string.Template(strTpl) # strTpl
+            strSelect = tplWrk.substitute( sId=str(spectatorId))
+            logging.info( 'getListArticlesAll::  strSelect = ' + str(strSelect))
+            getRez = self.rowSelect(str(strSelect)) 
+        else:
+            autorIdStr = '';
+                
+            autorIdStr += " articles.actual_flag = 'A' "
+                
+            getRez = self.select(
+        #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
+                   " articles.article_id, articles.article_title, articles.article_link, " +
+                   " articles.article_annotation, articles.article_category_id, articles.revision_author_id, "+
+                   " articles.article_template_id, articles.article_permissions, " +
+                   " groups.group_title, groups.group_annotation, groups.group_id " ,
+                   "",
+                       {
+                   "joinStr": "LEFT JOIN librarys ON librarys.article_id = articles.article_id " + 
+                              " LEFT JOIN groups ON groups.group_id = librarys.group_id",
+                   "whereStr": autorIdStr , # строка набор условий для выбора строк
+                   "orderStr": " 2 ", #  articles.article_id строка порядок строк
+        #                                "orderStr": "FROM_BASE64( articles.article_title )", # строка порядок строк
+                    }
+                   )
+                
+        logging.info( 'listByAutorId:: getRez = ' + str(getRez))
+        if len(getRez) == 0:
+           return []
+ 
+        return getRez
+    
 
     def IsUniqueRevision(self, titleHash, annotationHash, articleHash):
         """
@@ -552,9 +572,6 @@ class Article(Model):
         revControl = self.RevisionLoc()
         return revControl.IsUniqueRevision(titleHash, annotationHash, articleHash)
 
-
-
- 
  
 #     def select(self, 
 #                selectStr, # строка - чего хотим получить из селекта

@@ -114,7 +114,7 @@ class BaseHandler(tornado.web.RequestHandler):
             logging.info('BaseHandler:: get_current_user:: get_secure_cookie author_id '+ str(author_id))
             if not author_id or author_id == 0: return None
 #             logging.info('BaseHandler:: get_current_user:: 11 self.author '+ str(self.author))
-            if self.author.author_id == 0:
+            if self.author.author_id != author_id:
                 self.author = self.author.get(author_id)
 #                 self.author =  yield executor.submit( self.author.get, author_id)
 #             logging.info('BaseHandler:: get_current_user:: 22 self.author '+ str(self.author))
