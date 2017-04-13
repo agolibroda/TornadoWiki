@@ -203,7 +203,7 @@ class Group(Model):
         """
         resList = self.select(
                     'group_id,  group_title, group_annotation,  group_status  ' , # строка - чего хотим получить из селекта
-                    ' authors ', #'authors',  # строка - список таблиц 
+                    '', #'authors',  # строка - список таблиц 
                     {
                      'whereStr': " groups.actual_flag = 'A' "
                      } #  все остальные секции селекта

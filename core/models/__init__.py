@@ -360,9 +360,9 @@ class Model: #Connector:
         """
         try:
             _loDb = self.cursor()
+#             logging.info('select:: list:: selectRow = ' + str (selectRow) )
             _loDb.execute(selectRow)
             sourse = _loDb.fetchall()
-            logging.info('select:: list:: sourse = ' + str (sourse) )
             outListObj = self.dict2obj(sourse)    
  
             return outListObj

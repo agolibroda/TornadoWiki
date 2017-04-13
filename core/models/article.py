@@ -426,39 +426,33 @@ class Article(Model):
             
             а, ну если сам себя зритель?????? - показать то, что идет для незареганого пользователя!!!!!
             потому что все статьи - пользователь может видеть на свей странице!!!!!
+            
+            пока в селекте про зрителя нет ничего!!!!!!
                 
         """
-        if int(spectatorId) > 0: # and int(spectatorId) != int(authorId):
+        if int(authorId) > 0 and int(spectatorId) == 0:
             strTpl = """
                    SELECT 
                    articles.article_id, articles.article_title, articles.article_link, articles.article_annotation, 
                    articles.article_category_id, 
                    articles.revision_author_id,  articles.article_template_id, articles.article_permissions,
-                   '' AS group_title, '' AS group_annotation,  0 AS group_id 
+                   groups.group_title, groups.group_annotation, groups.group_id 
                    FROM articles 
-                   WHERE articles.revision_author_id  = $aId 
-                   AND articles.article_permissions = 'pbl' 
+                   LEFT JOIN librarys ON  librarys.article_id = articles.article_id
+                   LEFT JOIN groups ON groups.group_id = librarys.group_id 
+                   WHERE articles.article_id  IN  
+                           (SELECT DISTINCT articles.article_id FROM articles WHERE articles.revision_author_id  =  $aId) 
                    AND articles.actual_flag = 'A' 
-                   UNION
-                   SELECT 
-                   articles.article_id, articles.article_title, articles.article_link, articles.article_annotation, 
-                   articles.article_category_id, 
-                   articles.revision_author_id,  articles.article_template_id, articles.article_permissions,
-                       groups.group_title, groups.group_annotation, groups.group_id  
-                   FROM articles, groups, librarys
-                   WHERE  articles.revision_author_id  = $aId 
-                   AND articles.article_permissions = 'grp'
-                   AND articles.actual_flag = 'A' 
-                   AND groups.revision_author_id = articles.revision_author_id
-                   AND groups.revision_author_id = $sId
-                   AND groups.group_id = librarys.group_id
-                   AND librarys.article_id = articles.article_id
+                   
                    ORDER BY 2 
         
                     """
+#                    AND articles.article_permissions = 'pbl' 
+                    
                     #   article_id 
             tplWrk = string.Template(strTpl) # strTpl
             strSelect = tplWrk.substitute(aId=str(authorId), sId=str(spectatorId))
+            logging.info('listByAutorId:: strSelect = ' + str (strSelect) )            
             getRez = self.rowSelect(str(strSelect)) 
         else:
             autorIdStr = '';
@@ -503,29 +497,26 @@ class Article(Model):
         return getRez
    
     def getListArticlesAll (self, spectatorId = 0):
+        """
+        получить поный списк статей, не только своих, 
+        а вообще всех, ДОСТУПНЫХ
+        """
         if int(spectatorId) > 0: # and int(spectatorId) != int(authorId):
             strTpl = """
                    SELECT 
                    articles.article_id, articles.article_title, articles.article_link, articles.article_annotation, 
                    articles.article_category_id, 
                    articles.revision_author_id,  articles.article_template_id, articles.article_permissions,
-                   null AS group_title, null AS group_annotation,  null AS group_id 
+                   groups.group_title, groups.group_annotation, groups.group_id 
                    FROM articles 
-                   WHERE articles.article_permissions = 'pbl' 
-                   AND articles.actual_flag = 'A' 
-                   UNION
-                   SELECT 
-                   articles.article_id, articles.article_title, articles.article_link, articles.article_annotation, 
-                   articles.article_category_id, 
-                   articles.revision_author_id,  articles.article_template_id, articles.article_permissions,
-                       groups.group_title, groups.group_annotation, groups.group_id  
-                   FROM articles, groups, librarys
-                   WHERE articles.article_permissions = 'grp'
-                   AND articles.actual_flag = 'A' 
-                   AND groups.revision_author_id = articles.revision_author_id
-                   AND groups.revision_author_id = $sId
-                   AND groups.group_id = librarys.group_id
-                   AND librarys.article_id = articles.article_id
+                       LEFT JOIN librarys ON librarys.article_id = articles.article_id
+                       LEFT JOIN groups ON groups.revision_author_id = articles.revision_author_id
+                                AND groups.group_id = librarys.group_id
+                   WHERE articles.actual_flag = 'A'
+                   AND  ( articles.article_permissions = 'pbl' OR  
+                   articles.article_id IN 
+                   (SELECT DISTINCT articles.article_id FROM articles WHERE articles.revision_author_id  =  $sId) 
+                   )
                    ORDER BY 2 
         
                     """

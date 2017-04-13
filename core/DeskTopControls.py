@@ -80,7 +80,7 @@ class PersonalDeskTop(BaseHandler):
             tplControl.link='personal_desk_top'
 
             artHelper = HelperArticle()
-            tplControl.personalArticlesList = yield executor.submit( artHelper.getListArticlesByAutorId, author.author_id, author.author_id )
+            tplControl.personalArticlesList = yield executor.submit( artHelper.getListArticlesByAutorId, author.author_id, 0 )
             groupModel = Group()
             tplControl.autorGroupList = yield executor.submit( groupModel.grouplistForAutor, author.author_id )
             artHelper = HelperArticle()
