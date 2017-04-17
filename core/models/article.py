@@ -226,13 +226,25 @@ class Article(Model):
         нормальный декодирований нормальной статьи!!!!!
         
         """
+        logging.info( 'articleDecode art_source.article_source = ' + str(art_source.article_source))
+        
         outArt = art_source
-#         outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
-#         outArt.article_link = base64.b64decode(outArt.article_link).decode(encoding='UTF-8')
-#         outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
-        decodeText =  base64.b64decode(outArt.article_source) #.decode(encoding='UTF-8')
-        outArt.article_source = zlib.decompress(decodeText).decode("utf-8")  #.decode('UTF-8')    
-#         logging.info( 'articleDecode outArt = ' + str(outArt))
+        
+        try:
+            outArt.article_permission_code = int(outArt.article_source)
+        except Exception as e:
+            outArt.article_permission_code = 200
+            
+        if outArt.article_permission_code != 403:
+#             raise WikiException( NOT_PERMISSION_TO_VIEW )
+#             outArt.article_source 
+#         else:
+    #         outArt.article_title = base64.b64decode(outArt.article_title).decode(encoding='UTF-8')
+    #         outArt.article_link = base64.b64decode(outArt.article_link).decode(encoding='UTF-8')
+    #         outArt.article_annotation = base64.b64decode(outArt.article_annotation).decode(encoding='UTF-8')
+            decodeText =  base64.b64decode(outArt.article_source) #.decode(encoding='UTF-8')
+            outArt.article_source = zlib.decompress(decodeText).decode("utf-8")  #.decode('UTF-8')    
+    #         logging.info( 'articleDecode outArt = ' + str(outArt))
 
         return outArt
 
@@ -262,44 +274,55 @@ class Article(Model):
      
         if int(spectatorId) == 0:
             getRez = self.select(
-                                ' DISTINCT articles.article_id, articles.article_title, articles.article_link, ' + 
-                                'articles.article_annotation,  articles.article_source, articles.article_category_id, articles.revision_author_id, ' + 
-                                ' articles.article_template_id, articles.article_permissions ',
+                                """
+                                 DISTINCT articles.article_id, articles.article_title, articles.article_link,  
+                                articles.article_annotation,  
+                               CASE WHEN  articles.article_permissions = 'pbl' 
+                                   THEN articles.article_source
+                                   ELSE '403' END AS article_source, 
+                                articles.article_category_id, articles.revision_author_id,  
+                                articles.article_template_id, articles.article_permissions 
+                                """,
                                 ' articles lfind ',
                                     {
                                 'whereStr': " articles.article_id = lfind.article_id " +\
-                                            " AND articles.article_permissions = 'pbl' " +\
                                             " AND articles.actual_flag = 'A' " +\
                                              " AND lfind.article_link = '" + article_link  + "' " , # строка набор условий для выбора строк
                                  }
                                 )
         else:
+
             strTpl = """
-                   SELECT 
-                   articles.article_id, articles.article_title, articles.article_link, 
-                   articles.article_annotation,  articles.article_source, articles.article_category_id, articles.revision_author_id, 
-                   articles.article_template_id, articles.article_permissions
-                   FROM articles, articles lfind 
-                   WHERE ( articles.article_permissions = 'pbl'
-                           OR articles.revision_author_id = $sId )
-                   AND articles.actual_flag = 'A' 
-                   AND articles.article_id = lfind.article_id
-                   AND lfind.article_link = '${aLink}'
-                   UNION
-                   SELECT 
-                   articles.article_id, articles.article_title, articles.article_link, 
-                   articles.article_annotation,  articles.article_source, articles.article_category_id, articles.revision_author_id, 
-                   articles.article_template_id, articles.article_permissions  
-                   FROM articles, groups, librarys, articles lfind 
-                   WHERE  articles.article_permissions = 'grp'
-                   AND articles.actual_flag = 'A' 
-                   AND groups.revision_author_id = articles.revision_author_id
-                   AND groups.revision_author_id = $sId
-                   AND groups.group_id = librarys.group_id
-                   AND librarys.article_id = articles.article_id
-                   AND articles.article_id = lfind.article_id 
-                   AND lfind.article_link = '${aLink}'        
+                    SELECT 
+                       articles.article_id, articles.article_title, articles.article_link, 
+                       articles.article_annotation,  
+                       CASE WHEN  articles.article_permissions = 'pbl' OR articles.revision_author_id = $sId  
+                           THEN articles.article_source
+                           ELSE '403' END AS article_source, 
+                       articles.article_category_id, articles.revision_author_id, 
+                       articles.article_template_id, articles.article_permissions
+                       FROM articles 
+                       WHERE articles.actual_flag = 'A' 
+                       AND articles.article_id =  (
+                           SELECT DISTINCT article_id FROM articles WHERE article_link = '${aLink}' )
+                       UNION
+                       SELECT 
+                       articles.article_id, articles.article_title, articles.article_link, 
+                       articles.article_annotation,  
+                       articles.article_source, 
+                       articles.article_category_id, articles.revision_author_id, 
+                       articles.article_template_id, articles.article_permissions  
+                       FROM articles, groups, librarys, articles lfind 
+                       WHERE  articles.actual_flag = 'A' 
+                       AND groups.revision_author_id = articles.revision_author_id
+                       AND groups.revision_author_id = $sId
+                       AND groups.group_id = librarys.group_id
+                       AND librarys.article_id = articles.article_id
+                       AND articles.article_id = lfind.article_id 
+                       AND lfind.article_link = '${aLink}'                       
                     """
+                    
+#                 [ LIMIT { number | ALL } ] [ OFFSET number ]
                     #   article_id 
             tplWrk = string.Template(strTpl) # strTpl
             strSelect = tplWrk.substitute(sId=str(spectatorId), aLink=article_link)
@@ -323,15 +346,20 @@ class Article(Model):
         """
         logging.info( 'Article ::: getByUsingHash hash  = ' + str(hash))
     
+ 
         strTpl = """
                SELECT 
                lfind.article_id, lfind.article_title, lfind.article_link, 
-               lfind.article_annotation,  lfind.article_source, lfind.article_category_id, lfind.revision_author_id, 
+               lfind.article_annotation,  
+               
+                CASE WHEN  lfind.article_permissions = 'pbl' OR lfind.revision_author_id = $sId  
+                    THEN lfind.article_source
+                    ELSE '403' END AS article_source, 
+              
+               lfind.article_category_id, lfind.revision_author_id, 
                lfind.article_template_id, lfind.article_permissions, lfind.actual_flag
                FROM articles lfind 
                WHERE lfind.sha_hash = '${aHash}'
-               AND ( lfind.article_permissions = 'pbl' 
-                       OR  lfind.revision_author_id = $sId )
                UNION
                SELECT 
                lfind.article_id, lfind.article_title, lfind.article_link, 
@@ -485,16 +513,8 @@ class Article(Model):
         #             raise WikiException( ARTICLE_NOT_FOUND )
            return []
         
-#         for oneObj in getRez:
-#             oneObj.article_title = base64.b64decode(oneObj.article_title).decode(encoding='UTF-8')
-#             oneObj.article_link = base64.b64decode(oneObj.article_link).decode(encoding='UTF-8')
-#             oneObj.article_annotation =  base64.b64decode(oneObj.article_annotation).decode(encoding='UTF-8')
-        #              articleTitle = oneObj.article_title.strip().strip(" \t\n")
-        #              oneObj.article_link  =  articleTitle.lower().replace(' ','_')
-#             logging.info( 'list:: After getRez = ' + str(oneObj))
-        
-        
         return getRez
+ 
    
     def getListArticlesAll (self, spectatorId = 0):
         """
@@ -513,7 +533,7 @@ class Article(Model):
                        LEFT JOIN groups ON groups.revision_author_id = articles.revision_author_id
                                 AND groups.group_id = librarys.group_id
                    WHERE articles.actual_flag = 'A'
-                   AND  ( articles.article_permissions = 'pbl' OR  
+                   AND  ( articles.article_permissions != 'sol' OR  
                    articles.article_id IN 
                    (SELECT DISTINCT articles.article_id FROM articles WHERE articles.revision_author_id  =  $sId) 
                    )
@@ -526,14 +546,12 @@ class Article(Model):
             logging.info( 'getListArticlesAll::  strSelect = ' + str(strSelect))
             getRez = self.rowSelect(str(strSelect)) 
         else:
-            autorIdStr = '';
-                
-            autorIdStr += " articles.actual_flag = 'A' "
+            autorIdStr = " articles.article_permissions != 'sol' AND articles.actual_flag = 'A' ";
                 
             getRez = self.select(
         #                                'articles.article_id, FROM_BASE64(articles.article_title),  FROM_BASE64(articles.article_source) ',
                    " articles.article_id, articles.article_title, articles.article_link, " +
-                   " articles.article_annotation, articles.article_category_id, articles.revision_author_id, "+
+                   " articles.article_annotation, articles.article_category_id,  "+
                    " articles.article_template_id, articles.article_permissions, " +
                    " groups.group_title, groups.group_annotation, groups.group_id " ,
                    "",
@@ -574,7 +592,7 @@ class Article(Model):
 # "чисто" ревизные вещи - дату, автора, флаг 
 # и уже в таком порядке все и выбирать... 
         
-    def revisionsList(self, articleId):
+    def getRevisionsList(self, articleId, spectatorId):
         """
         получить список ревизий для одной статей
         упорядочивать по дате ревизии - в начале - самые последние
@@ -583,16 +601,19 @@ class Article(Model):
 
         - выбираем данные из "texts"  и "annotations"  и "titles"  и "authors" 
         
-                               ' EXTRACT(EPOCH FROM articles.operation_timestamp) AS operation_timestamp, '+ 
-        
         """
         getRez = self.select(
                                """
-                                articles.article_id, articles.article_title, 
+                               articles.article_id, articles.article_title, 
                                articles.article_annotation, 
                                articles.article_title AS rev_article_title,  
-                               articles.article_link, articles.article_annotation, 
-                               articles.article_source,  
+                               articles.article_link, articles.article_annotation,
+                                
+                               CASE WHEN  articles.article_permissions = 'pbl' OR articles.revision_author_id = """ +
+                               str(spectatorId) +   
+                                """ THEN articles.article_source
+                                   ELSE '403' END AS article_source, 
+                                 
                                articles.operation_timestamp AS operation_timestamp,  
                                articles.sha_hash, 
                                articles.revision_author_id AS author_id, 

@@ -354,7 +354,7 @@ class RevisionsHandler(BaseHandler):
 #             articleId = self.get_argument("id", None)
             self.autor = self.get_current_user()
             artModel = Article()
-            revisions = yield executor.submit( artModel.revisionsList, articleId)
+            revisions = yield executor.submit( artModel.getRevisionsList, articleId, self.autor.author_id)
             
             tplControl = TemplateParams()
             tplControl.make(self.autor)

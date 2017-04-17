@@ -100,7 +100,6 @@ class HelperArticle():
         return  rezult #.result()
 
 
-
     def getArticleByIdRevId(self, articleId, revId):
         """
         получить определенную ревизию статьи
