@@ -36,8 +36,16 @@ function sourseViewerShow(title, link, hash, source){
     } 
 
     $('#titleView').html(title);
-    $('#editLink').html(' <a style="color: #ffffff;" href="/compose/'+ link +'?hash='+hash +'">{{ _("Edit this wiki") }}</a> ');
-    $('#source').html(b64_to_utf8(source));
+    
+    if (b64_to_utf8(source) == '403') {
+    	$('#source').html('<h1 class="eror"> {{ _("No permission to view") }} </h1>' );
+    	$('#editLink').html('');
+    } else {
+    	$('#editLink').html(' <a style="color: #ffffff;" href="/compose/'+ link +'?hash='+hash +'">{{ _("Edit this wiki") }}</a> ');
+    	$('#source').html(b64_to_utf8(source));	
+    }
+    
+    
 };
 
 function sourseViewerClose(){
@@ -58,7 +66,7 @@ function sourseViewerClose(){
 				<div id="source_viewer"  class="hiddy">
 					<div class="panel panel-yellow"class="">
 					    <div class="panel-heading">
-							<span  id="titleView">Title></span>
+							<span  id="titleView">{{ _("Title") }}</span>
 							&nbsp;&nbsp;&nbsp; 
 							<span class="badge badge-blue" id="editLink"><a style="color: #ffffff;" href="/compose">{{ _("Create new wiki") }}</a></span>
 							<span class="badge badge-blue pull-right" ><a style="color: #ffffff;" href="#"onclick="sourseViewerClose()">X</a></span>
