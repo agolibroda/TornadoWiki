@@ -7,8 +7,8 @@
 	     <tr>
 	         <th>Название</th>
 	         <th>Кратке содержание</th>
-	         <th>Редактировать</th>
-	         <th>Ревизии</th>
+	         <th>{{ _("Permission") }} </th>
+	         <th>Редактировать / Ревизии</th>
 	         <th>Группа</th>
 	         <th>Описание</th>
 	         <th>Перейти</th>
@@ -21,8 +21,9 @@
 			 <tr>
 			     <td><a href="/{{ article.article_link }}">{{ article.article_title }}</a></td>
 			     <td><a href="/{{ article.article_link }}">{{ article.article_annotation[0:30] }}</a></td>
-			     <td> <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose/{{ article.article_link }}">{{ _("Edit this wiki") }}</a></span></td>
-			     <td> <span class="badge badge-orange"><a style="color: #ffffff;" href="/revisionse/{{ article.article_id }}">{{ _("Revisions this wiki") }}</a></span></td>
+			     <td><a href="/{{ article.article_link }}">{{ article.article_permissions }}</a></td>
+			     <td> <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose/{{ article.article_link }}">{{ _("Edit this wiki") }}</a></span>
+			     / <span class="badge badge-orange"><a style="color: #ffffff;" href="/revisionse/{{ article.article_id }}">{{ _("Revisions this wiki") }}</a></span></td>
 			     <td>{% if article.group_title != None %} {% raw article.group_title %} {% end %} </td> 
 			     <td>{% if article.group_title != None %} {% raw article.group_annotation[0:30] %} {% end %} </td> 
 			     <td>{% if article.group_title != None %}<a href="/group_desk_top/{{ article.group_id }}"><span class="badge badge-green">{{ _("Go To Group") }}</span></a>{% end %}</td>

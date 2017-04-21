@@ -98,7 +98,8 @@ function sourseViewerClose(){
 						     <tr>
 						         <th>{{ _("Date") }}</th>
 						         <th>{{ _("Title") }}</th>
-						         <th>{{ _("Fnnotation") }} </th>
+						         <th>{{ _("Annotation") }} </th>
+						         <th>{{ _("Permission") }} </th>
 						         <th>{{ _("Edit wiki") }}</th>
 						         <th>{{ _("Viev wiki") }}</th>
 						         <th>{{ _("Revision Author") }}</th>
@@ -110,6 +111,7 @@ function sourseViewerClose(){
 								     <td><a href="/{{ revision.article_link }}">{{revision.operation_timestamp.strftime("%d.%m.%Y")}}</a></td>
 								     <td><a href="/{{ revision.article_link }}">{{ revision.rev_article_title }}</a></td>
 								     <td><a href="/{{ revision.article_link }}">{{ revision.article_annotation }}</a></td>
+								     <td><a href="/{{ revision.article_link }}">{{ revision.article_permissions }}</a></td>
 								     <td> <span class="badge badge-blue"><a style="color: #ffffff;" href="/compose/{{ revision.article_link }}?hash={{ revision.sha_hash }}">{{ _("Edit this wiki") }}</a></span></td>
 								     <td> <span class="badge badge-orange"><a style="color: #ffffff;" href="#" onclick="sourseViewerShow('{{ revision.rev_article_title }}', '{{ revision.article_link }}', '{{ revision.sha_hash }}', '{{revision.article_source}}')">{{ _("Viev this wiki") }}</a></span></td>
 								     <td><a href="/profile/{{ revision.author_id }}">{{ revision.author_name }} {{ revision.author_surname }}</a></td>

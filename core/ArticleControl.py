@@ -249,6 +249,9 @@ class ComposeHandler(BaseHandler):
             tplControl.groupId=groupId
             tplControl.link='/compose'
             
+            tplControl.tpl_categofy_id = config.options.tpl_categofy_id
+            
+            
             tplControl.page_name = pageName 
 
             categoryList = [Article(0, 'Выберите значение ')]

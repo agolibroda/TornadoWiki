@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 
 {% block body %}
-<script src="{{ static_url("js/ckeditor/ckeditor.js") }}"></script>
+
+{% if int(parameters.article.article_permission_code) == 403 %}
+ {% include "permission_denied.html" %}  
+ 
+{% else %}
 
   <div class="panel panel-blue" style="background:#fff;">
            <div class="panel-body pan">
@@ -23,9 +27,15 @@
                    <div class="form-group">
                        <label for="inputText" class="control-label">{{ _("Article Text") }}</label>
                        <textarea name="sourse" id="sourse" rows="20" class="form-control">{{ parameters.article.article_source if parameters.article else "" }}</textarea>
+			            {{ parameters.article.article_category_id }};
+			           tpl_categofy_id = {{ parameters.tpl_categofy_id }};
+			            
+			            {% if parameters.tpl_categofy_id != parameters.article.article_category_id %}
+			            <script src="{{ static_url("js/ckeditor/ckeditor.js") }}"></script>
 			            <script>
 				            CKEDITOR.replace( 'sourse' );
 				        </script>
+				        {% end %}
                    </div>
 
 <div class="row">
@@ -87,6 +97,7 @@
        <br><br><br><br><br>
 {% end %}
 
+{% end %}
 
 {% block bottom %}
    
