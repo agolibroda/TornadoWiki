@@ -48,6 +48,7 @@ from core.Helpers      import *
 from core.WikiException import *
 
 from core.Helpers      import *
+from _overlapped import NULL
 
 
 
@@ -228,10 +229,11 @@ class Model: #Connector:
             logging.info(' save::Before Save mainPrimaryObj = ' + toStr(mainPrimaryObj))
      
             list = []
-            for primaryName, primaryValue in mainPrimaryObj.items():
-                logging.info(' save::Before Save primaryName = ' + toStr(primaryName))
-                logging.info(' save::Before Save primaryValue = ' + toStr(primaryValue))
-                list.append(primaryName + ' = ' + str(primaryValue))
+            if mainPrimaryObj != NULL:
+                for primaryName, primaryValue in mainPrimaryObj.items():
+                    logging.info(' save::Before Save primaryName = ' + toStr(primaryName))
+                    logging.info(' save::Before Save primaryValue = ' + toStr(primaryValue))
+                    list.append(primaryName + ' = ' + str(primaryValue))
                 
             whtreStr  = ' AND '.join(list)    
             logging.info(' save::Before Save whtreStr = ' + toStr(whtreStr))

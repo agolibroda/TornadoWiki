@@ -70,12 +70,12 @@ class File(Model):
             self.article_id = 0
             self.file_kros_flag  = 'A' # Average : Main
 
-        def save(self, file_id, article_id):
-            self.file_id = file_id
-            self.article_id = article_id
-            self.insert()
-                    
-    
+        def save(self, author_id, operationFlag, ha_hash_sou ):
+            Model.save(self, author_id, operationFlag, NULL, sha_hash_sou)
+#             self.file_id = file_id
+#             self.article_id = article_id
+#             self.insert()
+  
     def __init__(self):
         Model.__init__(self, 'files')   
         self.file_id = 0
@@ -94,7 +94,30 @@ class File(Model):
 #         logging.info( 'uploadOneFile filePath =  '+ str(filePath) )
         self.wrkDir = os.path.join(storageDir, '/'.join(filePath))
         return os.path.join(self.wrkDir, str(fname) + self.file_extension)
- 
+
+
+    def upload(self, files, article_id, author_id):
+        """
+        Обработка очереди входных файлов 
+        
+        все происходит так:
+        - берем кучу файлов (все, что пришли из формы)
+        - и каждый из них сохраняем по отдельности
+        - при сохранении файла на дск, делаем запись в БАЗУ!!!!
+        
+        """  
+        logging.info( 'upload files = '  + str(files))
+#         logging.info( 'upload article_id = '  + str(article_id))
+#         logging.info( 'upload author_id = '  + str(author_id))
+        
+        rezult = []
+        for oneFile in files['filearg']:
+            fileOut = self.uploadOneFile(oneFile, article_id, author_id)
+            rezult.append(fileOut)
+        
+        return rezult
+
+                        
     def uploadOneFile(self, file, article_id, author_id):
         """
         загрузим файл, сделаем для него запись в табличке "файлы" 
@@ -139,29 +162,6 @@ class File(Model):
             
         return self    
 
-#     @gen.coroutine
-#     def post(self):
-#         authorloginLoad =  Author()
-# 
-#         rezult = yield executor.submit( authorloginLoad.login, self.get_argument("login"), self.get_argument("password") )
-                        
-   
-    def upload(self, files, article_id, author_id):
-        """
-        Обработка очереди входных файлов 
-        
-        """  
-#         logging.info( 'upload files = '  + str(files))
-#         logging.info( 'upload article_id = '  + str(article_id))
-#         logging.info( 'upload author_id = '  + str(author_id))
-        
-        rezult = []
-        for oneFile in files['filearg']:
-            fileOut = self.uploadOneFile(oneFile, article_id, author_id)
-            rezult.append(fileOut)
-        
-        return rezult
-                        
     def save(self, file_inside_name, fileName, fileExtension, article_id, author_id):
         """
         Запомнить описание файла. 
@@ -169,32 +169,44 @@ class File(Model):
         о, а что делать, если я решил поменять имя файлу?? 
         или, менять имя только у "майновой" страницы описания файла??
         
+        file_inside_name - имя файла, которое получиось при взятии ХЕША с файла, после его заливки на серве.
+        fileName - имя файла, которое было на компютере автора
+        
         """
+        
         realFileName = self.realFileName
         del(self.realFileName)
         del(self.wrkDir)
         del(self.error)
-        self.author_id = author_id
         self.file_name = fileName
         self.file_inside_name = file_inside_name
         self.file_extension = fileExtension
-        self.insert('file_id')
-
+        
+        operationFlag = 'I'
+        sha_hash_sou = file_inside_name +  fileName  + fileExtension + str(article_id) + str( author_id)
+        mainPrimaryObj = {'file_id': self.file_id }
+        self.file_id = Model.save(self, author_id, operationFlag, mainPrimaryObj, sha_hash_sou, 'file_id')
+        
         kross = self.Kross()
 #         kross.file_kros_flag
-        kross.save(self.file_id, article_id)
+
+        sha_hash_sou =  str(self.file_id) + str(article_id) + str( author_id)
+        kross.file_id = self.file_id
+        kross.article_id = article_id
+
+        kross.file_kros_flag = 'A' # 'M'
+
+        kross.save(author_id, operationFlag, ha_hash_sou )
 #       а вот теперь можно добавить и страницу с описанием самой картинки... 
 #       а потом добавить туда и новый кросс... 
-
-        artModel = Article()
-        
-        artModel.article_title =  self.file_name
-        artModel.article_html =  self.file_name
-        artModel.save ( author_id )
-        
-        kross.file_kros_flag = 'M'
-        kross.save(self.file_id, artModel.article_id)
-
+#         artModel = Article()
+#         
+#         artModel.article_title =  self.file_name
+#         artModel.article_html =  self.file_name
+#         
+#         artModel.save ( author_id )
+#         kross.file_kros_flag = 'M'
+#         kross.save(self.file_id, artModel.article_id)
         
         self.realFileName = realFileName
         

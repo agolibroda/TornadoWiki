@@ -27,8 +27,6 @@
                    <div class="form-group">
                        <label for="inputText" class="control-label">{{ _("Article Text") }}</label>
                        <textarea name="sourse" id="sourse" rows="20" class="form-control">{{ parameters.article.article_source if parameters.article else "" }}</textarea>
-			            {{ parameters.article.article_category_id }};
-			           tpl_categofy_id = {{ parameters.tpl_categofy_id }};
 			            
 			            {% if parameters.tpl_categofy_id != parameters.article.article_category_id %}
 			            <script src="{{ static_url("js/ckeditor/ckeditor.js") }}"></script>
@@ -75,14 +73,18 @@
     </div>
 </div>
                </div>
+
+{% if parameters.article.article_id > 0 %}
+    
+<iframe src="/upload/{{ parameters.article.article_id }}.html" width="100%"></iframe>
+    
+{% end %}
+
                <div class="form-actions text-right pal">
                    <button type="submit" class="btn btn-primary">{{ _('Save changes') }}</button>
                    &nbsp;<a href="/personal_desk_top" class="btn btn-primary">{{ _("Cancel") }}</a>
                </div>
 
-    {% if parameters.article.article_id > 0 %}
-      &nbsp;<a href="/upload/{{ parameters.article.article_id  if parameters.article else 0 }}">{{ _("Upload") }}</a>
-    {% end %}
     </div>
       <input type="hidden" name="id" value="{{ parameters.article.article_id }}"/>
       <input type="hidden" name="group_id" value="{{ parameters.groupId }}"/>

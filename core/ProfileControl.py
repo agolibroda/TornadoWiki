@@ -171,7 +171,7 @@ class MyProfileHandler(BaseHandler):
             curentAuthor = yield executor.submit(self.get_current_user ) 
             logging.info( 'MyProfileHandler GET :: curentAuthor = ' + str(curentAuthor))
 
-            if not curentAuthor.author_id: raise tornado.web.HTTPError(404, "data not found")
+            if not curentAuthor.author_id: raise tornado.web.HTTPError(404, "author not found")
 
             tplControl = TemplateParams()
             tplControl.make(curentAuthor)

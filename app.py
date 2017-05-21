@@ -18,10 +18,15 @@ import json
 
 import config
 
+from core.FilesControl import *
+
 from core.ProfileControl import *
 from core.ArticleControl import *
 from core.ProfileControl import *
 from core.DeskTopControls import *
+
+
+
 
 from core.RestControl import *
 
@@ -45,7 +50,7 @@ class Application(tornado.web.Application):
 
             (r"/compose", ComposeHandler), # (ArticleControl) редактор - в зависимости от роли запускателя (или, откуда оно запускается?) такой набор инструментов и покажем.
             (r"/compose/([^/]+)", ComposeHandler), # (ArticleControl)
-            (r"/upload/([^/]+)",  UploadHandler), # (ArticleControl) upload #filesupl
+            (r"/upload/([^/]+)",  UploadHandler), # (FilesControl) upload #filesupl
 
             (r"/revisionse/([0-9]+)", RevisionsHandler),# (ArticleControl) Список ревизий как отдельный список (???) 
             (r"/revision_view", RevisionViewHandler), # (ArticleControl) просмотр одной рвизи????

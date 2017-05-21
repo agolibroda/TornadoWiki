@@ -399,62 +399,6 @@ class RevisionViewHandler(BaseHandler):
 
 
 
-class UploadHandler(BaseHandler):
-    """
-    загрузка файлов... 
-    открываем с ИД статьи в адресе 
-    грузим файл/файлы, делаем записи в табличке файлы, 
-    делаем записи в табличке "крос-линки" == привязываем картинки к статьям
-    Если грузим файлы в документ ИД===0 
-    значит, сразу открываем новую статью - имя статьи == имени файла, 
-    ив крос-таблице ставим флаг == "М" - главная статья
-    То есть, у нас есть файлы - к каждому файлу МОЖЕТ быть привязана статья описания - 
-    и каждый файл может быть привязан к юольшому количеству разных статей. 
-    
-    """
-    @tornado.web.authenticated
-    def get(self, article_id):
-#         article_id = self.get_argument("id", 0)
-        logging.info( 'UploadHandler:: get article_id =  ' + str(article_id) )
-        self.article_id = article_id
-        self.render("upload.html", error=None, article_id = article_id, link='/compose', page_name='Редактирование')
-    
-    
-    @gen.coroutine
-    @tornado.web.authenticated
-    def post(self, article_id):
-        try:
-            curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
-    #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
-    #         curentAuthor = rezult.result()
-            
-            author_id = curentAuthor.author_id
-            
-            fileContrl = File()
-            fileInfo = yield executor.submit(
-                                            fileContrl.upload, 
-                                            self.request.files, #['filearg'], 
-                                            article_id, author_id 
-                                            ) 
-    #         fileInfo = fileContrl.upload(self.request.files, article_id, author_id ) 
-    #         for oneRez in fileInfo:
-    #             logging.info( 'UploadHandler:: post oneRez = '  + str(oneRez))
-    # 
-    #         if fileInfo.file_id != 0:
-    #             error = fileInfo.error # None
-    #         else:
-    #             error =  fileInfo.error #'error upload file'
-    #  вот тут надо послать некий сигнал, что все хорошо, и можно обновить 
-    # данными из fileInfo нужную панель в приемнике, пичем, почему бы ЭТО не сделать сокетами?
-            error = None
-    #         self.finish("file" + fileContrl.originalFname + " is uploaded")
-            self.redirect("/upload/" + article_id, error)
-        except Exception as e:
-            logging.info( 'Save:: Exception as et = ' + str(e))
-            error = Error ('500', 'что - то пошло не так :-( ')
-            self.render('error.html', error=error, link='/compose', page_name='Редактирование')
-
-
 class FeedHandler(BaseHandler):
     """
     просмотр списка материалов в другом формате
@@ -485,12 +429,7 @@ class ArticleModule(tornado.web.UIModule):
 #         logging.info( 'ArticleModule:: fileList = ' + str(fileList))
         return self.render_string("modules/article.html", article=article, fileList=fileList, link='/compose', page_name='Редактирование')
  
- 
-class FilesListModule(tornado.web.UIModule):
-    def render(self, fileList):
-        logging.info( 'FilesList:: fileList = ' + str(fileList))
-        return self.render_string("modules/files_list.html", fileList=fileList, link='/compose', page_name='Редактирование')
- 
+  
 class RevisionModule(tornado.web.UIModule):
     def render(self, revision):
         return self.render_string("modules/revision.html", revision=revision, link='/compose', page_name='Редактирование')
