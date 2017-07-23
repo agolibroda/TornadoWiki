@@ -89,6 +89,7 @@ class UploadHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self, article_id):
         try:
+            logging.info( 'UploadHandler:: post article_id =  ' + str(article_id) )
             curentAuthor = yield executor.submit(self.get_current_user ) #self.get_current_user ()
     #         logging.info( 'ComposeHandler:: post rezult = ' + str(rezult))
     #         curentAuthor = rezult.result()
@@ -113,7 +114,7 @@ class UploadHandler(BaseHandler):
     # данными из fileInfo нужную панель в приемнике, пичем, почему бы ЭТО не сделать сокетами?
             error = None
     #         self.finish("file" + fileContrl.originalFname + " is uploaded")
-            self.redirect("/upload/" + article_id, error)
+            self.redirect("/upload/" + str(article_id)+ '.html', error)
         except Exception as e:
             logging.info( 'Save:: Exception as et = ' + str(e))
             error = Error ('500', 'что - то пошло не так :-( ')

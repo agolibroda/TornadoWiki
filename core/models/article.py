@@ -337,6 +337,35 @@ class Article(Model):
             return outArt
 
 
+    def getById(self, articleId):
+         """
+         получить статью по ID (одну) - функция для пердставления данных (!!!) 
+         получить ОЛЬКО опубликованный текст  (активную статью) - для редактирования получаем статью иным образом! 
+    
+         """
+         logging.info( 'Article ::: getById articleId  = ' + str(articleId))
+    
+         getRez = self.select(
+                                'articles.article_id, articles.article_title, articles.article_link, '+
+                                'articles.article_annotation,  articles.article_source, articles.article_category_id, '+ 
+                                'articles.revision_author_id, articles.article_template_id, articles.article_permissions',
+                                '',
+                                    {
+                                'whereStr': ' articles.article_id = ' + str(articleId) +\
+                                            " AND articles.actual_flag = 'A' "  ,
+                                 }
+                                )
+    
+         if len(getRez) == 0:
+            raise WikiException( ARTICLE_NOT_FOUND )
+         elif len(getRez) == 1:   
+#              logging.info( ' getById getRez = ' + str(getRez[0]))
+            outArt = self.articleDecode(getRez[0])
+#              logging.info( ' getById outArt = ' + str(outArt))
+            return outArt
+
+
+
     def getByUsingHash(self, spectatorId, hash):
         """
         получить статью (ВЕРСИЮ) по hash (одну) 

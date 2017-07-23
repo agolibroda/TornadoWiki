@@ -74,6 +74,8 @@ class HomeHandler(BaseHandler):
         try:
             artHelper = HelperArticle()
             articleId = config.options.main_page_id
+
+            logging.info( 'HomeHandler get article articleId = ' + str(articleId))
             
             (article, fileList) = yield executor.submit( artHelper.getArticleById, articleId)
             logging.info( 'HomeHandler get article = ' + str(article))

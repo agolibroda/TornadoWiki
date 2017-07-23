@@ -233,15 +233,17 @@ class Model: #Connector:
                 for primaryName, primaryValue in mainPrimaryObj.items():
                     logging.info(' save::Before Save primaryName = ' + toStr(primaryName))
                     logging.info(' save::Before Save primaryValue = ' + toStr(primaryValue))
-                    list.append(primaryName + ' = ' + str(primaryValue))
-                
-            whtreStr  = ' AND '.join(list)    
-            logging.info(' save::Before Save whtreStr = ' + toStr(whtreStr))
-                
-            # Все ревизии ЭТОЙ записи - устарели!!!! - проабдейтим список ревизий
-            sqlStr = "UPDATE " + self._tabName + " SET actual_flag = 'O' WHERE " + whtreStr
-            logging.info(' save:: sqlStr = ' + sqlStr)
-            _loDb.execute(sqlStr)
+                    if primaryValue > 0: 
+                        list.append(primaryName + ' = ' + str(primaryValue))
+            
+            if len(list) > 0:    
+                whtreStr  = ' AND '.join(list)    
+                logging.info(' save::Before Save whtreStr = ' + toStr(whtreStr))
+                    
+                # Все ревизии ЭТОЙ записи - устарели!!!! - проабдейтим список ревизий
+                sqlStr = "UPDATE " + self._tabName + " SET actual_flag = 'O' WHERE " + whtreStr
+                logging.info(' save:: sqlStr = ' + sqlStr)
+                _loDb.execute(sqlStr)
             
             operation_timestamp = datetime.now() 
             sha_hash =  hashlib.sha256(

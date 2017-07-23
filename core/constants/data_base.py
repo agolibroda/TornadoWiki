@@ -15,3 +15,4 @@ LINK_OR_ARTICLE_NOT_UNIQ    = '100005, Link or article is not unique'
 ARTICLE_NOT_FOUND           = '100006, Article not found'
 FILE_NOT_FOUND              = '100007, File not found'
 NOT_PERMISSION_TO_VIEW      = '403, No permission to view '
+

@@ -33,6 +33,18 @@ from .article import Article
 from ..constants.data_base import * 
 
 
+PICTURE_PAGE_SOURSE  = """
+
+fileName: $fileName 
+<br><br> 
+<img alt="$fileName" src="$FilePatch">
+
+
+К праведному блуду Будьт Готовы!!!
+Всега Готовы!!!!
+
+"""
+
 
 class File(Model):
     """
@@ -70,7 +82,7 @@ class File(Model):
             self.article_id = 0
             self.file_kros_flag  = 'A' # Average : Main
 
-        def save(self, author_id, operationFlag, ha_hash_sou ):
+        def save(self, author_id, operationFlag, sha_hash_sou ):
             Model.save(self, author_id, operationFlag, NULL, sha_hash_sou)
 #             self.file_id = file_id
 #             self.article_id = article_id
@@ -196,17 +208,39 @@ class File(Model):
 
         kross.file_kros_flag = 'A' # 'M'
 
-        kross.save(author_id, operationFlag, ha_hash_sou )
+        kross.save(author_id, operationFlag, sha_hash_sou )
 #       а вот теперь можно добавить и страницу с описанием самой картинки... 
-#       а потом добавить туда и новый кросс... 
-#         artModel = Article()
+#        нужен специальный шаблон для показухи картинок...  и создавать картиночную страницу, с ТЕМшаблоном!!!!
+#       подменять в шаблоне имя   
+#       а потом добавить туда и новый кросс...
+
+
+ 
+        artModel = Article()
+         
+        artModel.article_title =  self.file_name
+        # ${aLink}
+#         tplWrk = string.Template(strTpl) # strTpl
+#         strSelect = tplWrk.substitute(sId=str(spectatorId), aLink=article_link)
+        logging.info( ' File::: save ::: self  = ' + str(self))
+        
+#         рубочая версия текста страницы = PICTURE_PAGE_SOURSE
+#         потом ее надо поабдейтить имеенм картинки, 
 #         
-#         artModel.article_title =  self.file_name
-#         artModel.article_html =  self.file_name
+#         да и вообще, проверить, картинка ли ЭТО!!!!!!
+#         и, если картинка, сделать превью, 
+#         Если нет,  то просто сцылку на скачивание... 
 #         
-#         artModel.save ( author_id )
-#         kross.file_kros_flag = 'M'
-#         kross.save(self.file_id, artModel.article_id)
+# то - то со статьей не то происходит!!!!
+# 0707 13:10:47 file:171]  file upload Error:: save() missing 1 required positional argument: 'templateDir'
+# надо посмотреть!!!!
+# в общем, надо внимательно посмотреть на процедуру сохранения статьи как таковой!!!! 
+
+        artModel.article_source =  self.file_name
+         
+        artModel.save ( author_id )
+        kross.file_kros_flag = 'M'
+        kross.save(self.file_id, artModel.article_id)
         
         self.realFileName = realFileName
         

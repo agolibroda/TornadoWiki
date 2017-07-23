@@ -50,7 +50,7 @@ class Application(tornado.web.Application):
 
             (r"/compose", ComposeHandler), # (ArticleControl) редактор - в зависимости от роли запускателя (или, откуда оно запускается?) такой набор инструментов и покажем.
             (r"/compose/([^/]+)", ComposeHandler), # (ArticleControl)
-            (r"/upload/([^/]+)",  UploadHandler), # (FilesControl) upload #filesupl
+            (r"/upload/([0-9]+).html",  UploadHandler), # (FilesControl) upload #filesupl
 
             (r"/revisionse/([0-9]+)", RevisionsHandler),# (ArticleControl) Список ревизий как отдельный список (???) 
             (r"/revision_view", RevisionViewHandler), # (ArticleControl) просмотр одной рвизи????

@@ -187,7 +187,6 @@ DROP TABLE IF EXISTS files_kroses;
 CREATE TABLE IF NOT EXISTS files_kroses (
   file_id int not null,
   article_id int NOT NULL,
-  file_kros_create_date timestamp NOT NULL,
   file_kros_flag files_kross_type NOT NULL,
   
   sha_hash character varying(66) NOT NULL primary key,
@@ -201,7 +200,6 @@ CREATE TABLE IF NOT EXISTS files_kroses (
 
 CREATE INDEX files_kroses_file_id ON files_kroses (file_id);
 CREATE INDEX files_kroses_article_id ON files_kroses (article_id);
-CREATE INDEX file_kros_create_date_idx ON files_kroses (file_kros_create_date);
 CREATE INDEX file_kros_flag_id ON files_kroses (file_kros_flag);
 
 CREATE UNIQUE INDEX files_kroses_sha_hash_idx ON files_kroses (sha_hash);
