@@ -2,14 +2,17 @@
 
 {% block body %}
 
+
+
 {% if int(parameters.article.article_permission_code) == 403 %}
  {% include "permission_denied.html" %}  
  
 {% else %}
 
+
   <div class="panel panel-blue" style="background:#fff;">
            <div class="panel-body pan">
-				<form action="{{ request.path }}" method="post">
+				<form action="{{ parameters.actionLink }}" method="post">
                <div class="form-body pal">
                    <div class="form-group">
                        <label for="inputName" class="control-label">{{ _("Article Name") }}</label>
@@ -96,7 +99,10 @@
                </form>
            </div>
        </div>
-       <br><br><br><br><br>
+ 
+
+
+      <br><br><br><br><br>
 {% end %}
 
 {% end %}
@@ -123,4 +129,15 @@
 
   //]]>
   </script>
+
+
+
+
+
+
+
+
 {% end %}
+
+
+

@@ -121,6 +121,7 @@ class Article(Model):
         self.article_category_id = config.options.info_page_categofy_id # категория страницы (служебные?) 'inf','trm','nvg','tpl'
         self.article_template_id = config.options.main_info_template
         self.article_permissions = 'pbl'
+        self.article_permission_code = 200
 #         self.article_link = '' 
 
         
@@ -156,6 +157,8 @@ class Article(Model):
         self.article_link = article_link.replace('__','_')
 
         logging.info( 'article Before Save 1 self.article_id = ' + str(self) )
+        
+        del self.article_permission_code 
         
         self.articleEncode()
 

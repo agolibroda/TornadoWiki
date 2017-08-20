@@ -267,8 +267,13 @@ class ComposeHandler(BaseHandler):
             templatesList += yield executor.submit(artHelper.getListArticles, config.options.tpl_categofy_id)
             tplControl.templatesList = templatesList
             tplControl.templateWrkId = article.article_template_id
+            
+            tplControl.actionLink ='/compose'
+
+# {{ parameters.article.article_id }}
 
 #             logging.info( ' ComposeHandler: GET: tplControl = ' + toStr(tplControl))
+            logging.info( ' ComposeHandler: GET: tplControl.article = ' + toStr(tplControl.article))
             self.render("compose.html", parameters= tplControl)
         except Exception as e:
             logging.info( 'Get:: Exception as et = ' + toStr(e))
@@ -312,6 +317,10 @@ class ComposeHandler(BaseHandler):
             
             helperArticle = HelperArticle()
             helperArticle.setModel(artModel)
+
+            logging.info( 'ComposeHandler:: Before Save! self.autor.author_id = ' + str(self.autor.author_id))
+            logging.info( 'ComposeHandler:: Before Save! templateDir = ' + str(templateDir))
+            logging.info( 'ComposeHandler:: Before Save! article_pgroipId = ' + str(article_pgroipId))
      
             rez = yield executor.submit( helperArticle.сomposeArticleSave, self.autor.author_id, templateDir, article_pgroipId )
     

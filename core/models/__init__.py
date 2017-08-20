@@ -233,9 +233,11 @@ class Model: #Connector:
                 for primaryName, primaryValue in mainPrimaryObj.items():
                     logging.info(' save::Before Save primaryName = ' + toStr(primaryName))
                     logging.info(' save::Before Save primaryValue = ' + toStr(primaryValue))
-                    if primaryValue > 0: 
+                    if int(primaryValue) > 0: 
                         list.append(primaryName + ' = ' + str(primaryValue))
             
+            logging.info('save::Before Save  list = ' + str(list))
+
             if len(list) > 0:    
                 whtreStr  = ' AND '.join(list)    
                 logging.info(' save::Before Save whtreStr = ' + toStr(whtreStr))

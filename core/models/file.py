@@ -215,10 +215,9 @@ class File(Model):
 #       а потом добавить туда и новый кросс...
 
 
- 
-        artModel = Article()
+        artHelper = HelperArticle()
          
-        artModel.article_title =  self.file_name
+        artHelper.artModel.article_title =  self.file_name
         # ${aLink}
 #         tplWrk = string.Template(strTpl) # strTpl
 #         strSelect = tplWrk.substitute(sId=str(spectatorId), aLink=article_link)
@@ -236,11 +235,14 @@ class File(Model):
 # надо посмотреть!!!!
 # в общем, надо внимательно посмотреть на процедуру сохранения статьи как таковой!!!! 
 
-        artModel.article_source =  self.file_name
-         
-        artModel.save ( author_id )
-        kross.file_kros_flag = 'M'
-        kross.save(self.file_id, artModel.article_id)
+#         artHelper.artModel.article_source =  self.file_name
+# 
+# вот тут посмотрим, откуда что берется. 
+#          
+#         artHelper.сomposeArticleSave( author_id, templateDir, article_pgroipId)
+#         
+#         kross.file_kros_flag = 'M'
+#         kross.save(self.file_id, artModel.article_id)
         
         self.realFileName = realFileName
         
