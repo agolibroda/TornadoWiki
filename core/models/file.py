@@ -149,12 +149,12 @@ class File(Model):
 #         logging.info( 'uploadOneFile realFileName =  ' + str(self.realFileName))
         try:
             if not os.path.exists(self.realFileName):
-#  все здорово, файла нету, и его можно и загрузить и сохранить его имя в базу
+                #  все здорово, файла нету, и его можно и загрузить и сохранить его имя в базу
                 os.makedirs(self.wrkDir)
 #                 logging.info( 'uploadOneFile LIKE CREATE! self.realFileName =  ' + str(self.realFileName))
                 output_file = open( self.realFileName, 'wb')
                 output_file.write(file['body'])
-# вот теперь сохраним в базу.            
+                # вот теперь сохраним в базу.            
                 self.save(fname, self.file_name, self.file_extension,  article_id, author_id)            
             else:
 # если файл есть, то его надо найти в базе, по - имени, и отдать на выход ИД файла. 
@@ -209,6 +209,7 @@ class File(Model):
         kross.file_kros_flag = 'A' # 'M'
 
         kross.save(author_id, operationFlag, sha_hash_sou )
+#TODO  
 #       а вот теперь можно добавить и страницу с описанием самой картинки... 
 #        нужен специальный шаблон для показухи картинок...  и создавать картиночную страницу, с ТЕМшаблоном!!!!
 #       подменять в шаблоне имя   

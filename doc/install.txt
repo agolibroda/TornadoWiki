@@ -2,12 +2,13 @@
  что нужно для работы системы.
  
  - торнадо 
- - дравера для MySQL ()
- 	ставится таким образом:
  	
  	pip install tornado
  	pip install psycopg2
  	pip install bcrypt
+ 	
+ 	pip install py-postgresql
+ 	
  	
  проверить, (и создать, если нет) директорию "filestorage" в "static" - тада будут складываться занружаемые файлы
  
