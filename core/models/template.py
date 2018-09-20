@@ -21,7 +21,7 @@ import tornado.web
 
 import os.path
         
-from _overlapped import NULL
+# from _overlapped import NULL
 
 ##############
 import config

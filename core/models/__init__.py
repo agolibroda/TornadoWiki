@@ -48,7 +48,10 @@ from core.Helpers      import *
 from core.WikiException import *
 
 from core.Helpers      import *
-from _overlapped import NULL
+
+
+
+#from _overlapped import NULL
 
 
 
@@ -64,6 +67,12 @@ class Connector:
         """
         # Connect to an existing database
         """
+        logging.info('Connector postgreBase = ' + str(config.options.postgreBase))
+        logging.info('Connector postgreHost = ' + str(config.options.postgreHost))
+        logging.info('Connector postgrePort = ' + str(config.options.postgrePort))
+        logging.info('Connector postgreUser = ' + str(config.options.postgreUser))
+        logging.info('Connector postgrePwd = ' + str(config.options.postgrePwd))
+        
         self._connectInstans = psycopg2.connect(
                                                 database= config.options.postgreBase, 
                                                 host= config.options.postgreHost,
@@ -229,7 +238,8 @@ class Model: #Connector:
             logging.info(' save::Before Save mainPrimaryObj = ' + toStr(mainPrimaryObj))
      
             list = []
-            if mainPrimaryObj != NULL:
+#             if mainPrimaryObj != NULL:
+            if mainPrimaryObj != None:
                 for primaryName, primaryValue in mainPrimaryObj.items():
                     logging.info(' save::Before Save primaryName = ' + toStr(primaryName))
                     logging.info(' save::Before Save primaryValue = ' + toStr(primaryValue))

@@ -20,7 +20,7 @@ import tornado.options
 import hashlib
 import base64
         
-from _overlapped import NULL
+# from _overlapped import NULL
 
 ##############
 import config

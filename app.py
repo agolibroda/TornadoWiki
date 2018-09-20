@@ -4,10 +4,6 @@
 
 # что нужно добавить до ядра ритона для нормальной работы
 #
-# easy_install pymysql - то же самое ??
-# easy_install MySQL-python - не пошло!!!!!
-# easy_install torndb 
-# easy_install markdown
 #
 
 

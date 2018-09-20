@@ -25,8 +25,8 @@ import base64
 import urllib 
 from urllib.parse import quote
 
-        
-from _overlapped import NULL
+# from _overlapped import NULL
+
 
 ##############
 import config

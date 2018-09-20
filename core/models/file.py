@@ -23,7 +23,7 @@ import base64
 import os.path
         
 
-from _overlapped import NULL
+# from _overlapped import NULL
 
 ##############
 import config
@@ -83,7 +83,9 @@ class File(Model):
             self.file_kros_flag  = 'A' # Average : Main
 
         def save(self, author_id, operationFlag, sha_hash_sou ):
-            Model.save(self, author_id, operationFlag, NULL, sha_hash_sou)
+#             Model.save(self, author_id, operationFlag, NULL, sha_hash_sou)
+            Model.save(self, author_id, operationFlag, None, sha_hash_sou)
+            
 #             self.file_id = file_id
 #             self.article_id = article_id
 #             self.insert()
